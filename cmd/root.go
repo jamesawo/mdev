@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	_ "github.com/jamesawo/mdev/internal/tools/maven"
 	"github.com/spf13/cobra"
 )
 
