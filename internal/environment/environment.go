@@ -1,7 +1,6 @@
 package environment
 
 import (
-	"os"
 	"path/filepath"
 )
 
@@ -17,11 +16,11 @@ func New(externalDrive string) *Environment {
 	}
 }
 
-func ConfigDir() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".mdev")
-}
-
-func ConfigFile() string {
-	return filepath.Join(ConfigDir(), "config.yaml")
-}
+//func ConfigDir() string {
+//	home, _ := os.UserHomeDir()
+//	return filepath.Join(home, ".mdev")
+//}
+//
+//func ConfigFile() string {
+//	return filepath.Join(ConfigDir(), "config.yaml")
+//}
