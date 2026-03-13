@@ -3,21 +3,89 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/spf13/cobra"
 )
 
 // installCmd represents the install command
 var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "install [tool]",
+	Args:  cobra.ExactArgs(1),
+	Short: "Install a tool",
+	Long: `
+	Install a development tool into your local environment.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This command installs a supported tool and prepares it for use with the
+current mdev environment configuration. The tool will be downloaded,
+installed, and configured using the paths and settings defined in your
+mdev environment.
+
+Before running this command, your environment must be initialized and
+validated using 'mdev doctor'. The install process depends on the
+configured directories, tool paths, and system checks performed during
+that step.
+
+If the tool is already installed, the command will detect it and skip
+the installation to avoid overwriting an existing setup.
+
+Usage:
+  mdev install [tool]
+
+Arguments:
+  tool    Name of the tool to install.
+
+Behavior:
+  • Validates that the environment is configured.
+  • Checks whether the requested tool is supported.
+  • Detects if the tool is already installed.
+  • Runs the tool-specific installation process.
+
+Examples:
+  mdev install java
+  mdev install gradle
+  mdev install maven
+
+Notes:
+  Each tool provides its own installation logic. The command acts as a
+  dispatcher that resolves the requested tool and executes its install
+  routine using the current environment configuration.
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("install called")
+
+		//if len(args) == 0 {
+		//	fmt.Println("Please specify a tool to install")
+		//	return
+		//}
+
+		name := args[0]
+
+		env, err := environment.FromConfig()
+		if err != nil {
+			fmt.Println("Environment not configured. Run `mdev doctor` first.")
+			return
+		}
+
+		tool, ok := tools.Get(name)
+		if !ok {
+			fmt.Println("Unknown tool:", name)
+			return
+		}
+
+		if tool.IsInstalled(env) {
+			fmt.Println("✓", name, "already installed")
+			return
+		}
+
+		fmt.Println("Installing", name)
+
+		err = tool.Install(env)
+		if err != nil {
+			fmt.Println("Installation failed:", err)
+			return
+		}
+
+		fmt.Println("✓ Installed", name)
 	},
 }
 
