@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/jamesawo/mdev/internal/config"
 	"github.com/jamesawo/mdev/internal/drive"
+	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +21,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		envP, err := environment.FromConfig()
+		if err == nil {
+			fmt.Println("Existing configuration detected:")
+			fmt.Println("External drive:", envP.ExternalDrive)
+			return
+		}
 
 		drives, err := drive.List()
 		if err != nil {
@@ -48,7 +57,24 @@ to quickly create a Cobra application.`,
 
 		selected := drives[index-1]
 
-		fmt.Println("Selected drive:", selected)
+		path := "/Volumes/" + selected
+
+		err = config.SaveExternalDrive(path)
+		if err != nil {
+			fmt.Println("Failed to save configuration:", err)
+			return
+		}
+
+		fmt.Println("Configuration saved.")
+		fmt.Println("External drive:", path)
+
+		env := environment.New(path)
+
+		err = environment.CreateDataRoot(env)
+		if err != nil {
+			fmt.Println("Failed to create data directory:", err)
+			return
+		}
 	},
 }
 

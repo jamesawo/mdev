@@ -56,3 +56,11 @@ func Load() (*Config, error) {
 
 	return &cfg, nil
 }
+
+func SaveExternalDrive(path string) error {
+	cfg := Config{
+		ExternalDrive: path,
+	}
+
+	return Save(cfg)
+}

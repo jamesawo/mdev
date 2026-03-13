@@ -1,7 +1,10 @@
 package environment
 
 import (
+	"os"
 	"path/filepath"
+
+	"github.com/jamesawo/mdev/internal/config"
 )
 
 type Environment struct {
@@ -16,11 +19,17 @@ func New(externalDrive string) *Environment {
 	}
 }
 
-//func ConfigDir() string {
-//	home, _ := os.UserHomeDir()
-//	return filepath.Join(home, ".mdev")
-//}
-//
-//func ConfigFile() string {
-//	return filepath.Join(ConfigDir(), "config.yaml")
-//}
+func CreateDataRoot(env *Environment) error {
+	return os.MkdirAll(env.DataRoot, 0755)
+}
+
+func FromConfig() (*Environment, error) {
+	cfg, err := config.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	env := New(cfg.ExternalDrive)
+
+	return env, nil
+}
