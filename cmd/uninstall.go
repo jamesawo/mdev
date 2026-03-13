@@ -3,12 +3,15 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/spf13/cobra"
 )
 
 // uninstallCmd represents the uninstall command
 var uninstallCmd = &cobra.Command{
-	Use:   "uninstall",
+	Use:   "uninstall [tool]",
+	Args:  cobra.ExactArgs(1),
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -17,7 +20,30 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("uninstall called")
+
+		name := args[0]
+
+		env, err := environment.FromConfig()
+		if err != nil {
+			fmt.Println("Environment not configured. Run `mdev doctor` first.")
+			return
+		}
+
+		tool, ok := tools.Get(name)
+		if !ok {
+			fmt.Println("Unknown tool:", name)
+			return
+		}
+
+		fmt.Println("Uninstalling", name)
+
+		err = tool.Uninstall(env)
+		if err != nil {
+			fmt.Println("Uninstall failed:", err)
+			return
+		}
+
+		fmt.Println("✓ Uninstalled", name)
 	},
 }
 

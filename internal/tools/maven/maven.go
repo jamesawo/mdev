@@ -73,6 +73,30 @@ func (m *Maven) Verify(env *environment.Environment) error {
 }
 
 func (m *Maven) Uninstall(env *environment.Environment) error {
+
+	r := &runner.CommandRunner{}
+
+	err := r.Run("brew", "uninstall", "maven")
+	if err != nil {
+		return err
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	source := filepath.Join(home, ".m2")
+
+	info, err := os.Lstat(source)
+	if err != nil {
+		return nil
+	}
+
+	if info.Mode()&os.ModeSymlink != 0 {
+		return os.Remove(source)
+	}
+
 	return nil
 }
 
