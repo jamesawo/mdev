@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/jamesawo/mdev/internal/drive"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +19,36 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("doctor called")
+
+		drives, err := drive.List()
+		if err != nil {
+			fmt.Println("Error reading drives:", err)
+			return
+		}
+
+		fmt.Println("Available drives:")
+
+		for i, d := range drives {
+			fmt.Printf("%d. %s\n", i+1, d)
+		}
+
+		fmt.Print("Select a drive: ")
+
+		var input string
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			return
+		}
+
+		index, err := strconv.Atoi(input)
+		if err != nil || index < 1 || index > len(drives) {
+			fmt.Println("Invalid selection")
+			return
+		}
+
+		selected := drives[index-1]
+
+		fmt.Println("Selected drive:", selected)
 	},
 }
 
