@@ -103,10 +103,6 @@ func init() {
 	installCmd.Flags().BoolVar(&installAll, "all", false, "Install all tools")
 }
 
-func loadEnvironment() (*environment.Environment, error) {
-	return environment.FromConfig()
-}
-
 func resolveTool(name string) (tools.Tool, error) {
 
 	tool, ok := tools.Get(name)

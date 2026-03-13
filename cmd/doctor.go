@@ -46,7 +46,7 @@ func init() {
 	// doctorCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func checkExistingEnvironment() bool {
+/*func checkExistingEnvironment() bool {
 
 	env, err := environment.FromConfig()
 	if err != nil {
@@ -70,6 +70,23 @@ func checkExistingEnvironment() bool {
 	}
 
 	checkTools(env)
+	return true
+}*/
+
+func checkExistingEnvironment() bool {
+
+	env, err := loadEnvironment()
+	if err != nil {
+		return false
+	}
+
+	if !ensureDataRoot(env) {
+		return true
+	}
+
+	printEnvironmentStatus(env)
+	checkTools(env)
+
 	return true
 }
 
@@ -134,5 +151,33 @@ func checkTools(env *environment.Environment) {
 		} else {
 			fmt.Println("✗", t.Name(), "not installed")
 		}
+	}
+}
+
+func loadEnvironment() (*environment.Environment, error) {
+	return environment.FromConfig()
+}
+
+func ensureDataRoot(env *environment.Environment) bool {
+
+	err := environment.CreateDataRoot(env)
+	if err != nil {
+		fmt.Println("Failed to ensure data directory:", err)
+		return false
+	}
+
+	return true
+}
+
+func printEnvironmentStatus(env *environment.Environment) {
+
+	fmt.Println("Environment status:")
+	fmt.Println("✓ External drive:", env.ExternalDrive)
+
+	_, err := os.Stat(env.DataRoot)
+	if err == nil {
+		fmt.Println("✓ Data directory:", env.DataRoot)
+	} else {
+		fmt.Println("✗ Data directory missing:", env.DataRoot)
 	}
 }
