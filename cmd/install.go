@@ -11,7 +11,7 @@ import (
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install [tool]",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Short: "Install a tool",
 	Long: `
 	Install a development tool into your local environment.
@@ -53,14 +53,25 @@ Notes:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		name := args[0]
-
 		env, err := loadEnvironment()
 		if err != nil {
 			fmt.Println("Environment not configured. Run `mdev doctor` first.")
 			return
 		}
 
+		if installAll {
+
+			for _, t := range tools.List() {
+				err := installTool(env, t)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+
+			return
+		}
+
+		name := args[0]
 		tool, err := resolveTool(name)
 		if err != nil {
 			fmt.Println(err)
@@ -74,6 +85,7 @@ Notes:
 		}
 	},
 }
+var installAll bool
 
 func init() {
 	rootCmd.AddCommand(installCmd)
@@ -87,6 +99,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// installCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	installCmd.Flags().BoolVar(&installAll, "all", false, "Install all tools")
 }
 
 func loadEnvironment() (*environment.Environment, error) {
