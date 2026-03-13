@@ -8,6 +8,7 @@ import (
 	"github.com/jamesawo/mdev/internal/config"
 	"github.com/jamesawo/mdev/internal/drive"
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/spf13/cobra"
 )
 
@@ -68,6 +69,7 @@ func checkExistingEnvironment() bool {
 		fmt.Println("✗ Data directory missing:", env.DataRoot)
 	}
 
+	checkTools(env)
 	return true
 }
 
@@ -117,5 +119,20 @@ func setupEnvironment() {
 	err = environment.CreateDataRoot(env)
 	if err != nil {
 		fmt.Println("Failed to create data directory:", err)
+	}
+}
+
+func checkTools(env *environment.Environment) {
+
+	fmt.Println()
+	fmt.Println("Tools")
+
+	for _, t := range tools.List() {
+
+		if t.IsInstalled(env) {
+			fmt.Println("✓", t.Name(), "installed")
+		} else {
+			fmt.Println("✗", t.Name(), "not installed")
+		}
 	}
 }
