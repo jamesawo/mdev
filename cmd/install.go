@@ -55,45 +55,23 @@ Notes:
 
 		name := args[0]
 
-		env, err := environment.FromConfig()
+		env, err := loadEnvironment()
 		if err != nil {
 			fmt.Println("Environment not configured. Run `mdev doctor` first.")
 			return
 		}
 
-		tool, ok := tools.Get(name)
-		if !ok {
-			fmt.Println("Unknown tool:", name)
-			return
-		}
-
-		if tool.IsInstalled(env) {
-			fmt.Println("✓", name, "already installed")
-			return
-		}
-
-		fmt.Println("Installing", name)
-
-		// install
-		err = tool.Install(env)
+		tool, err := resolveTool(name)
 		if err != nil {
-			fmt.Println("Installation failed:", err)
+			fmt.Println(err)
 			return
 		}
 
-		err = tool.Configure(env)
+		err = installTool(env, tool)
 		if err != nil {
-			fmt.Println("Configuration failed:", err)
+			fmt.Println(err)
 			return
 		}
-
-		err = tool.Verify(env)
-		if err != nil {
-			fmt.Println("Verification failed:", err)
-			return
-		}
-
-		fmt.Println("✓ Installed and configured", name)
 	},
 }
 
@@ -109,4 +87,47 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// installCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func loadEnvironment() (*environment.Environment, error) {
+	return environment.FromConfig()
+}
+
+func resolveTool(name string) (tools.Tool, error) {
+
+	tool, ok := tools.Get(name)
+	if !ok {
+		return nil, fmt.Errorf("unknown tool: %s", name)
+	}
+
+	return tool, nil
+}
+
+func installTool(env *environment.Environment, tool tools.Tool) error {
+
+	if tool.IsInstalled(env) {
+		fmt.Println("✓", tool.Name(), "already installed")
+		return nil
+	}
+
+	fmt.Println("Installing", tool.Name())
+
+	err := tool.Install(env)
+	if err != nil {
+		return fmt.Errorf("installation failed: %w", err)
+	}
+
+	err = tool.Configure(env)
+	if err != nil {
+		return fmt.Errorf("configuration failed: %w", err)
+	}
+
+	err = tool.Verify(env)
+	if err != nil {
+		return fmt.Errorf("verification failed: %w", err)
+	}
+
+	fmt.Println("✓ Installed and configured", tool.Name())
+
+	return nil
 }
