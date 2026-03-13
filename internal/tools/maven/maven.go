@@ -49,9 +49,17 @@ func (m *Maven) Configure(env *environment.Environment) error {
 		return err
 	}
 
-	_, err = os.Stat(source)
+	info, err := os.Lstat(source)
 	if err == nil {
-		return nil
+
+		if info.Mode()&os.ModeSymlink != 0 {
+			return nil
+		}
+
+		err = os.Rename(source, target)
+		if err != nil {
+			return err
+		}
 	}
 
 	return os.Symlink(target, source)
