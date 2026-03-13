@@ -1,6 +1,8 @@
 package maven
 
 import (
+	"os/exec"
+
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/tools"
 )
@@ -16,7 +18,10 @@ func (m *Maven) Description() string {
 }
 
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
-	return false
+
+	_, err := exec.LookPath("mvn")
+
+	return err == nil
 }
 
 func (m *Maven) Install(env *environment.Environment) error {
