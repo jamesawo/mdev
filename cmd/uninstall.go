@@ -35,6 +35,11 @@ to quickly create a Cobra application.`,
 			return
 		}
 
+		if !confirmUninstall(name) {
+			fmt.Println("Cancelled.")
+			return
+		}
+
 		fmt.Println("Uninstalling", name)
 
 		err = tool.Uninstall(env)
@@ -59,4 +64,14 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// uninstallCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func confirmUninstall(name string) bool {
+
+	fmt.Printf("Are you sure you want to uninstall %s? (y/N): ", name)
+
+	var input string
+	fmt.Scanln(&input)
+
+	return input == "y" || input == "Y"
 }
