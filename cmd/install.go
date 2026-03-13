@@ -53,11 +53,6 @@ Notes:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		//if len(args) == 0 {
-		//	fmt.Println("Please specify a tool to install")
-		//	return
-		//}
-
 		name := args[0]
 
 		env, err := environment.FromConfig()
@@ -79,13 +74,26 @@ Notes:
 
 		fmt.Println("Installing", name)
 
+		// install
 		err = tool.Install(env)
 		if err != nil {
 			fmt.Println("Installation failed:", err)
 			return
 		}
 
-		fmt.Println("✓ Installed", name)
+		err = tool.Configure(env)
+		if err != nil {
+			fmt.Println("Configuration failed:", err)
+			return
+		}
+
+		err = tool.Verify(env)
+		if err != nil {
+			fmt.Println("Verification failed:", err)
+			return
+		}
+
+		fmt.Println("✓ Installed and configured", name)
 	},
 }
 

@@ -1,7 +1,9 @@
 package maven
 
 import (
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/runner"
@@ -33,7 +35,26 @@ func (m *Maven) Install(env *environment.Environment) error {
 }
 
 func (m *Maven) Configure(env *environment.Environment) error {
-	return nil
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	source := filepath.Join(home, ".m2")
+	target := filepath.Join(env.DataRoot, "maven")
+
+	err = os.MkdirAll(target, 0755)
+	if err != nil {
+		return err
+	}
+
+	_, err = os.Stat(source)
+	if err == nil {
+		return nil
+	}
+
+	return os.Symlink(target, source)
 }
 
 func (m *Maven) Verify(env *environment.Environment) error {
