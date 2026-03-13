@@ -58,7 +58,10 @@ func (m *Maven) Configure(env *environment.Environment) error {
 }
 
 func (m *Maven) Verify(env *environment.Environment) error {
-	return nil
+
+	cmd := exec.Command("mvn", "-version")
+
+	return cmd.Run()
 }
 
 func (m *Maven) Uninstall(env *environment.Environment) error {
