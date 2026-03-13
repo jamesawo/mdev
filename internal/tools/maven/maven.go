@@ -4,6 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/runner"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -25,7 +26,10 @@ func (m *Maven) IsInstalled(env *environment.Environment) bool {
 }
 
 func (m *Maven) Install(env *environment.Environment) error {
-	return nil
+
+	r := &runner.CommandRunner{}
+
+	return r.Run("brew", "install", "maven")
 }
 
 func (m *Maven) Configure(env *environment.Environment) error {
