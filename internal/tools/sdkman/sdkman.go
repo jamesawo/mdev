@@ -34,13 +34,6 @@ func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
 	return fs.Exists(path)
 }
 
-/*func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
-
-	_, err := exec.LookPath("sdk")
-
-	return err == nil
-}*/
-
 func (s *SDKMAN) Install(env *environment.Environment) error {
 
 	return command.Run("bash", "-c", "curl -s https://get.sdkman.io | bash")
