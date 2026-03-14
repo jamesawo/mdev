@@ -7,7 +7,7 @@ import (
 
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/fs"
-	"github.com/jamesawo/mdev/internal/runner"
+	"github.com/jamesawo/mdev/internal/installer/brew"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -22,17 +22,11 @@ func (m *Maven) Description() string {
 }
 
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
-
-	_, err := exec.LookPath("mvn")
-
-	return err == nil
+	return brew.IsInstalled("maven")
 }
 
 func (m *Maven) Install(env *environment.Environment) error {
-
-	r := &runner.CommandRunner{}
-
-	return r.Run("brew", "install", "maven")
+	return brew.Install("maven")
 }
 
 func (m *Maven) Configure(env *environment.Environment) error {
@@ -104,9 +98,7 @@ func (m *Maven) Verify(env *environment.Environment) error {
 
 func (m *Maven) Uninstall(env *environment.Environment) error {
 
-	r := &runner.CommandRunner{}
-
-	err := r.Run("brew", "uninstall", "maven")
+	err := brew.Uninstall("maven")
 	if err != nil {
 		return err
 	}
@@ -120,34 +112,6 @@ func (m *Maven) Uninstall(env *environment.Environment) error {
 
 	if fs.IsSymlink(source) {
 		return fs.Remove(source)
-	}
-
-	return nil
-}
-
-func (m *Maven) UninstallOld(env *environment.Environment) error {
-
-	r := &runner.CommandRunner{}
-
-	err := r.Run("brew", "uninstall", "maven")
-	if err != nil {
-		return err
-	}
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	source := filepath.Join(home, ".m2")
-
-	info, err := os.Lstat(source)
-	if err != nil {
-		return nil
-	}
-
-	if info.Mode()&os.ModeSymlink != 0 {
-		return os.Remove(source)
 	}
 
 	return nil
