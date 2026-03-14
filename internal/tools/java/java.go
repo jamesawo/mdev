@@ -4,6 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/shell"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -28,13 +29,7 @@ func (j *Java) IsInstalled(env *environment.Environment) bool {
 
 func (j *Java) Install(env *environment.Environment) error {
 
-	cmd := exec.Command(
-		"bash",
-		"-c",
-		"source $HOME/.sdkman/bin/sdkman-init.sh && sdk install java 21.0.8-tem",
-	)
-
-	return cmd.Run()
+	return shell.RunWithSDKMAN("sdk install java 21.0.8-tem")
 }
 
 func (j *Java) Configure(env *environment.Environment) error {
@@ -50,21 +45,12 @@ func (j *Java) Configure(env *environment.Environment) error {
 
 func (j *Java) Verify(env *environment.Environment) error {
 
-	cmd := exec.Command("java", "-version")
-
-	return cmd.Run()
+	return shell.RunWithSDKMAN("java -version")
 }
 
 func (j *Java) Uninstall(env *environment.Environment) error {
-
 	// todo: version 21 is the default for now, will be adjusted so user can change that later on
-	cmd := exec.Command(
-		"bash",
-		"-c",
-		"source $HOME/.sdkman/bin/sdkman-init.sh && sdk uninstall java 21.0.8-tem",
-	)
-
-	return cmd.Run()
+	return shell.RunWithSDKMAN("sdk uninstall java 21.0.8-tem")
 }
 
 func (j *Java) Dependencies() []string {

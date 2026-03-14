@@ -2,12 +2,12 @@ package nvm
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/fs"
+	"github.com/jamesawo/mdev/internal/shell"
 	"github.com/jamesawo/mdev/internal/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 )
@@ -24,9 +24,14 @@ func (n *NVM) Description() string {
 
 func (n *NVM) IsInstalled(env *environment.Environment) bool {
 
-	_, err := exec.LookPath("nvm")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
 
-	return err == nil
+	path := filepath.Join(home, ".nvm")
+
+	return fs.Exists(path)
 }
 
 func (n *NVM) Install(env *environment.Environment) error {
@@ -68,14 +73,7 @@ func (n *NVM) Configure(env *environment.Environment) error {
 }
 
 func (n *NVM) Verify(env *environment.Environment) error {
-
-	cmd := exec.Command(
-		"bash",
-		"-c",
-		"source $HOME/.nvm/nvm.sh && nvm --version",
-	)
-
-	return cmd.Run()
+	return shell.RunWithNVM("nvm --version")
 }
 
 func (n *NVM) Uninstall(env *environment.Environment) error {

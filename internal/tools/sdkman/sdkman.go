@@ -24,10 +24,22 @@ func (s *SDKMAN) Description() string {
 
 func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
 
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+
+	path := filepath.Join(home, ".sdkman")
+
+	return fs.Exists(path)
+}
+
+/*func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
+
 	_, err := exec.LookPath("sdk")
 
 	return err == nil
-}
+}*/
 
 func (s *SDKMAN) Install(env *environment.Environment) error {
 
