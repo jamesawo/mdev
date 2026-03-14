@@ -6,6 +6,7 @@ import (
 	// add tools via blank import here
 	_ "github.com/jamesawo/mdev/internal/tools/gradle" //Gradle
 	_ "github.com/jamesawo/mdev/internal/tools/maven"  // Maven
+	_ "github.com/jamesawo/mdev/internal/tools/nvm"    // NVM
 	_ "github.com/jamesawo/mdev/internal/tools/podman" //Podman
 	_ "github.com/jamesawo/mdev/internal/tools/sdkman" //SDKMAN
 
