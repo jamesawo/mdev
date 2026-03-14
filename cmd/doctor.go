@@ -16,13 +16,27 @@ import (
 // doctorCmd represents the doctor command
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Validate and initialize the mdev environment",
+	Long: `Doctor validates that your development environment is correctly
+configured for use with mdev.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+It performs several checks including:
+
+  • System prerequisites (brew, curl, etc.)
+  • Existing mdev environment configuration
+  • External storage availability
+  • Tool installation status
+
+If no environment has been configured yet, doctor will guide you
+through the setup process and allow you to choose an external drive
+where development tool data and caches will be stored.
+
+Typical usage:
+
+  mdev doctor
+
+This is usually the first command you run on a new machine before
+installing any development tools.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		checkSystemPrerequisites()

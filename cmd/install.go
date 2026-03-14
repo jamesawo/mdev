@@ -12,7 +12,7 @@ import (
 var installCmd = &cobra.Command{
 	Use:   "install [tool]",
 	Args:  cobra.MaximumNArgs(1),
-	Short: "Install a tool",
+	Short: "Install a tool in your local environment.",
 	Long: `
 	Install a development tool into your local environment.
 

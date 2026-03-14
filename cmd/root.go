@@ -17,16 +17,30 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mdev",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Automate development environment setup on macOS",
+	Long: `mdev is a command-line tool that automates the setup and management 
+of a local development environment on macOS.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+It installs development tools, configures them, and moves large caches
+and data directories to an external drive to keep your system disk clean.
+
+mdev manages tools such as Java, Maven, Gradle, Node, Podman and others,
+handling installation, configuration, verification, and removal.
+
+Typical workflow:
+
+  1. Initialize your environment
+     mdev doctor
+
+  2. Install tools
+     mdev install java
+     mdev install maven
+
+  3. Install the full development stack
+     mdev install --all
+
+mdev also provides commands to inspect your environment and visualize
+tool dependencies.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

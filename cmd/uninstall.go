@@ -12,7 +12,7 @@ import (
 var uninstallCmd = &cobra.Command{
 	Use:   "uninstall [tool]",
 	Args:  cobra.ExactArgs(1),
-	Short: "A brief description of your command",
+	Short: "Uninstall a tool from your local environment",
 	Long: `Remove an installed tool from the local environment.
 
 This command uninstalls a tool that was previously installed using
