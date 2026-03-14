@@ -118,6 +118,29 @@ func (m *Maven) Uninstall(env *environment.Environment) error {
 
 	source := filepath.Join(home, ".m2")
 
+	if fs.IsSymlink(source) {
+		return fs.Remove(source)
+	}
+
+	return nil
+}
+
+func (m *Maven) UninstallOld(env *environment.Environment) error {
+
+	r := &runner.CommandRunner{}
+
+	err := r.Run("brew", "uninstall", "maven")
+	if err != nil {
+		return err
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	source := filepath.Join(home, ".m2")
+
 	info, err := os.Lstat(source)
 	if err != nil {
 		return nil
