@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/fs"
 	"github.com/jamesawo/mdev/internal/runner"
 	"github.com/jamesawo/mdev/internal/tools"
 )
@@ -35,6 +36,35 @@ func (m *Maven) Install(env *environment.Environment) error {
 }
 
 func (m *Maven) Configure(env *environment.Environment) error {
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	source := filepath.Join(home, ".m2")
+	target := filepath.Join(env.DataRoot, "maven")
+
+	err = fs.EnsureDir(target)
+	if err != nil {
+		return err
+	}
+
+	if fs.IsSymlink(source) {
+		return nil
+	}
+
+	if fs.Exists(source) {
+		err = fs.Move(source, target)
+		if err != nil {
+			return err
+		}
+	}
+
+	return fs.CreateSymlink(target, source)
+}
+
+func (m *Maven) ConfigureOld(env *environment.Environment) error {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
