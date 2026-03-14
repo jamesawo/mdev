@@ -59,37 +59,6 @@ func (m *Maven) Configure(env *environment.Environment) error {
 	return fs.CreateSymlink(target, source)
 }
 
-func (m *Maven) ConfigureOld(env *environment.Environment) error {
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	source := filepath.Join(home, ".m2")
-	target := filepath.Join(env.DataRoot, "maven")
-
-	err = os.MkdirAll(target, 0755)
-	if err != nil {
-		return err
-	}
-
-	info, err := os.Lstat(source)
-	if err == nil {
-
-		if info.Mode()&os.ModeSymlink != 0 {
-			return nil
-		}
-
-		err = os.Rename(source, target)
-		if err != nil {
-			return err
-		}
-	}
-
-	return os.Symlink(target, source)
-}
-
 func (m *Maven) Verify(env *environment.Environment) error {
 
 	cmd := exec.Command("mvn", "-version")
