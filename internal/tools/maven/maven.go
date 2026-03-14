@@ -8,6 +8,7 @@ import (
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/fs"
 	"github.com/jamesawo/mdev/internal/installer/brew"
+	"github.com/jamesawo/mdev/internal/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -37,7 +38,7 @@ func (m *Maven) Configure(env *environment.Environment) error {
 	}
 
 	source := filepath.Join(home, ".m2")
-	target := filepath.Join(env.DataRoot, "maven")
+	target := storage.ToolDir(env, "maven")
 
 	err = fs.EnsureDir(target)
 	if err != nil {
@@ -117,6 +118,7 @@ func (m *Maven) Uninstall(env *environment.Environment) error {
 	return nil
 }
 
+// register Maven as a tool
 func init() {
 	tools.Register(&Maven{})
 }

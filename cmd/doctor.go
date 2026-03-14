@@ -8,6 +8,7 @@ import (
 	"github.com/jamesawo/mdev/internal/config"
 	"github.com/jamesawo/mdev/internal/drive"
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/system"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +24,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		checkSystemPrerequisites()
 
 		if checkExistingEnvironment() {
 			return
@@ -45,33 +48,6 @@ func init() {
 	// is called directly, e.g.:
 	// doctorCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-/*func checkExistingEnvironment() bool {
-
-	env, err := environment.FromConfig()
-	if err != nil {
-		return false
-	}
-
-	err = environment.CreateDataRoot(env)
-	if err != nil {
-		fmt.Println("Failed to ensure data directory:", err)
-		return true
-	}
-
-	fmt.Println("Environment status:")
-	fmt.Println("✓ External drive:", env.ExternalDrive)
-
-	_, err = os.Stat(env.DataRoot)
-	if err == nil {
-		fmt.Println("✓ Data directory:", env.DataRoot)
-	} else {
-		fmt.Println("✗ Data directory missing:", env.DataRoot)
-	}
-
-	checkTools(env)
-	return true
-}*/
 
 func checkExistingEnvironment() bool {
 
@@ -180,4 +156,20 @@ func printEnvironmentStatus(env *environment.Environment) {
 	} else {
 		fmt.Println("✗ Data directory missing:", env.DataRoot)
 	}
+}
+
+func checkSystemPrerequisites() {
+
+	fmt.Println("System prerequisites")
+
+	for _, p := range system.ListPrerequisites() {
+
+		if p.Check() {
+			fmt.Println("✓", p.Name, "installed")
+		} else {
+			fmt.Println("✗", p.Name, "missing")
+		}
+	}
+
+	fmt.Println()
 }

@@ -3,7 +3,10 @@ package cmd
 import (
 	"os"
 
+	// add tools via blank import here
+	_ "github.com/jamesawo/mdev/internal/tools/gradle"
 	_ "github.com/jamesawo/mdev/internal/tools/maven"
+
 	"github.com/spf13/cobra"
 )
 
