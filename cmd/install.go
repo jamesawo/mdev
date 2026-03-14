@@ -62,7 +62,7 @@ Notes:
 		if installAll {
 
 			for _, t := range tools.List() {
-				err := installTool(env, t)
+				err := installTool(env, t, map[string]bool{})
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -83,7 +83,7 @@ Notes:
 			return
 		}
 
-		err = installTool(env, tool)
+		err = installTool(env, tool, map[string]bool{})
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -131,12 +131,19 @@ with --all flag set
 Run()
 
 	└─ tools.List()
-	    └─ installTool()
+	    └─ installTool() --> checks dependencies
 	         └─ IsInstalled() ✓ checked
 */
-func installTool(env *environment.Environment, tool tools.Tool) error {
+func installTool(env *environment.Environment, tool tools.Tool, visited map[string]bool) error {
 
-	// first, check if this tool has a dependency on another tool
+	name := tool.Name()
+
+	if visited[name] {
+		return fmt.Errorf("dependency cycle detected at %s", name)
+	}
+
+	visited[name] = true
+
 	for _, dep := range tool.Dependencies() {
 
 		depTool, ok := tools.Get(dep)
@@ -144,18 +151,18 @@ func installTool(env *environment.Environment, tool tools.Tool) error {
 			return fmt.Errorf("missing dependency tool: %s", dep)
 		}
 
-		err := installTool(env, depTool)
+		err := installTool(env, depTool, visited)
 		if err != nil {
 			return err
 		}
 	}
 
 	if tool.IsInstalled(env) {
-		fmt.Println("✓", tool.Name(), "already installed")
+		fmt.Println("✓", name, "already installed")
 		return nil
 	}
 
-	fmt.Println("Installing", tool.Name())
+	fmt.Println("Installing", name)
 
 	err := tool.Install(env)
 	if err != nil {
@@ -172,7 +179,7 @@ func installTool(env *environment.Environment, tool tools.Tool) error {
 		return fmt.Errorf("verification failed: %w", err)
 	}
 
-	fmt.Println("✓ Installed and configured", tool.Name())
+	fmt.Println("✓ Installed and configured", name)
 
 	return nil
 }
