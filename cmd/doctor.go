@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// doctorCmd represents the doctor command
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: "Validate and initialize the mdev environment",

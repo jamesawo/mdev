@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/jamesawo/mdev/internal/command"
+	"github.com/jamesawo/mdev/internal/fs"
 )
 
 type Brew struct{}
@@ -11,15 +12,37 @@ func (b *Brew) Name() string {
 }
 
 func (b *Brew) Check() bool {
-	return CommandExists("brew")
+
+	if CommandExists("brew") {
+		return true
+	}
+
+	if fs.Exists("/opt/homebrew/bin/brew") {
+		return true
+	}
+
+	if fs.Exists("/usr/local/bin/brew") {
+		return true
+	}
+
+	return false
 }
 
 func (b *Brew) Install() error {
 
+	err := command.Run(
+		"bash",
+		"-c",
+		`NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+	)
+	if err != nil {
+		return err
+	}
+
 	return command.Run(
 		"bash",
 		"-c",
-		`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+		`eval "$(/opt/homebrew/bin/brew shellenv)"`,
 	)
 }
 
