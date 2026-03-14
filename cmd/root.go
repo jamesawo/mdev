@@ -7,6 +7,7 @@ import (
 	_ "github.com/jamesawo/mdev/internal/tools/gradle" //Gradle
 	_ "github.com/jamesawo/mdev/internal/tools/maven"  // Maven
 	_ "github.com/jamesawo/mdev/internal/tools/podman" //Podman
+	_ "github.com/jamesawo/mdev/internal/tools/sdkman" //SDKMAN
 
 	"github.com/spf13/cobra"
 )
