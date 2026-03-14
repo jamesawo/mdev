@@ -57,6 +57,10 @@ func (p *Podman) Uninstall(env *environment.Environment) error {
 	return brew.UninstallCask("podman-desktop")
 }
 
+func (p *Podman) Dependencies() []string {
+	return []string{}
+}
+
 func init() {
 	tools.Register(&Podman{})
 }

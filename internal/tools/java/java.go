@@ -38,7 +38,14 @@ func (j *Java) Install(env *environment.Environment) error {
 }
 
 func (j *Java) Configure(env *environment.Environment) error {
-	return nil
+
+	cmd := exec.Command(
+		"bash",
+		"-c",
+		"source $HOME/.sdkman/bin/sdkman-init.sh && echo $JAVA_HOME",
+	)
+
+	return cmd.Run()
 }
 
 func (j *Java) Verify(env *environment.Environment) error {
@@ -58,6 +65,10 @@ func (j *Java) Uninstall(env *environment.Environment) error {
 	)
 
 	return cmd.Run()
+}
+
+func (j *Java) Dependencies() []string {
+	return []string{"sdkman"}
 }
 
 func init() {

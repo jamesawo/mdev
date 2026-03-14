@@ -87,6 +87,10 @@ func (m *Maven) Uninstall(env *environment.Environment) error {
 	return nil
 }
 
+func (m *Maven) Dependencies() []string {
+	return []string{"java"}
+}
+
 // register Maven as a tool
 func init() {
 	tools.Register(&Maven{})

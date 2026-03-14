@@ -87,6 +87,10 @@ func (g *Gradle) Uninstall(env *environment.Environment) error {
 	return nil
 }
 
+func (g *Gradle) Dependencies() []string {
+	return []string{"java"}
+}
+
 // register Gradle as a tool
 func init() {
 	tools.Register(&Gradle{})

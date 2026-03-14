@@ -71,6 +71,11 @@ Notes:
 			return
 		}
 
+		if len(args) == 0 {
+			fmt.Println("Please specify a tool or use --all")
+			return
+		}
+
 		name := args[0]
 		tool, err := resolveTool(name)
 		if err != nil {
@@ -113,7 +118,37 @@ func resolveTool(name string) (tools.Tool, error) {
 	return tool, nil
 }
 
+/*
+*
+Single Tool Install Flow
+Run()
+
+	└─ resolveTool()
+	└─ installTool()
+	     └─ IsInstalled() ✓ checked
+
+with --all flag set
+Run()
+
+	└─ tools.List()
+	    └─ installTool()
+	         └─ IsInstalled() ✓ checked
+*/
 func installTool(env *environment.Environment, tool tools.Tool) error {
+
+	// first, check if this tool has a dependency on another tool
+	for _, dep := range tool.Dependencies() {
+
+		depTool, ok := tools.Get(dep)
+		if !ok {
+			return fmt.Errorf("missing dependency tool: %s", dep)
+		}
+
+		err := installTool(env, depTool)
+		if err != nil {
+			return err
+		}
+	}
 
 	if tool.IsInstalled(env) {
 		fmt.Println("✓", tool.Name(), "already installed")

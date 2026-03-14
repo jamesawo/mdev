@@ -86,6 +86,10 @@ func (s *SDKMAN) Uninstall(env *environment.Environment) error {
 	return nil
 }
 
+func (s *SDKMAN) Dependencies() []string {
+	return []string{}
+}
+
 func init() {
 	tools.Register(&SDKMAN{})
 }

@@ -94,6 +94,10 @@ func (n *NVM) Uninstall(env *environment.Environment) error {
 	return nil
 }
 
+func (n *NVM) Dependencies() []string {
+	return []string{}
+}
+
 func init() {
 	tools.Register(&NVM{})
 }
