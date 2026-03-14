@@ -3,8 +3,11 @@ package podman
 import (
 	"os/exec"
 
+	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/fs"
 	"github.com/jamesawo/mdev/internal/installer/brew"
+	"github.com/jamesawo/mdev/internal/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -27,7 +30,20 @@ func (p *Podman) Install(env *environment.Environment) error {
 }
 
 func (p *Podman) Configure(env *environment.Environment) error {
-	return nil
+
+	target := storage.ToolDir(env, "podman")
+
+	err := fs.EnsureDir(target)
+	if err != nil {
+		return err
+	}
+
+	err = command.Run("podman", "machine", "init", "--image-path", target)
+	if err != nil {
+		return err
+	}
+
+	return command.Run("podman", "machine", "start")
 }
 
 func (p *Podman) Verify(env *environment.Environment) error {
