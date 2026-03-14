@@ -176,12 +176,18 @@ func checkSystemPrerequisites() {
 
 	fmt.Println("System prerequisites:")
 
-	for _, p := range system.ListPrerequisites() {
+	for _, p := range system.List() {
 
 		if p.Check() {
-			fmt.Println("✓", p.Name, "installed")
-		} else {
-			fmt.Println("✗", p.Name, "missing")
+			fmt.Println("✓", p.Name(), "installed")
+			continue
+		}
+
+		fmt.Println("✗", p.Name(), "missing")
+
+		err := p.Install()
+		if err != nil {
+			fmt.Println("failed to install", p.Name(), err)
 		}
 	}
 
