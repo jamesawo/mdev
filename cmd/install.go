@@ -61,7 +61,15 @@ Notes:
 
 		if installAll {
 
-			for _, t := range tools.List() {
+			// install tools in the right order, based on their dependencies
+			ordered, err := tools.ResolveOrder()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			for _, t := range ordered {
+
 				err := installTool(env, t, map[string]bool{})
 				if err != nil {
 					fmt.Println(err)

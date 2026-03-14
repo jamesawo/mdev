@@ -118,7 +118,7 @@ func setupEnvironment() {
 func checkTools(env *environment.Environment) {
 
 	fmt.Println()
-	fmt.Println("Tools")
+	fmt.Println("Tools:")
 
 	for _, t := range tools.List() {
 
@@ -160,7 +160,7 @@ func printEnvironmentStatus(env *environment.Environment) {
 
 func checkSystemPrerequisites() {
 
-	fmt.Println("System prerequisites")
+	fmt.Println("System prerequisites:")
 
 	for _, p := range system.ListPrerequisites() {
 
