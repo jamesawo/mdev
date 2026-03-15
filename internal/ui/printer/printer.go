@@ -49,3 +49,7 @@ func ListItem(index int, text string) {
 func Indent(level int, text string) {
 	fmt.Fprintf(out, "%s%s\n", strings.Repeat(indent, level), text)
 }
+
+func FormatIndent(level int, text string) string {
+	return fmt.Sprintf("%s%s", strings.Repeat(indent, level), text)
+}

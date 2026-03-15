@@ -22,6 +22,7 @@ func Fix() {
 
 	if len(missing) == 0 {
 		printer.Success("Nothing to fix")
+		printer.Blank()
 		return
 	}
 
@@ -57,6 +58,7 @@ func Fix() {
 
 		printer.Success(m.Name() + " installed")
 		printer.Indent(1, "time: "+elapsed.String())
+		printer.Blank()
 	}
 
 	total := time.Since(startAll).Round(time.Second)
@@ -64,4 +66,5 @@ func Fix() {
 	printer.Blank()
 	printer.Section("Summary")
 	printer.Info("Total fix time: " + total.String())
+	printer.Blank()
 }

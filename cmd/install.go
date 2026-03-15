@@ -68,7 +68,7 @@ Notes:
 			printer.Section("Environment setup")
 			printer.Info("Choose where mdev should store development tool data.")
 
-			if !interactive.AskYesNo("Create the directory now?") {
+			if !interactive.AskYesNo(printer.FormatIndent(2, "Create the directory now?")) {
 				printer.Info("Aborted.")
 				printer.Blank()
 				return
@@ -136,7 +136,7 @@ func runInteractiveInstall(env *environment.Environment) {
 	}
 
 	selected, err := interactive.MultiSelect(
-		"Select tools to install",
+		indent+"Select tools to install",
 		options,
 	)
 
@@ -156,3 +156,6 @@ func runInteractiveInstall(env *environment.Environment) {
 		printer.Fail(err.Error())
 	}
 }
+
+// todo: can we put this somewhere we can reuse it across?
+const indent = "  "
