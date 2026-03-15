@@ -41,6 +41,19 @@ func Run(env *environment.Environment, name string) error {
 		printer.Info(tool)
 	}
 
+	// Show directories that will be removed
+	printer.Section("Directories to be removed")
+
+	for _, tool := range plan {
+		path := StoragePath(env, tool)
+		printer.Info(path)
+	}
+
+	if !interactive.AskYesNo("Continue uninstall?") {
+		printer.Info("Cancelled.")
+		return nil
+	}
+
 	if !interactive.AskYesNo("Continue uninstall?") {
 		printer.Info("Cancelled.")
 		return nil
