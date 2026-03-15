@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"github.com/jamesawo/mdev/internal/infrastructure/environment"
-	"github.com/jamesawo/mdev/internal/tools"
-	"github.com/jamesawo/mdev/internal/ui/printer"
+	"github.com/jamesawo/mdev/internal/command/list"
 	"github.com/spf13/cobra"
 )
 
@@ -22,22 +20,7 @@ Typical usage:
   mdev list
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		env, _ := environment.FromConfig()
-
-		printer.Section("Available tools")
-
-		for _, t := range tools.List() {
-
-			name := t.Name()
-
-			if env != nil && t.IsInstalled(env) {
-				printer.Success(name + " (installed)")
-				continue
-			}
-
-			printer.Fail(name)
-		}
+		list.Run()
 	},
 }
 
