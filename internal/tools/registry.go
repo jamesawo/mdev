@@ -20,3 +20,27 @@ func List() []Tool {
 
 	return tools
 }
+
+// ResolveSubset resolves dependency order for a subset of tools.
+func ResolveSubset(names []string) ([]Tool, error) {
+
+	ordered, err := ResolveOrder()
+	if err != nil {
+		return nil, err
+	}
+
+	selected := map[string]bool{}
+	for _, n := range names {
+		selected[n] = true
+	}
+
+	var result []Tool
+
+	for _, t := range ordered {
+		if selected[t.Name()] {
+			result = append(result, t)
+		}
+	}
+
+	return result, nil
+}
