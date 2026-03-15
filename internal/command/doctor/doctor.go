@@ -27,7 +27,7 @@ func Run() (*Report, error) {
 	report := &Report{}
 
 	// Phase 1: system prerequisites
-	sys := checkSystem()
+	sys := checkSystemPrerequisites()
 	report.System = sys
 
 	// Phase 2: environment

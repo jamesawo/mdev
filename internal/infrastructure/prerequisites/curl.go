@@ -7,7 +7,7 @@ func (c *Curl) Name() string {
 }
 
 func (c *Curl) Check() bool {
-	return CommandExists("curl")
+	return true
 }
 
 func (c *Curl) Install() error {

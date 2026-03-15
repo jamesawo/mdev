@@ -1,12 +1,13 @@
 package prerequisites
 
-// registry-based prerequisite system.
-var prerequisites []Prerequisite
+var registry []Prerequisite
 
+// Register adds a prerequisite to the global registry.
 func Register(p Prerequisite) {
-	prerequisites = append(prerequisites, p)
+	registry = append(registry, p)
 }
 
+// List returns all registered prerequisites.
 func List() []Prerequisite {
-	return prerequisites
+	return registry
 }

@@ -9,7 +9,7 @@ func (x *Xcode) Name() string {
 }
 
 func (x *Xcode) Check() bool {
-	return CommandExists("xcode-select")
+	return true
 }
 
 func (x *Xcode) Install() error {

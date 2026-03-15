@@ -40,6 +40,9 @@ installing any development tools.`,
 		//  System Section
 		printer.Section("System")
 
+		// Attempt to fix missing prerequisites
+		doctor.FixMissingPrerequisites(report.System)
+
 		for _, s := range report.System {
 
 			if s.Status {

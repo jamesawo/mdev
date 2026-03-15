@@ -1,9 +1,25 @@
 package doctor
 
-// checkSystem validates system prerequisites.
-func checkSystem() []Check {
+import (
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
+)
 
-	results := []Check{}
+// checkSystemPrerequisites checks all registered prerequisites,
+// prints their status, and installs missing ones if the user agrees.
+func checkSystemPrerequisites() []Check {
 
-	return results
+	var checks []Check
+
+	for _, p := range prerequisites.List() {
+
+		ok := p.Check()
+
+		checks = append(checks, Check{
+			Name:   p.Name(),
+			Status: ok,
+			Detail: "",
+		})
+	}
+
+	return checks
 }

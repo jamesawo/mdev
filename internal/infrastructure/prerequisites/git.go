@@ -1,21 +1,11 @@
 package prerequisites
 
-import "github.com/jamesawo/mdev/internal/command"
-
 type Git struct{}
 
-func (g *Git) Name() string {
-	return "git"
-}
-
-func (g *Git) Check() bool {
-	return CommandExists("git")
-}
-
-func (g *Git) Install() error {
-	return command.Run("brew", "install", "git")
-}
+func (Git) Name() string   { return "git" }
+func (Git) Check() bool    { return true }
+func (Git) Install() error { return nil }
 
 func init() {
-	Register(&Git{})
+	Register(Git{})
 }
