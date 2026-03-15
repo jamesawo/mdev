@@ -45,6 +45,7 @@ tool caches to external storage to keep your system disk clean.`,
 		printer.Command("mdev doctor")
 		printer.Command("mdev install")
 		printer.Command("mdev install --all")
+		printer.Blank()
 	},
 }
 
