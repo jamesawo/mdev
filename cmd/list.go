@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -26,10 +26,20 @@ so you can decide which tools to install individually or as part
 of the full development stack.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("Available tools:")
+		env, _ := environment.FromConfig()
+
+		printer.Section("Available tools")
 
 		for _, t := range tools.List() {
-			fmt.Printf("%s - %s\n", t.Name(), t.Description())
+
+			name := t.Name()
+
+			if env != nil && t.IsInstalled(env) {
+				printer.Success(name + " (installed)")
+				continue
+			}
+
+			printer.Fail(name)
 		}
 	},
 }
