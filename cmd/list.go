@@ -20,10 +20,7 @@ configured, and managed through the mdev lifecycle.
 Typical usage:
 
   mdev list
-
-The output shows the available tools along with a brief description
-so you can decide which tools to install individually or as part
-of the full development stack.`,
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		env, _ := environment.FromConfig()
