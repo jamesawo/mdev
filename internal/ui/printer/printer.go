@@ -1,38 +1,51 @@
 package printer
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"os"
+	"strings"
+)
+
+const indent = "  "
+
+var out io.Writer = os.Stdout
 
 func Section(title string) {
-	fmt.Println()
-	fmt.Println(title)
+	Blank()
+	fmt.Fprintln(out, title)
 }
 
 func Success(name string) {
-	fmt.Printf("  ✓ %s\n", name)
+	fmt.Fprintf(out, "%s✓ %s\n", indent, name)
 }
 
 func Fail(name string) {
-	fmt.Printf("  ✗ %s\n", name)
+	fmt.Fprintf(out, "%s✗ %s\n", indent, name)
 }
 
 func Info(text string) {
-	fmt.Printf("  %s\n", text)
+	fmt.Fprintf(out, "%s%s\n", indent, text)
 }
 
 func Command(cmd string) {
-	fmt.Printf("  %s\n", cmd)
+	fmt.Fprintf(out, "%s%s\n", indent, cmd)
 }
 
 func Ask(text string) {
-	fmt.Printf("%s ", text)
+	fmt.Fprintf(out, "%s ", text)
 }
 
 func Blank() {
-	fmt.Println()
+	fmt.Fprintln(out)
 }
 
 // ListItem prints a numbered list item.
-// Example output: "  1. scandisk"
+// Example: "  1. scandisk"
 func ListItem(index int, text string) {
-	fmt.Printf("  %d. %s\n", index, text)
+	fmt.Fprintf(out, "%s%d. %s\n", indent, index, text)
+}
+
+func Indent(level int, text string) {
+	fmt.Fprintf(out, "%s%s\n", strings.Repeat(indent, level), text)
 }
