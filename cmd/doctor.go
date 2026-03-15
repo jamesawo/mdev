@@ -85,16 +85,16 @@ installing any development tools.`,
 		//  Next Steps
 		printer.Section("Next steps")
 
-		printer.Info("Install individual tools:")
+		printer.Indent(1, "Install individual tools:")
 		for _, t := range report.Tools {
 			if !t.Installed {
-				printer.Command("mdev install " + t.Name)
+				printer.Indent(2, "mdev install "+t.Name)
 			}
 		}
 
 		printer.Blank()
 		printer.Info("Install everything:")
-		printer.Command("mdev install --all")
+		printer.Indent(2, "mdev install --all")
 	},
 }
 
