@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/install"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -55,139 +56,78 @@ Notes:
 
 		env, err := environment.FromConfig()
 		if err != nil {
-			fmt.Println("Environment not configured. Run `mdev doctor` first.")
+			printer.Fail("Environment not configured. Run `mdev doctor` first.")
 			return
 		}
 
+		// install all tools
 		if installAll {
 
-			// install tools in the right order, based on their dependencies
-			ordered, err := tools.ResolveOrder()
+			err := install.RunAll(env)
 			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			for _, t := range ordered {
-
-				err := installTool(env, t, map[string]bool{})
-				if err != nil {
-					fmt.Println(err)
-				}
+				printer.Fail(err.Error())
 			}
 
 			return
 		}
 
-		if len(args) == 0 {
-			fmt.Println("Please specify a tool or use --all")
+		// install a single tool
+		if len(args) == 1 {
+
+			err := install.RunSingle(env, args[0])
+			if err != nil {
+				printer.Fail(err.Error())
+			}
+
 			return
 		}
 
-		name := args[0]
-		tool, err := resolveTool(name)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		err = installTool(env, tool, map[string]bool{})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		// interactive mode
+		runInteractiveInstall(env)
 	},
 }
 var installAll bool
 
 func init() {
 	rootCmd.AddCommand(installCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// installCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// installCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 	installCmd.Flags().BoolVar(&installAll, "all", false, "Install all tools")
 }
 
-func resolveTool(name string) (tools.Tool, error) {
+func runInteractiveInstall(env *environment.Environment) {
 
-	tool, ok := tools.Get(name)
-	if !ok {
-		return nil, fmt.Errorf("unknown tool: %s", name)
-	}
+	var options []string
+	toolMap := map[string]string{}
 
-	return tool, nil
-}
+	for _, t := range tools.List() {
 
-/*
-*
-Single Tool Install Flow
-Run()
+		name := t.Name()
 
-	└─ resolveTool()
-	└─ installTool()
-	     └─ IsInstalled() ✓ checked
-
-with --all flag set
-Run()
-
-	└─ tools.List()
-	    └─ installTool() --> checks dependencies
-	         └─ IsInstalled() ✓ checked
-*/
-func installTool(env *environment.Environment, tool tools.Tool, visited map[string]bool) error {
-
-	name := tool.Name()
-
-	if visited[name] {
-		return fmt.Errorf("dependency cycle detected at %s", name)
-	}
-
-	visited[name] = true
-
-	for _, dep := range tool.Dependencies() {
-
-		depTool, ok := tools.Get(dep)
-		if !ok {
-			return fmt.Errorf("missing dependency tool: %s", dep)
+		if t.IsInstalled(env) {
+			name = name + " (installed)"
 		}
 
-		err := installTool(env, depTool, visited)
-		if err != nil {
-			return err
-		}
+		options = append(options, name)
+		toolMap[name] = t.Name()
 	}
 
-	if tool.IsInstalled(env) {
-		fmt.Println("✓", name, "already installed")
-		return nil
-	}
+	selected, err := interactive.MultiSelect(
+		"Select tools to install",
+		options,
+	)
 
-	fmt.Println("Installing", name)
-
-	err := tool.Install(env)
 	if err != nil {
-		return fmt.Errorf("installation failed: %w", err)
+		printer.Fail(err.Error())
+		return
 	}
 
-	err = tool.Configure(env)
+	var names []string
+
+	for _, s := range selected {
+		names = append(names, toolMap[s])
+	}
+
+	err = install.RunSelection(env, names)
 	if err != nil {
-		return fmt.Errorf("configuration failed: %w", err)
+		printer.Fail(err.Error())
 	}
-
-	err = tool.Verify(env)
-	if err != nil {
-		return fmt.Errorf("verification failed: %w", err)
-	}
-
-	fmt.Println("✓ Installed and configured", name)
-
-	return nil
 }
