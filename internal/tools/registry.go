@@ -22,6 +22,7 @@ func List() []Tool {
 }
 
 // ResolveSubset resolves dependency order for a subset of tools.
+// todo: should this be here?
 func ResolveSubset(names []string) ([]Tool, error) {
 
 	ordered, err := ResolveOrder()
