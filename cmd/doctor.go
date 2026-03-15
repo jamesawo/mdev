@@ -6,30 +6,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var fix bool
+
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: "Validate and initialize the mdev environment",
-	Long: `Doctor validates that your development environment is correctly
-configured for use with mdev.
+	Short: "Inspect system, environment, and tools",
+	Long: `Analyze your system and development environment.
 
-It performs several checks including:
+This command reports missing prerequisites, environment issues,
+and tool installation status.
 
-  • System prerequisites (brew, curl, etc.)
-  • Existing mdev environment configuration
-  • External storage availability
-  • Tool installation status
-
-If no environment has been configured yet, doctor will guide you
-through the setup process and allow you to choose an external drive
-where development tool data and caches will be stored.
-
-Typical usage:
-
-  mdev doctor
-
-This is usually the first command you run on a new machine before
-installing any development tools.`,
+Use --fix to attempt automatic remediation.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// Execute fixes if requested
+		if fix {
+			doctor.Fix()
+			return
+		}
 
 		report, err := doctor.Run()
 		if err != nil {
@@ -37,14 +31,10 @@ installing any development tools.`,
 			return
 		}
 
-		//  System Section
+		// System Section
 		printer.Section("System")
 
-		// Attempt to fix missing prerequisites
-		doctor.FixMissingPrerequisites(report.System)
-
 		for _, s := range report.System {
-
 			if s.Status {
 				printer.Success(s.Name)
 			} else {
@@ -52,11 +42,10 @@ installing any development tools.`,
 			}
 		}
 
-		//  Environment Section
+		// Environment Section
 		printer.Section("Environment")
 
 		for _, e := range report.Environment {
-
 			if e.Status {
 				if e.Detail != "" {
 					printer.Success(e.Name + ": " + e.Detail)
@@ -68,11 +57,10 @@ installing any development tools.`,
 			}
 		}
 
-		//  Tools Section
+		// Tools Section
 		printer.Section("Tools")
 
 		for _, t := range report.Tools {
-
 			if t.Installed {
 				printer.Success(t.Name)
 				continue
@@ -85,7 +73,7 @@ installing any development tools.`,
 			}
 		}
 
-		//  Next Steps
+		// Next Steps
 		printer.Section("Next steps")
 
 		printer.Indent(1, "Install individual tools:")
@@ -98,9 +86,15 @@ installing any development tools.`,
 		printer.Blank()
 		printer.Info("Install everything:")
 		printer.Indent(2, "mdev install --all")
+
+		printer.Blank()
+		printer.Info("Fix system issues automatically:")
+		printer.Indent(2, "mdev doctor --fix")
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(doctorCmd)
+	doctorCmd.Flags().BoolVar(&fix, "fix", false, "Attempt to fix detected issues")
 }
