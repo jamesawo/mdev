@@ -3,60 +3,46 @@ package cmd
 import (
 	"os"
 
-	// add tools via blank import here
-	_ "github.com/jamesawo/mdev/internal/tools/gradle" //Gradle
-	_ "github.com/jamesawo/mdev/internal/tools/java"   // JAVA
-	_ "github.com/jamesawo/mdev/internal/tools/maven"  // Maven
-	_ "github.com/jamesawo/mdev/internal/tools/nvm"    // NVM
-	_ "github.com/jamesawo/mdev/internal/tools/podman" //Podman
-	_ "github.com/jamesawo/mdev/internal/tools/sdkman" //SDKMAN
+	// Register tools
+	_ "github.com/jamesawo/mdev/internal/tools/gradle"
+	_ "github.com/jamesawo/mdev/internal/tools/java"
+	_ "github.com/jamesawo/mdev/internal/tools/maven"
+	_ "github.com/jamesawo/mdev/internal/tools/nvm"
+	_ "github.com/jamesawo/mdev/internal/tools/podman"
+	_ "github.com/jamesawo/mdev/internal/tools/sdkman"
 
+	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mdev",
 	Short: "Automate development environment setup on macOS",
-	Long: `mdev is a command-line tool that automates the setup and management 
-of a local development environment on macOS.
+	Long: `mdev is a command-line tool for setting up and managing
+a development environment on macOS.
 
-It installs development tools, configures them, and moves large caches
-and data directories to an external drive to keep your system disk clean.
+It installs development tools, configures them, and relocates large
+tool caches to external storage to keep your system disk clean.`,
 
-mdev manages tools such as Java, Maven, Gradle, Node, Podman and others,
-handling installation, configuration, verification, and removal.
+	Run: func(cmd *cobra.Command, args []string) {
+		printer.PrintBanner()
 
-Typical workflow:
+		printer.Section("Available commands")
+		printer.Command("mdev doctor   Initialize and validate your environment")
+		printer.Command("mdev install  Install development tools")
+		printer.Command("mdev list     Show supported tools and their status")
+		printer.Command("mdev graph    Show dependency graph between tools")
 
-  1. Initialize your environment
-     mdev doctor
-
-  2. Install tools
-     mdev install java
-     mdev install maven
-
-  3. Install the full development stack
-     mdev install --all`,
+		printer.Section("Typical workflow")
+		printer.Command("mdev doctor")
+		printer.Command("mdev install")
+		printer.Command("mdev install --all")
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute runs the CLI.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
-}
-
-func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mdev.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
