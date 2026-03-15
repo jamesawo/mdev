@@ -25,6 +25,13 @@ It installs development tools, configures them, and relocates large
 tool caches to external storage to keep your system disk clean.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		// If user explicitly asks for help, use Cobra's help system
+		helpFlag, _ := cmd.Flags().GetBool("help")
+		if helpFlag {
+			cmd.Help()
+			return
+		}
+
 		printer.PrintBanner()
 
 		printer.Section("Available commands")
@@ -32,6 +39,7 @@ tool caches to external storage to keep your system disk clean.`,
 		printer.Command("mdev install  Install development tools")
 		printer.Command("mdev list     Show supported tools and their status")
 		printer.Command("mdev graph    Show dependency graph between tools")
+		printer.Command("mdev version  Show version information")
 
 		printer.Section("Typical workflow")
 		printer.Command("mdev doctor")

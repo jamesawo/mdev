@@ -5,6 +5,8 @@ import (
 	"os/exec"
 )
 
+// todo is this the right place for this file?
+
 func Run(name string, args ...string) error {
 
 	cmd := exec.Command(name, args...)
