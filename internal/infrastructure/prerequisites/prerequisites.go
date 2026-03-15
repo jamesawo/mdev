@@ -1,4 +1,4 @@
-package system
+package prerequisites
 
 type Prerequisite interface {
 	Name() string

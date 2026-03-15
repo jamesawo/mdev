@@ -1,13 +1,9 @@
-package runner
+package packagemanager
 
 import (
 	"os"
 	"os/exec"
 )
-
-type Runner interface {
-	Run(name string, args ...string) error
-}
 
 type CommandRunner struct{}
 

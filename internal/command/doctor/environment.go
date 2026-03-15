@@ -3,8 +3,8 @@ package doctor
 import (
 	"os"
 
-	"github.com/jamesawo/mdev/internal/config"
-	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/config"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 )
 
 // checkEnvironment verifies the configured environment.

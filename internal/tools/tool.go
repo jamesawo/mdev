@@ -1,6 +1,6 @@
 package tools
 
-import "github.com/jamesawo/mdev/internal/environment"
+import "github.com/jamesawo/mdev/internal/infrastructure/environment"
 
 type Tool interface {
 	Name() string

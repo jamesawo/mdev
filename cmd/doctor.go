@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/jamesawo/mdev/internal/doctor"
+	"github.com/jamesawo/mdev/internal/command/doctor"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )

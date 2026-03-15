@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/command"
-	"github.com/jamesawo/mdev/internal/environment"
-	"github.com/jamesawo/mdev/internal/fs"
-	"github.com/jamesawo/mdev/internal/shell"
-	"github.com/jamesawo/mdev/internal/storage"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/fs"
+	"github.com/jamesawo/mdev/internal/infrastructure/shell"
+	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 

@@ -3,7 +3,7 @@ package uninstall
 import (
 	"os"
 
-	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )

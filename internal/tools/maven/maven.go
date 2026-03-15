@@ -5,10 +5,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/jamesawo/mdev/internal/environment"
-	"github.com/jamesawo/mdev/internal/fs"
-	"github.com/jamesawo/mdev/internal/installer/brew"
-	"github.com/jamesawo/mdev/internal/storage"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/fs"
+	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
+	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 

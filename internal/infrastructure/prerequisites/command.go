@@ -1,4 +1,4 @@
-package system
+package prerequisites
 
 import "os/exec"
 

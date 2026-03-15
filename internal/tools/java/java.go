@@ -3,8 +3,8 @@ package java
 import (
 	"os/exec"
 
-	"github.com/jamesawo/mdev/internal/environment"
-	"github.com/jamesawo/mdev/internal/shell"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 

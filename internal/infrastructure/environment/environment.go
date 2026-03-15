@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jamesawo/mdev/internal/config"
+	"github.com/jamesawo/mdev/internal/infrastructure/config"
 )
 
 type Environment struct {

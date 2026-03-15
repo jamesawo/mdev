@@ -1,7 +1,7 @@
 package doctor
 
 import (
-	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 

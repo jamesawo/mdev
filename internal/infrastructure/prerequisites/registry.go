@@ -1,4 +1,4 @@
-package system
+package prerequisites
 
 // registry-based prerequisite system.
 var prerequisites []Prerequisite

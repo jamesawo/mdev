@@ -3,7 +3,7 @@ package uninstall
 import (
 	"path/filepath"
 
-	"github.com/jamesawo/mdev/internal/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 )
 
 // StoragePath returns the directory used by a tool inside mdev storage.

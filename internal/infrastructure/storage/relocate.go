@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/jamesawo/mdev/internal/fs"
+import "github.com/jamesawo/mdev/internal/infrastructure/fs"
 
 // TODO(mdev-refactor):
 // Tools currently duplicate the pattern of relocating a cache/config directory
