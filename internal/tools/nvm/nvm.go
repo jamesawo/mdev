@@ -14,6 +14,11 @@ import (
 
 type NVM struct{}
 
+func (n *NVM) StorageDir(env *environment.Environment) string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (n *NVM) Name() string {
 	return "nvm"
 }

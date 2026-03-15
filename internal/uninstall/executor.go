@@ -2,7 +2,6 @@ package uninstall
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/environment"
 	"github.com/jamesawo/mdev/internal/tools"
@@ -34,7 +33,7 @@ func execute(env *environment.Environment, names []string) error {
 		}
 
 		// cleanup mdev storage directory
-		storagePath := filepath.Join(env.DataRoot, name)
+		storagePath := tool.StorageDir(env)
 
 		if _, err := os.Stat(storagePath); err == nil {
 			printer.Info("Cleaning storage: " + storagePath)

@@ -14,6 +14,10 @@ import (
 
 type SDKMAN struct{}
 
+func (s *SDKMAN) StorageDir(env *environment.Environment) string {
+	return storage.ToolDir(env, "sdkman")
+}
+
 func (s *SDKMAN) Name() string {
 	return "sdkman"
 }
@@ -47,7 +51,7 @@ func (s *SDKMAN) Configure(env *environment.Environment) error {
 	}
 
 	source := filepath.Join(home, ".sdkman")
-	target := storage.ToolDir(env, "sdkman")
+	target := s.StorageDir(env)
 
 	err = fs.EnsureDir(target)
 	if err != nil {

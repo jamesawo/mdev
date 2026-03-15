@@ -13,6 +13,10 @@ import (
 
 type Podman struct{}
 
+func (p *Podman) StorageDir(env *environment.Environment) string {
+	return storage.ToolDir(env, "podman")
+}
+
 func (p *Podman) Name() string {
 	return "podman"
 }
@@ -31,7 +35,7 @@ func (p *Podman) Install(env *environment.Environment) error {
 
 func (p *Podman) Configure(env *environment.Environment) error {
 
-	target := storage.ToolDir(env, "podman")
+	target := p.StorageDir(env)
 
 	err := fs.EnsureDir(target)
 	if err != nil {

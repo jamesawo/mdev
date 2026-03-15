@@ -10,6 +10,10 @@ import (
 
 type Java struct{}
 
+func (j *Java) StorageDir(env *environment.Environment) string {
+	panic("implement me")
+}
+
 func (j *Java) Name() string {
 	return "java"
 }

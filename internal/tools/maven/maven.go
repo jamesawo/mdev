@@ -14,6 +14,10 @@ import (
 
 type Maven struct{}
 
+func (m *Maven) StorageDir(env *environment.Environment) string {
+	return storage.ToolDir(env, "maven")
+}
+
 func (m *Maven) Name() string {
 	return "maven"
 }
@@ -38,7 +42,7 @@ func (m *Maven) Configure(env *environment.Environment) error {
 	}
 
 	source := filepath.Join(home, ".m2")
-	target := storage.ToolDir(env, "maven")
+	target := m.StorageDir(env)
 
 	err = fs.EnsureDir(target)
 	if err != nil {

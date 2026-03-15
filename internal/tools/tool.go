@@ -7,10 +7,12 @@ type Tool interface {
 	Description() string
 
 	Dependencies() []string
-	
+
 	IsInstalled(env *environment.Environment) bool
 	Install(env *environment.Environment) error
 	Configure(env *environment.Environment) error
 	Verify(env *environment.Environment) error
 	Uninstall(env *environment.Environment) error
+
+	StorageDir(env *environment.Environment) string
 }

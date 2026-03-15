@@ -14,6 +14,10 @@ import (
 
 type Gradle struct{}
 
+func (g *Gradle) StorageDir(env *environment.Environment) string {
+	return storage.ToolDir(env, "gradle")
+}
+
 func (g *Gradle) Name() string {
 	return "gradle"
 }
@@ -38,7 +42,7 @@ func (g *Gradle) Configure(env *environment.Environment) error {
 	}
 
 	source := filepath.Join(home, ".gradle")
-	target := storage.ToolDir(env, "gradle")
+	target := g.StorageDir(env)
 
 	err = fs.EnsureDir(target)
 	if err != nil {
