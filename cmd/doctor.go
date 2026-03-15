@@ -1,15 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-
-	"github.com/jamesawo/mdev/internal/config"
-	"github.com/jamesawo/mdev/internal/drive"
-	"github.com/jamesawo/mdev/internal/environment"
-	"github.com/jamesawo/mdev/internal/system"
-	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/doctor"
+	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -38,157 +31,73 @@ This is usually the first command you run on a new machine before
 installing any development tools.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		checkSystemPrerequisites()
-
-		if checkExistingEnvironment() {
+		report, err := doctor.Run()
+		if err != nil {
+			printer.Fail("doctor failed")
 			return
 		}
 
-		setupEnvironment()
+		//  System Section
+		printer.Section("System")
+
+		for _, s := range report.System {
+
+			if s.Status {
+				printer.Success(s.Name)
+			} else {
+				printer.Fail(s.Name + " missing")
+			}
+		}
+
+		//  Environment Section
+		printer.Section("Environment")
+
+		for _, e := range report.Environment {
+
+			if e.Status {
+				if e.Detail != "" {
+					printer.Success(e.Name + ": " + e.Detail)
+				} else {
+					printer.Success(e.Name)
+				}
+			} else {
+				printer.Fail(e.Name + " not configured")
+			}
+		}
+
+		//  Tools Section
+		printer.Section("Tools")
+
+		for _, t := range report.Tools {
+
+			if t.Installed {
+				printer.Success(t.Name)
+				continue
+			}
+
+			if len(t.Dependencies) > 0 {
+				printer.Fail(t.Name + " (requires " + t.Dependencies[0] + ")")
+			} else {
+				printer.Fail(t.Name)
+			}
+		}
+
+		//  Next Steps
+		printer.Section("Next steps")
+
+		printer.Info("Install individual tools:")
+		for _, t := range report.Tools {
+			if !t.Installed {
+				printer.Command("mdev install " + t.Name)
+			}
+		}
+
+		printer.Blank()
+		printer.Info("Install everything:")
+		printer.Command("mdev install --all")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(doctorCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// doctorCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// doctorCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func checkExistingEnvironment() bool {
-
-	env, err := loadEnvironment()
-	if err != nil {
-		return false
-	}
-
-	if !ensureDataRoot(env) {
-		return true
-	}
-
-	printEnvironmentStatus(env)
-	checkTools(env)
-
-	return true
-}
-
-func setupEnvironment() {
-
-	drives, err := drive.List()
-	if err != nil {
-		fmt.Println("Error reading drives:", err)
-		return
-	}
-
-	fmt.Println("Available drives:")
-
-	for i, d := range drives {
-		fmt.Printf("%d. %s\n", i+1, d)
-	}
-
-	fmt.Print("Select a drive: ")
-
-	var input string
-	_, err = fmt.Scanln(&input)
-	if err != nil {
-		return
-	}
-
-	index, err := strconv.Atoi(input)
-	if err != nil || index < 1 || index > len(drives) {
-		fmt.Println("Invalid selection")
-		return
-	}
-
-	selected := drives[index-1]
-
-	path := "/Volumes/" + selected
-
-	err = config.SaveExternalDrive(path)
-	if err != nil {
-		fmt.Println("Failed to save configuration:", err)
-		return
-	}
-
-	fmt.Println("Configuration saved.")
-	fmt.Println("External drive:", path)
-
-	env := environment.New(path)
-
-	err = environment.CreateDataRoot(env)
-	if err != nil {
-		fmt.Println("Failed to create data directory:", err)
-	}
-}
-
-func checkTools(env *environment.Environment) {
-
-	fmt.Println()
-	fmt.Println("Tools:")
-
-	for _, t := range tools.List() {
-
-		if t.IsInstalled(env) {
-			fmt.Println("✓", t.Name(), "installed")
-		} else {
-			fmt.Println("✗", t.Name(), "not installed")
-		}
-	}
-}
-
-func loadEnvironment() (*environment.Environment, error) {
-	return environment.FromConfig()
-}
-
-func ensureDataRoot(env *environment.Environment) bool {
-
-	err := environment.CreateDataRoot(env)
-	if err != nil {
-		fmt.Println("Failed to ensure data directory:", err)
-		return false
-	}
-
-	return true
-}
-
-func printEnvironmentStatus(env *environment.Environment) {
-
-	fmt.Println("Environment status:")
-	fmt.Println("✓ External drive:", env.ExternalDrive)
-
-	_, err := os.Stat(env.DataRoot)
-	if err == nil {
-		fmt.Println("✓ Data directory:", env.DataRoot)
-	} else {
-		fmt.Println("✗ Data directory missing:", env.DataRoot)
-	}
-}
-
-func checkSystemPrerequisites() {
-
-	fmt.Println("System prerequisites:")
-
-	for _, p := range system.List() {
-
-		if p.Check() {
-			fmt.Println("✓", p.Name(), "installed")
-			continue
-		}
-
-		fmt.Println("✗", p.Name(), "missing")
-
-		err := p.Install()
-		if err != nil {
-			fmt.Println("failed to install", p.Name(), err)
-		}
-	}
-
-	fmt.Println()
 }

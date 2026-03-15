@@ -53,7 +53,7 @@ Notes:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		env, err := loadEnvironment()
+		env, err := environment.FromConfig()
 		if err != nil {
 			fmt.Println("Environment not configured. Run `mdev doctor` first.")
 			return
