@@ -54,10 +54,34 @@ Notes:
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		env, err := environment.FromConfig()
-		if err != nil {
-			printer.Fail("Environment not configured. Run `mdev doctor` first.")
+		// Prevent invalid usage
+		if installAll && len(args) > 0 {
+			printer.Fail("cannot use --all with a specific tool")
 			return
+		}
+
+		env, err := environment.FromConfig()
+
+		// First-time setup
+		if err != nil {
+
+			printer.Section("Environment setup")
+			printer.Info("Choose where mdev should store development tool data.")
+
+			if !interactive.AskYesNo("Create the directory now?") {
+				printer.Info("Aborted.")
+				printer.Blank()
+				return
+			}
+
+			env, err = environment.SetupInteractive()
+			if err != nil {
+				printer.Fail("environment setup failed")
+				printer.Blank()
+				return
+			}
+
+			printer.Success("Environment initialized")
 		}
 
 		// install all tools
@@ -84,6 +108,7 @@ Notes:
 
 		// interactive mode
 		runInteractiveInstall(env)
+
 	},
 }
 var installAll bool

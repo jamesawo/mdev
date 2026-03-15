@@ -54,6 +54,8 @@ Use --fix to attempt automatic remediation.`,
 				}
 			} else {
 				printer.Fail(e.Name + " not configured")
+
+				printer.Indent(2, "Run `mdev install`")
 			}
 		}
 
@@ -66,11 +68,8 @@ Use --fix to attempt automatic remediation.`,
 				continue
 			}
 
-			if len(t.Dependencies) > 0 {
-				printer.Fail(t.Name + " (requires " + t.Dependencies[0] + ")")
-			} else {
-				printer.Fail(t.Name)
-			}
+			// only show the name and not its dependencies, its noisy
+			printer.Fail(t.Name)
 		}
 
 		// Next Steps
@@ -88,8 +87,11 @@ Use --fix to attempt automatic remediation.`,
 		printer.Indent(2, "mdev install --all")
 
 		printer.Blank()
-		printer.Info("Fix system issues automatically:")
+		//todo check if there are any issues before showing this
+		printer.Info("To fix system issues automatically:")
 		printer.Indent(2, "mdev doctor --fix")
+		printer.Blank()
+		printer.Blank()
 
 	},
 }

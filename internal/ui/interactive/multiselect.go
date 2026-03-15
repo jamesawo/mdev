@@ -4,6 +4,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
+// todo: fix or replace this component, it does not tell user how to quit
+
 // MultiSelect presents a checkbox selection list
 // and returns the selected option values.
 //
