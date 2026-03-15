@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -36,27 +35,42 @@ Possible output:
   gradle -> java
   nvm
   podman
-
-This command is useful for debugging tool installation order and
-understanding how mdev resolves dependencies during automated setup.`,
+`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		printer.Section("Tool dependency graph")
 
 		for _, t := range tools.List() {
 
-			deps := t.Dependencies()
-
-			if len(deps) == 0 {
-				fmt.Println(t.Name())
-				continue
-			}
-
-			for _, d := range deps {
-				fmt.Printf("%s -> %s\n", t.Name(), d)
-			}
+			printTool(t.Name(), 0)
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(graphCmd)
+}
+
+func printTool(name string, level int) {
+
+	t, ok := tools.Get(name)
+	if !ok {
+		return
+	}
+
+	indent := ""
+
+	for i := 0; i < level; i++ {
+		indent += "  "
+	}
+
+	if level == 0 {
+		printer.Info(name)
+	} else {
+		printer.Info(indent + "└─ " + name)
+	}
+
+	for _, dep := range t.Dependencies() {
+		printTool(dep, level+1)
+	}
 }
