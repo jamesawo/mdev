@@ -18,18 +18,43 @@ func (Brew) Check() bool {
 
 func (Brew) Install() error {
 
+	if err := runInstaller(); err != nil {
+		return err
+	}
+
+	refreshPath()
+
+	return nil
+}
+
+// runInstaller executes the official Homebrew installation script
+// and attaches the process to the user's terminal so interactive
+// prompts (like sudo password) work correctly.
+func runInstaller() error {
+
 	cmd := exec.Command(
 		"/bin/bash",
 		"-c",
-		"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)",
+		`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
 	)
 
-	// Attach to terminal so installer can ask for password
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
 	return cmd.Run()
+}
+
+// refreshPath ensures the Homebrew binary directory is added
+// to the current process PATH so brew can be discovered
+// without restarting the shell.
+func refreshPath() {
+
+	brewPath := "/opt/homebrew/bin"
+
+	current := os.Getenv("PATH")
+
+	os.Setenv("PATH", current+":"+brewPath)
 }
 
 func init() {

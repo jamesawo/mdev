@@ -40,6 +40,7 @@ func FixMissingPrerequisites(checks []Check) {
 
 		if err := m.Install(); err != nil {
 			printer.Fail(m.Name() + " installation failed")
+			printer.Blank()
 			continue
 		}
 
