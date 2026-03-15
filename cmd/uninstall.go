@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/jamesawo/mdev/internal/environment"
-	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/printer"
+	"github.com/jamesawo/mdev/internal/uninstall"
 	"github.com/spf13/cobra"
 )
 
@@ -49,43 +48,17 @@ Notes:
 
 		env, err := environment.FromConfig()
 		if err != nil {
-			fmt.Println("Environment not configured. Run `mdev doctor` first.")
+			printer.Fail("Environment not configured. Run `mdev doctor` first.")
 			return
 		}
 
-		tool, ok := tools.Get(name)
-		if !ok {
-			fmt.Println("Unknown tool:", name)
-			return
-		}
-
-		if !confirmUninstall(name) {
-			fmt.Println("Cancelled.")
-			return
-		}
-
-		fmt.Println("Uninstalling", name)
-
-		err = tool.Uninstall(env)
+		err = uninstall.Run(env, name)
 		if err != nil {
-			fmt.Println("Uninstall failed:", err)
-			return
+			printer.Fail(err.Error())
 		}
-
-		fmt.Println("✓ Uninstalled", name)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(uninstallCmd)
-}
-
-func confirmUninstall(name string) bool {
-
-	fmt.Printf("Are you sure you want to uninstall %s? (y/N): ", name)
-
-	var input string
-	fmt.Scanln(&input)
-
-	return input == "y" || input == "Y"
 }
