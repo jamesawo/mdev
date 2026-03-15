@@ -6,38 +6,39 @@ import (
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
+// Run orchestrates the uninstall workflow.
 func Run(env *environment.Environment, name string) error {
 
-	dependents := FindDependents(name)
+	// ---- Resolve uninstall plan (dependency-aware) ----
+	plan, err := BuildPlan(name)
+	if err != nil {
+		return err
+	}
 
-	var plan []string
-
-	// If other tools depend on this one
-	if len(dependents) > 0 {
+	// If more than one tool appears in the plan,
+	// it means other tools depend on the target.
+	if len(plan) > 1 {
 
 		printer.Section("Dependency warning")
 
 		printer.Info(name + " is required by:")
 
-		for _, d := range dependents {
-			printer.Info("  " + d)
+		// dependents are everything except the last item (target)
+		for _, dep := range plan[:len(plan)-1] {
+			printer.Info("  " + dep)
 		}
 
 		if !interactive.AskYesNo("Remove dependent tools first?") {
 			printer.Info("Cancelled.")
 			return nil
 		}
-
-		plan = append(plan, dependents...)
 	}
 
-	plan = append(plan, name)
-
-	// ---- uninstall plan preview ----
+	// ---- Show uninstall plan ----
 	printer.Section("Uninstall plan")
 
-	for _, p := range plan {
-		printer.Info(p)
+	for _, tool := range plan {
+		printer.Info(tool)
 	}
 
 	if !interactive.AskYesNo("Continue uninstall?") {
@@ -45,5 +46,6 @@ func Run(env *environment.Environment, name string) error {
 		return nil
 	}
 
+	// ---- Execute uninstall ----
 	return execute(env, plan)
 }
