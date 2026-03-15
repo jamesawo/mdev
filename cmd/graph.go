@@ -40,9 +40,27 @@ Possible output:
 
 		printer.Section("Tool dependency graph")
 
-		for _, t := range tools.List() {
+		// Build reverse dependency graph:
+		// dependency -> tools that depend on it
+		graph := map[string][]string{}
 
-			printTool(t.Name(), 0)
+		for _, t := range tools.List() {
+			for _, dep := range t.Dependencies() {
+				graph[dep] = append(graph[dep], t.Name())
+			}
+		}
+
+		// Find root tools (tools with no dependencies)
+		var roots []string
+		for _, t := range tools.List() {
+			if len(t.Dependencies()) == 0 {
+				roots = append(roots, t.Name())
+			}
+		}
+
+		// Print tree starting from each root
+		for _, r := range roots {
+			printTree(r, graph, 0)
 		}
 	},
 }
@@ -51,26 +69,24 @@ func init() {
 	rootCmd.AddCommand(graphCmd)
 }
 
-func printTool(name string, level int) {
-
-	t, ok := tools.Get(name)
-	if !ok {
-		return
-	}
+// printTree recursively prints the dependency tree.
+// node: current tool
+// graph: reverse dependency map
+// level: indentation level
+func printTree(node string, graph map[string][]string, level int) {
 
 	indent := ""
-
 	for i := 0; i < level; i++ {
 		indent += "  "
 	}
 
 	if level == 0 {
-		printer.Info(name)
+		printer.Info(node)
 	} else {
-		printer.Info(indent + "└─ " + name)
+		printer.Info(indent + "└─ " + node)
 	}
 
-	for _, dep := range t.Dependencies() {
-		printTool(dep, level+1)
+	for _, child := range graph[node] {
+		printTree(child, graph, level+1)
 	}
 }
