@@ -37,10 +37,7 @@ Typical workflow:
      mdev install maven
 
   3. Install the full development stack
-     mdev install --all
-
-mdev also provides commands to inspect your environment and visualize
-tool dependencies.`,
+     mdev install --all`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
