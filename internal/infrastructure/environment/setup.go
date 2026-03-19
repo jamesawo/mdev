@@ -6,6 +6,7 @@ import (
 
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
@@ -19,13 +20,11 @@ func SetupInteractive() (*Environment, error) {
 	}
 
 	if len(drives) == 0 {
-		return nil, fmt.Errorf("no drive was detected")
+		return nil, fmt.Errorf(messages.NoDriveDetected)
 	}
 
-	//printer.Section("Select a preferred drive for development data")
-
 	index, err := interactive.RadioSelect(
-		"Choose where to store development data",
+		messages.EnvironmentChooseDirectory,
 		drives,
 	)
 	if err != nil {
@@ -33,11 +32,12 @@ func SetupInteractive() (*Environment, error) {
 	}
 
 	if index == -1 {
-		return nil, fmt.Errorf("no location selected, Setup cancelled")
+		return nil, fmt.Errorf(messages.EnvironmentNoDirectorySelected)
 	}
 
 	selected := drives[index]
 
+	// todo: extract /volumns to a shared const file
 	externalDrive := filepath.Join("/Volumes", selected)
 
 	env := New(externalDrive)
@@ -56,8 +56,8 @@ func SetupInteractive() (*Environment, error) {
 		return nil, err
 	}
 
-	printer.Success("Location setup initialized")
-	printer.Info("Location: " + externalDrive)
+	printer.Success(messages.EnvironmentSetupCompleted)
+	printer.Info(messages.EnvironmentLocation + ": " + externalDrive)
 
 	return env, nil
 }

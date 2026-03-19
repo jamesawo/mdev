@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/jamesawo/mdev/internal/command/doctor"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
@@ -27,23 +28,23 @@ Use --fix to attempt automatic remediation.`,
 
 		report, err := doctor.Run()
 		if err != nil {
-			printer.Fail("doctor failed")
+			printer.Fail(messages.DoctorFailed)
 			return
 		}
 
 		// System Section
-		printer.Section("System")
+		printer.Section(messages.System)
 
 		for _, s := range report.System {
 			if s.Status {
 				printer.Success(s.Name)
 			} else {
-				printer.Fail(s.Name + " missing")
+				printer.Fail(s.Name + " " + messages.Mising)
 			}
 		}
 
 		// Environment Section
-		printer.Section("Environment")
+		printer.Section(messages.Environment)
 
 		for _, e := range report.Environment {
 			if e.Status {

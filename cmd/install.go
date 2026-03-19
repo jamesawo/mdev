@@ -5,6 +5,7 @@ import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
@@ -65,23 +66,23 @@ Notes:
 		// First-time setup
 		if err != nil {
 
-			printer.Section("Environment setup")
-			printer.Info("Choose where mdev should store development tool data.")
+			printer.Section(messages.EnvironmentSetup)
+			printer.Info(messages.EnvironmentChooseDirectory)
 
-			if !interactive.AskYesNo("Create the directory now?") {
-				printer.Info("Aborted.")
+			if !interactive.AskYesNo(printer.FormatIndent(2, messages.EnvironmentCreateDirectoryQuestion)) {
+				printer.Info(messages.Aborted)
 				printer.Blank()
 				return
 			}
 
 			env, err = environment.SetupInteractive()
 			if err != nil {
-				printer.Fail("environment setup failed")
+				printer.Fail(messages.EnvironmentSetupFailed)
 				printer.Blank()
 				return
 			}
 
-			printer.Success("Environment initialized")
+			printer.Success(messages.EnvironmentSetupCompleted)
 		}
 
 		// install all tools
@@ -128,7 +129,7 @@ func runInteractiveInstall(env *environment.Environment) {
 		name := t.Name()
 
 		if t.IsInstalled(env) {
-			name = name + " (installed)"
+			name = name + " (" + messages.Installed + ")"
 		}
 
 		options = append(options, name)
@@ -136,7 +137,7 @@ func runInteractiveInstall(env *environment.Environment) {
 	}
 
 	selected, err := interactive.MultiSelect(
-		"Select tools to install",
+		printer.FormatIndent(1, messages.ToolsSelectToInstall),
 		options,
 	)
 
