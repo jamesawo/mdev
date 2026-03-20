@@ -10,6 +10,7 @@ import (
 	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type NVM struct{}
@@ -24,7 +25,7 @@ func (n *NVM) Name() string {
 }
 
 func (n *NVM) Description() string {
-	return "Node version manager"
+	return messages.ToolNVMDescription
 }
 
 func (n *NVM) IsInstalled(env *environment.Environment) bool {

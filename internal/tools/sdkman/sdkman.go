@@ -10,6 +10,7 @@ import (
 	"github.com/jamesawo/mdev/internal/infrastructure/fs"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type SDKMAN struct{}
@@ -23,7 +24,7 @@ func (s *SDKMAN) Name() string {
 }
 
 func (s *SDKMAN) Description() string {
-	return "Java version manager"
+	return messages.ToolSDKMANDescription
 }
 
 func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {

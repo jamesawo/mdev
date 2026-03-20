@@ -10,6 +10,7 @@ import (
 	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Gradle struct{}
@@ -23,7 +24,7 @@ func (g *Gradle) Name() string {
 }
 
 func (g *Gradle) Description() string {
-	return "Build automation tool"
+	return messages.ToolGradleDescription
 }
 
 func (g *Gradle) IsInstalled(env *environment.Environment) bool {

@@ -39,7 +39,7 @@ Use --fix to attempt automatic remediation.`,
 			if s.Status {
 				printer.Success(s.Name)
 			} else {
-				printer.Fail(s.Name + " " + messages.Mising)
+				printer.Fail(s.Name + " " + messages.Missing)
 			}
 		}
 

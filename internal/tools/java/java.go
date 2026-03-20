@@ -6,6 +6,7 @@ import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Java struct{}
@@ -19,7 +20,7 @@ func (j *Java) Name() string {
 }
 
 func (j *Java) Description() string {
-	return "Java runtime (via SDKMAN)"
+	return messages.ToolJavaDescription
 }
 
 func (j *Java) IsInstalled(env *environment.Environment) bool {

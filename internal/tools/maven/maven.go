@@ -10,6 +10,7 @@ import (
 	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Maven struct{}
@@ -23,7 +24,7 @@ func (m *Maven) Name() string {
 }
 
 func (m *Maven) Description() string {
-	return "Java build automation tool"
+	return messages.ToolMavenDescription
 }
 
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
