@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	exec "github.com/jamesawo/mdev/internal/infrastructure/exec"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 // Manager orchestrates all services
@@ -26,7 +26,7 @@ func (m *Manager) Up(ctx context.Context) error {
 
 	for _, s := range m.services {
 		if err := s.Start(ctx); err != nil {
-			return fmt.Errorf("%s failed to start: %w", s.Name(), err)
+			return messages.ServiceFailedToStart(s.Name(), err)
 		}
 	}
 
@@ -38,7 +38,7 @@ func (m *Manager) Down(ctx context.Context) error {
 
 	for _, s := range m.services {
 		if err := s.Stop(ctx); err != nil {
-			return fmt.Errorf("%s failed to stop: %w", s.Name(), err)
+			return messages.ServiceFailedToStop(s.Name(), err)
 		}
 	}
 

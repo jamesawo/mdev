@@ -57,7 +57,7 @@ Notes:
 
 		// Prevent invalid usage
 		if installAll && len(args) > 0 {
-			printer.Fail("cannot use --all with a specific tool")
+			printer.Fail(messages.ErrInstallAllWithTool)
 			return
 		}
 
@@ -129,7 +129,7 @@ func runInteractiveInstall(env *environment.Environment) {
 		name := t.Name()
 
 		if t.IsInstalled(env) {
-			name = name + " (" + messages.Installed + ")"
+			name = name + messages.ListInstalledSuffix
 		}
 
 		options = append(options, name)

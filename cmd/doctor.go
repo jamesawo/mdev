@@ -54,14 +54,14 @@ Use --fix to attempt automatic remediation.`,
 					printer.Success(e.Name)
 				}
 			} else {
-				printer.Fail(e.Name + " not configured")
+				printer.Fail(messages.DoctorNotConfigured(e.Name))
 
-				printer.Indent(2, "Run `mdev install`")
+				printer.Indent(2, messages.DoctorHintRunInstall)
 			}
 		}
 
 		// Tools Section
-		printer.Section("Tools")
+		printer.Section(messages.DoctorTools)
 
 		for _, t := range report.Tools {
 			if t.Installed {
@@ -74,23 +74,23 @@ Use --fix to attempt automatic remediation.`,
 		}
 
 		// Next Steps
-		printer.Section("Next steps")
+		printer.Section(messages.DoctorNextSteps)
 
-		printer.Indent(1, "Install individual tools:")
+		printer.Indent(1, messages.DoctorInstallIndividual)
 		for _, t := range report.Tools {
 			if !t.Installed {
-				printer.Indent(2, "mdev install "+t.Name)
+				printer.Indent(2, messages.DoctorInstallTool(t.Name))
 			}
 		}
 
 		printer.Blank()
-		printer.Info("Install everything:")
-		printer.Indent(2, "mdev install --all")
+		printer.Info(messages.DoctorInstallEverything)
+		printer.Indent(2, messages.RootWorkflowInstallAll)
 
 		printer.Blank()
 		//todo check if there are any issues before showing this
-		printer.Info("To fix system issues automatically:")
-		printer.Indent(2, "mdev doctor --fix")
+		printer.Info(messages.DoctorFixHint)
+		printer.Indent(2, messages.DoctorFixCmd)
 		printer.Blank()
 		printer.Blank()
 

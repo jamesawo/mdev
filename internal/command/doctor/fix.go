@@ -5,6 +5,7 @@ import (
 
 	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
@@ -21,50 +22,50 @@ func Fix() {
 	}
 
 	if len(missing) == 0 {
-		printer.Success("Nothing to fix")
+		printer.Success(messages.DoctorNothingToFix)
 		printer.Blank()
 		return
 	}
 
-	printer.Section("Fixing system prerequisites")
+	printer.Section(messages.DoctorFixingPrerequisites)
 
 	for _, m := range missing {
 		printer.Info(m.Name())
 	}
 
-	if !interactive.AskYesNo("Install missing prerequisites?") {
-		printer.Info("Aborted")
+	if !interactive.AskYesNo(messages.DoctorInstallMissingPrerequisites) {
+		printer.Info(messages.Aborted)
 		return
 	}
 
-	printer.Section("Fixing system")
+	printer.Section(messages.DoctorFixingSystem)
 
 	startAll := time.Now()
 
 	for _, m := range missing {
 
 		printer.Blank()
-		printer.Info("Installing " + m.Name())
+		printer.Info(messages.Installing + " " + m.Name())
 
 		start := time.Now()
 
 		err := m.Install()
 		if err != nil {
-			printer.Fail(m.Name() + " installation failed")
+			printer.Fail(messages.DoctorInstallationFailed(m.Name()))
 			continue
 		}
 
 		elapsed := time.Since(start).Round(time.Second)
 
-		printer.Success(m.Name() + " installed")
-		printer.Indent(1, "time: "+elapsed.String())
+		printer.Success(m.Name() + " " + messages.Installed)
+		printer.Indent(1, messages.DoctorTimeElapsed(elapsed.String()))
 		printer.Blank()
 	}
 
 	total := time.Since(startAll).Round(time.Second)
 
 	printer.Blank()
-	printer.Section("Summary")
-	printer.Info("Total fix time: " + total.String())
+	printer.Section(messages.DoctorFixSummary)
+	printer.Info(messages.DoctorTotalFixTime(total.String()))
 	printer.Blank()
 }

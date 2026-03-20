@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
@@ -33,8 +34,8 @@ func Select(options []string) (int, error) {
 		}
 
 		// Display selection instructions
-		printer.Info("Enter the number of your choice, or 'q' to quit:")
-		printer.Ask(">")
+		printer.Info(messages.SelectEnterChoice)
+		printer.Ask(messages.SelectPromptSymbol)
 
 		// Read user input
 		input, err := reader.ReadString('\n')
@@ -53,13 +54,13 @@ func Select(options []string) (int, error) {
 		// Convert the input string into an integer
 		selection, err := strconv.Atoi(input)
 		if err != nil {
-			printer.Fail("Invalid input. Please enter a number.")
+			printer.Fail(messages.SelectInvalidInput)
 			continue
 		}
 
 		// Ensure the selected number is within the valid range
 		if selection < 1 || selection > len(options) {
-			printer.Fail("Selection out of range.")
+			printer.Fail(messages.SelectOutOfRange)
 			continue
 		}
 

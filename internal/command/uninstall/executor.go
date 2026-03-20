@@ -5,12 +5,13 @@ import (
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
 func execute(env *environment.Environment, names []string) error {
 
-	printer.Section("Uninstalling tools")
+	printer.Section(messages.UninstallingTools)
 
 	for _, name := range names {
 
@@ -20,11 +21,11 @@ func execute(env *environment.Environment, names []string) error {
 		}
 
 		if !tool.IsInstalled(env) {
-			printer.Info(name + " not installed")
+			printer.Info(messages.UninstallNotInstalled(name))
 			continue
 		}
 
-		printer.Info("Removing " + name)
+		printer.Info(messages.UninstallRemoving(name))
 
 		// uninstall tool
 		err := tool.Uninstall(env)
@@ -36,7 +37,7 @@ func execute(env *environment.Environment, names []string) error {
 		storagePath := tool.StorageDir(env)
 
 		if _, err := os.Stat(storagePath); err == nil {
-			printer.Info("Cleaning storage: " + storagePath)
+			printer.Info(messages.UninstallCleaningStorage(storagePath))
 
 			err := os.RemoveAll(storagePath)
 			if err != nil {
@@ -44,7 +45,7 @@ func execute(env *environment.Environment, names []string) error {
 			}
 		}
 
-		printer.Success(name + " removed")
+		printer.Success(messages.UninstallRemoved(name))
 	}
 
 	return nil
