@@ -3,6 +3,7 @@ package list
 import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
@@ -16,7 +17,7 @@ func Run() {
 
 	env, _ := environment.FromConfig()
 
-	printer.Section("Available tools")
+	printer.Section(messages.ListAvailableTools)
 
 	for _, t := range tools.List() {
 
@@ -25,7 +26,7 @@ func Run() {
 		// If environment exists and the tool is installed,
 		// mark it as installed in the output.
 		if env != nil && t.IsInstalled(env) {
-			printer.Success(name + " (installed)")
+			printer.Success(name + messages.ListInstalledSuffix)
 			continue
 		}
 

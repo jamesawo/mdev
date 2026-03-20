@@ -1,7 +1,11 @@
 package install
 
-import "fmt"
+import (
+	"errors"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
+)
 
 func ErrUnknownTool(name string) error {
-	return fmt.Errorf("unknown tool: %s", name)
+	return errors.New(messages.UnknownTool(name))
 }

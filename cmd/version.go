@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/spf13/cobra"
 )
 
@@ -19,8 +20,8 @@ information about the project.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("mdev", version)
-		fmt.Println("Created by", author)
+		fmt.Println(messages.VersionInfo(version))
+		fmt.Println(messages.VersionAuthor(author))
 	},
 }
 

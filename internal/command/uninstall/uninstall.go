@@ -3,6 +3,7 @@ package uninstall
 import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
@@ -19,43 +20,43 @@ func Run(env *environment.Environment, name string) error {
 	// it means other tools depend on the target.
 	if len(plan) > 1 {
 
-		printer.Section("Dependency warning")
+		printer.Section(messages.UninstallDependencyWarning)
 
-		printer.Info(name + " is required by:")
+		printer.Info(messages.UninstallRequiredBy(name))
 
 		// dependents are everything except the last item (target)
 		for _, dep := range plan[:len(plan)-1] {
 			printer.Info("  " + dep)
 		}
 
-		if !interactive.AskYesNo("Remove dependent tools first?") {
-			printer.Info("Cancelled.")
+		if !interactive.AskYesNo(messages.UninstallRemoveDependentsQuestion) {
+			printer.Info(messages.UninstallCancelled)
 			return nil
 		}
 	}
 
 	// ---- Show uninstall plan ----
-	printer.Section("Uninstall plan")
+	printer.Section(messages.UninstallPlan)
 
 	for _, tool := range plan {
 		printer.Info(tool)
 	}
 
 	// Show directories that will be removed
-	printer.Section("Directories to be removed")
+	printer.Section(messages.UninstallDirectoriesToRemove)
 
 	for _, tool := range plan {
 		path := StoragePath(env, tool)
 		printer.Info(path)
 	}
 
-	if !interactive.AskYesNo("Continue uninstall?") {
-		printer.Info("Cancelled.")
+	if !interactive.AskYesNo(messages.UninstallContinueQuestion) {
+		printer.Info(messages.UninstallCancelled)
 		return nil
 	}
 
-	if !interactive.AskYesNo("Continue uninstall?") {
-		printer.Info("Cancelled.")
+	if !interactive.AskYesNo(messages.UninstallContinueQuestion) {
+		printer.Info(messages.UninstallCancelled)
 		return nil
 	}
 

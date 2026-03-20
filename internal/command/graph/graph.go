@@ -2,12 +2,13 @@ package graph
 
 import (
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
 func Run() {
 
-	printer.Section("Tool dependency graph")
+	printer.Section(messages.GraphTitle)
 
 	graph := map[string][]string{}
 

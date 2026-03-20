@@ -11,6 +11,7 @@ import (
 	_ "github.com/jamesawo/mdev/internal/tools/podman"
 	_ "github.com/jamesawo/mdev/internal/tools/sdkman"
 
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
@@ -34,17 +35,17 @@ tool caches to external storage to keep your system disk clean.`,
 
 		printer.PrintBanner()
 
-		printer.Section("Available commands")
-		printer.Command("mdev doctor   Initialize and validate your environment")
-		printer.Command("mdev install  Install development tools")
-		printer.Command("mdev list     Show supported tools and their status")
-		printer.Command("mdev graph    Show dependency graph between tools")
-		printer.Command("mdev version  Show version information")
+		printer.Section(messages.RootAvailableCommands)
+		printer.Command(messages.RootCmdDoctor)
+		printer.Command(messages.RootCmdInstall)
+		printer.Command(messages.RootCmdList)
+		printer.Command(messages.RootCmdGraph)
+		printer.Command(messages.RootCmdVersion)
 
-		printer.Section("Typical workflow")
-		printer.Command("mdev doctor")
-		printer.Command("mdev install")
-		printer.Command("mdev install --all")
+		printer.Section(messages.RootTypicalWorkflow)
+		printer.Command(messages.RootWorkflowDoctor)
+		printer.Command(messages.RootWorkflowInstall)
+		printer.Command(messages.RootWorkflowInstallAll)
 		printer.Blank()
 	},
 }

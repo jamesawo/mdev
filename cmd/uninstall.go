@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/jamesawo/mdev/internal/command/uninstall"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +49,7 @@ Notes:
 
 		env, err := environment.FromConfig()
 		if err != nil {
-			printer.Fail("Environment not configured. Run `mdev doctor` first.")
+			printer.Fail(messages.ErrEnvironmentNotConfigured)
 			return
 		}
 
