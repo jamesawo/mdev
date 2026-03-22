@@ -88,7 +88,7 @@ Use --fix to attempt automatic remediation.`,
 		printer.Indent(2, messages.RootWorkflowInstallAll)
 
 		printer.Blank()
-		//todo check if there are any issues before showing this
+		//todo check if there are any identified issues before showing this
 		printer.Info(messages.DoctorFixHint)
 		printer.Indent(2, messages.DoctorFixCmd)
 		printer.Blank()

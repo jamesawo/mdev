@@ -3,34 +3,29 @@ package cmd
 import (
 	"context"
 
-	exec "github.com/jamesawo/mdev/internal/infrastructure/exec"
-	"github.com/jamesawo/mdev/internal/services"
+	upcmd "github.com/jamesawo/mdev/internal/command/up"
 
 	"github.com/spf13/cobra"
 )
 
 var upCmd = &cobra.Command{
 	Use:   "up",
-	Short: "Start development environment",
+	Short: "Start development services (like podman, ollama)",
 	Long: `Start the development environment.
 
-mdev up brings your development environment by starting all required runtime services.
-
-Examples:
-  mdev up
+mdev up starts the runtime services and tools required during development.
 
 This typically includes:
-- starting podman machine
-- starting ollama service
+- podman machine
+- ollama service
 
-Use this at the start of your development session.`,
+
+Use this command at the beginning of your development session.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
-		runner := &exec.CommandRunner{}
-		svcs := services.Default()
-
-		manager := services.New(svcs, runner)
-
-		return manager.Up(context.Background())
+		return upcmd.New().Execute(context.Background())
 	},
+}
+
+func init() {
+	rootCmd.AddCommand(upCmd)
 }
