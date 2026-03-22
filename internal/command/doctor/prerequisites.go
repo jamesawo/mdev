@@ -11,18 +11,17 @@ func checkSystemPrerequisites(reporter Reporter) []Check {
 	var checks []Check
 
 	for _, p := range prerequisites.List() {
+		reporter.StartCheck(p.Name())
 
 		ok := p.Check()
 
-		checks = append(checks, Check{
+		result := Check{
 			Name:   p.Name(),
 			Status: ok,
 			Detail: "",
-		})
-
-		if reporter != nil {
-			reporter.SystemCheck(checks[len(checks)-1])
 		}
+		checks = append(checks, result)
+		reporter.SystemCheck(result)
 	}
 
 	return checks

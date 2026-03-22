@@ -156,6 +156,7 @@ const (
 	DoctorFixSummary             = "Summary"
 	Environment                  = "Environment"
 	EnvironmentSetup             = "Environment setup"
+	EnvironmentConfiguration     = "Environment configuration"
 	ToolsInstallPlan             = "Install plan"
 	ToolsInstallingStart         = "Installing tools"
 	UninstallDependencyWarning   = "Dependency warning"
@@ -174,6 +175,7 @@ const (
 	NoDriveDetected                = "no drive was detected"
 	EnvironmentNoDirectorySelected = "No location selected, setup cancelled"
 	EnvironmentSetupFailed         = "Location setup failed"
+	EnvironmentNotConfiguredShort  = "Not configured"
 )
 
 // Prompts
@@ -205,6 +207,8 @@ const (
 	ListInstalledSuffix        = " (installed)"
 	UninstallCancelled         = "Cancelled."
 	IndentMark                 = "└─ "
+	ExternalDrive              = "External drive"
+	DataDirectory              = "Data directory"
 )
 
 const (

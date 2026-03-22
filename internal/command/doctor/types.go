@@ -24,6 +24,7 @@ type ToolCheck struct {
 // Reporter streams progress updates while doctor checks are running.
 type Reporter interface {
 	StartSection(title string)
+	StartCheck(name string)
 	SystemCheck(result Check)
 	EnvironmentCheck(result Check)
 	ToolCheck(result ToolCheck)

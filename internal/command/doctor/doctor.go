@@ -13,7 +13,8 @@ func Execute(isFixFlag bool) {
 		return
 	}
 
-	report, err := Run(progressReporter{})
+	reporter := &progressReporter{}
+	report, err := Run(reporter)
 
 	if err != nil {
 		printer.Fail(messages.DoctorFailed)

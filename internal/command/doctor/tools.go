@@ -13,6 +13,7 @@ func checkTools(reporter Reporter) []ToolCheck {
 	env, _ := environment.FromConfig()
 
 	for _, t := range tools.List() {
+		reporter.StartCheck(t.Name())
 
 		result := ToolCheck{
 			Name:         t.Name(),
@@ -20,9 +21,7 @@ func checkTools(reporter Reporter) []ToolCheck {
 			Dependencies: t.Dependencies(),
 		}
 		results = append(results, result)
-		if reporter != nil {
-			reporter.ToolCheck(result)
-		}
+		reporter.ToolCheck(result)
 	}
 
 	return results
