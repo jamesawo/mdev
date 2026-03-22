@@ -142,6 +142,10 @@ Use this command at the beginning of your development session.`
 information about the project.`
 )
 
+const (
+	FlagDoctorFix = "Attempt to fix detected issues"
+)
+
 // Section headers
 const (
 	System                       = "System"
