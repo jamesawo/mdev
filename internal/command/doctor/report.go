@@ -7,44 +7,46 @@ import (
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
-// renderReport renders the doctor report.
-func renderReport(report *Report) {
+type progressReporter struct{}
 
-	printer.Section(messages.System)
+func (progressReporter) StartSection(title string) {
+	printer.Section(title)
+}
 
-	for _, s := range report.System {
-		if s.Status {
-			printer.Success(s.Name)
+func (progressReporter) SystemCheck(result Check) {
+	if result.Status {
+		printer.Success(result.Name)
+		return
+	}
+
+	printer.Fail(fmt.Sprintf("%s %s", messages.Missing, result.Name))
+}
+
+func (progressReporter) EnvironmentCheck(result Check) {
+	if result.Status {
+		if result.Detail != "" {
+			printer.Success(result.Name + ": " + result.Detail)
 		} else {
-			printer.Fail(fmt.Sprintf("%s %s", messages.Missing, s.Name))
+			printer.Success(result.Name)
 		}
+		return
 	}
 
-	printer.Section(messages.Environment)
+	printer.Fail(messages.DoctorNotConfigured(result.Name))
+	printer.Indent(2, messages.Run+" mdev install")
+}
 
-	for _, e := range report.Environment {
-		if e.Status {
-			if e.Detail != "" {
-				printer.Success(e.Name + ": " + e.Detail)
-			} else {
-				printer.Success(e.Name)
-			}
-		} else {
-			printer.Fail(messages.DoctorNotConfigured(e.Name))
-			printer.Indent(2, messages.Run+" mdev install")
-		}
+func (progressReporter) ToolCheck(result ToolCheck) {
+	if result.Installed {
+		printer.Success(result.Name)
+		return
 	}
 
-	printer.Section(messages.DoctorTools)
+	printer.Fail(result.Name)
+}
 
-	for _, t := range report.Tools {
-		if t.Installed {
-			printer.Success(t.Name)
-			continue
-		}
-
-		printer.Fail(t.Name)
-	}
+// renderSummary renders the final doctor summary after streaming progress.
+func renderSummary(report *Report) {
 
 	printer.Section(messages.DoctorNextSteps)
 

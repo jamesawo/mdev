@@ -8,7 +8,7 @@ import (
 )
 
 // checkEnvironment verifies the configured environment.
-func checkEnvironment() []Check {
+func checkEnvironment(reporter Reporter) []Check {
 
 	results := []Check{}
 
@@ -16,30 +16,42 @@ func checkEnvironment() []Check {
 
 	if err != nil {
 
-		results = append(results, Check{
+		check := Check{
 			Name:   "environment",
 			Status: false,
 			Detail: "not configured",
-		})
+		}
+		results = append(results, check)
+		if reporter != nil {
+			reporter.EnvironmentCheck(check)
+		}
 
 		return results
 	}
 
 	env := environment.New(cfg.ExternalDrive)
 
-	results = append(results, Check{
+	externalDrive := Check{
 		Name:   "external drive",
 		Status: true,
 		Detail: env.ExternalDrive,
-	})
+	}
+	results = append(results, externalDrive)
+	if reporter != nil {
+		reporter.EnvironmentCheck(externalDrive)
+	}
 
 	_, err = os.Stat(env.DataRoot)
 
-	results = append(results, Check{
+	dataDirectory := Check{
 		Name:   "data directory",
 		Status: err == nil,
 		Detail: env.DataRoot,
-	})
+	}
+	results = append(results, dataDirectory)
+	if reporter != nil {
+		reporter.EnvironmentCheck(dataDirectory)
+	}
 
 	return results
 }

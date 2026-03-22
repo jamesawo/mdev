@@ -6,7 +6,7 @@ import (
 )
 
 // checkTools reports installation status of tools.
-func checkTools() []ToolCheck {
+func checkTools(reporter Reporter) []ToolCheck {
 
 	results := []ToolCheck{}
 
@@ -14,11 +14,15 @@ func checkTools() []ToolCheck {
 
 	for _, t := range tools.List() {
 
-		results = append(results, ToolCheck{
+		result := ToolCheck{
 			Name:         t.Name(),
 			Installed:    t.IsInstalled(env),
 			Dependencies: t.Dependencies(),
-		})
+		}
+		results = append(results, result)
+		if reporter != nil {
+			reporter.ToolCheck(result)
+		}
 	}
 
 	return results

@@ -12,3 +12,4 @@ mdev
 
 # Go
 bin/
+.gocache

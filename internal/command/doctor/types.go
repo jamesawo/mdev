@@ -20,3 +20,11 @@ type ToolCheck struct {
 	Installed    bool
 	Dependencies []string
 }
+
+// Reporter streams progress updates while doctor checks are running.
+type Reporter interface {
+	StartSection(title string)
+	SystemCheck(result Check)
+	EnvironmentCheck(result Check)
+	ToolCheck(result ToolCheck)
+}

@@ -6,7 +6,7 @@ import (
 
 // checkSystemPrerequisites checks all registered prerequisites,
 // prints their status, and installs missing ones if the user agrees.
-func checkSystemPrerequisites() []Check {
+func checkSystemPrerequisites(reporter Reporter) []Check {
 
 	var checks []Check
 
@@ -19,6 +19,10 @@ func checkSystemPrerequisites() []Check {
 			Status: ok,
 			Detail: "",
 		})
+
+		if reporter != nil {
+			reporter.SystemCheck(checks[len(checks)-1])
+		}
 	}
 
 	return checks
