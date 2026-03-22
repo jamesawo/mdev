@@ -145,7 +145,6 @@ information about the project.`
 // Section headers
 const (
 	System                       = "System"
-	DoctorReport                 = "Doctor Report"
 	DoctorTools                  = "Tools"
 	DoctorNextSteps              = "Next steps"
 	DoctorFixingPrerequisites    = "Fixing system prerequisites"
@@ -169,9 +168,57 @@ const (
 	ErrInstallAllWithTool          = "cannot use --all with a specific tool"
 	ErrEnvironmentNotConfigured    = "Environment not configured. Run `mdev doctor` first."
 	NoDriveDetected                = "no drive was detected"
-	EnvironmentNotConfigured       = "Development data location not configured"
 	EnvironmentNoDirectorySelected = "No location selected, setup cancelled"
 	EnvironmentSetupFailed         = "Location setup failed"
+)
+
+// Prompts
+const (
+	EnvironmentCreateDirectoryQuestion = "Create the directory now?"
+	ToolsContinueInstallQuestion       = "Continue installation?"
+	UninstallRemoveDependentsQuestion  = "Remove dependent tools first?"
+	UninstallContinueQuestion          = "Continue uninstall?"
+	DoctorInstallMissingPrerequisites  = "Install missing prerequisites?"
+	SelectEnterChoice                  = "Enter the number of your choice, or 'q' to quit:"
+	SelectPromptSymbol                 = ">"
+	SelectInvalidInput                 = "Invalid input. Please enter a number."
+	SelectOutOfRange                   = "Selection out of range."
+)
+
+// Info and status
+const (
+	Run                        = "run"
+	Missing                    = "missing"
+	Aborted                    = "aborted"
+	Installed                  = "installed"
+	Installing                 = "Installing"
+	EnvironmentSetupCompleted  = "Location setup done"
+	EnvironmentLocation        = "Location"
+	EnvironmentChooseDirectory = "Choose where to store development tool data."
+	ToolsSelectToInstall       = "Select tools to install"
+	ToolsInstallCancelled      = "Installation cancelled."
+	ToolsAlreadyInstalled      = "already installed"
+	ListInstalledSuffix        = " (installed)"
+	UninstallCancelled         = "Cancelled."
+	IndentMark                 = "└─ "
+)
+
+const (
+	DoctorNothingToFix      = "Nothing to fix"
+	DoctorInstallIndividual = "Install individual tools:"
+	DoctorInstallEverything = "Install everything:"
+	DoctorFixHint           = "To fix system issues automatically:"
+)
+
+// Tool descriptions
+
+const (
+	ToolJavaDescription   = "Java runtime (via SDKMAN)"
+	ToolNVMDescription    = "Node version manager"
+	ToolSDKMANDescription = "Java version manager"
+	ToolMavenDescription  = "Java build automation tool"
+	ToolGradleDescription = "Build automation tool"
+	ToolPodmanDescription = "Container runtime with Podman Desktop"
 )
 
 func DoctorNotConfigured(name string) string {
@@ -197,46 +244,6 @@ func ServiceFailedToStart(name string, err error) error {
 func ServiceFailedToStop(name string, err error) error {
 	return fmt.Errorf("%s failed to stop: %w", name, err)
 }
-
-// Prompts
-
-const (
-	EnvironmentCreateDirectoryQuestion = "Create the directory now?"
-	ToolsContinueInstallQuestion       = "Continue installation?"
-	UninstallRemoveDependentsQuestion  = "Remove dependent tools first?"
-	UninstallContinueQuestion          = "Continue uninstall?"
-	DoctorInstallMissingPrerequisites  = "Install missing prerequisites?"
-	SelectEnterChoice                  = "Enter the number of your choice, or 'q' to quit:"
-	SelectPromptSymbol                 = ">"
-	SelectInvalidInput                 = "Invalid input. Please enter a number."
-	SelectOutOfRange                   = "Selection out of range."
-)
-
-// Info and status
-
-const (
-	Run                        = "run"
-	Missing                    = "missing"
-	Aborted                    = "aborted"
-	Installed                  = "installed"
-	Installing                 = "Installing"
-	EnvironmentSetupCompleted  = "Location setup done"
-	EnvironmentLocation        = "Location"
-	EnvironmentChooseDirectory = "Choose where to store development tool data."
-	ToolsSelectToInstall       = "Select tools to install"
-	ToolsInstallCancelled      = "Installation cancelled."
-	ToolsAlreadyInstalled      = "already installed"
-	ListInstalledSuffix        = " (installed)"
-	UninstallCancelled         = "Cancelled."
-	IndentMark                 = "└─ "
-)
-
-const (
-	DoctorNothingToFix      = "Nothing to fix"
-	DoctorInstallIndividual = "Install individual tools:"
-	DoctorInstallEverything = "Install everything:"
-	DoctorFixHint           = "To fix system issues automatically:"
-)
 
 func DoctorInstallTool(name string) string {
 	return fmt.Sprintf("mdev install %s", name)
@@ -266,22 +273,5 @@ func UninstallRemoved(name string) string {
 	return name + " removed"
 }
 
-// Commands shown to users
-
-const (
-	RootWorkflowInstallAll = "mdev install --all"
-)
-
 func VersionInfo(ver string) string      { return "mdev " + ver }
 func VersionAuthor(author string) string { return "Created by " + author }
-
-// Tool descriptions
-
-const (
-	ToolJavaDescription   = "Java runtime (via SDKMAN)"
-	ToolNVMDescription    = "Node version manager"
-	ToolSDKMANDescription = "Java version manager"
-	ToolMavenDescription  = "Java build automation tool"
-	ToolGradleDescription = "Build automation tool"
-	ToolPodmanDescription = "Container runtime with Podman Desktop"
-)
