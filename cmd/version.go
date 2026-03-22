@@ -14,9 +14,8 @@ const (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Show mdev version information",
-	Long: `Display the current version of mdev and basic
-information about the project.`,
+	Short: messages.CmdVersionShortDescription,
+	Long:  messages.CmdVersionLongDescription,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

@@ -2,8 +2,147 @@ package messages
 
 import "fmt"
 
-// Section headers
+// Cmd text
+const (
+	CmdDoctorShortDescription = "Inspect system, environment, and tools"
+	CmdDoctorLongDescription  = `Analyze your system and development environment.
 
+This command reports missing prerequisites, environment issues,
+and tool installation status.
+
+Use --fix to attempt automatic remediation.`
+	CmdGraphShortDescription = "Show the dependency graph of supported tools"
+	CmdGraphLongDescription  = `Graph displays the dependency relationships between development
+tools managed by mdev.
+
+Some tools depend on others to function correctly. For example,
+Java requires SDKMAN to install and manage versions, while tools
+like Maven and Gradle require Java to be present before they can
+be installed.
+
+This command prints the dependency graph so you can understand the
+order in which tools will be installed when running:
+
+  mdev install --all
+
+The output shows each tool and the tools it depends on.
+
+Example:
+
+  mdev graph
+
+Possible output:
+
+  java -> sdkman
+  maven -> java
+  gradle -> java
+  nvm
+  podman
+`
+	CmdInstallShortDescription = "Install a tool in your local environment."
+	CmdInstallLongDescription  = `
+	Install a development tool into your local environment.
+
+This command installs a supported tool and prepares it for use with the
+current mdev environment configuration. The tool will be downloaded,
+installed, and configured using the paths and settings defined in your
+mdev environment.
+
+Before running this command, your environment must be initialized and
+validated using 'mdev doctor'. The install process depends on the
+configured directories, tool paths, and system checks performed during
+that step.
+
+If the tool is already installed, the command will detect it and skip
+the installation to avoid overwriting an existing setup.
+
+Usage:
+  mdev install [tool]
+
+Arguments:
+  tool    Name of the tool to install.
+
+Behavior:
+  • Validates that the environment is configured.
+  • Checks whether the requested tool is supported.
+  • Detects if the tool is already installed.
+  • Runs the tool-specific installation process.
+
+Examples:
+  mdev install java
+  mdev install gradle
+  mdev install maven
+
+Notes:
+  Each tool provides its own installation logic. The command acts as a
+  dispatcher that resolves the requested tool and executes its install
+  routine using the current environment configuration.
+	`
+	CmdListShortDescription = "List all supported development tools"
+	CmdListLongDescription  = `List all development tools supported by mdev.
+
+This command displays the tools that mdev knows how to manage.
+Each tool includes a short description and can be installed,
+configured, and managed through the mdev lifecycle.
+
+Typical usage:
+
+  mdev list
+`
+	CmdRootShortDescription = "Automate development environment setup on macOS"
+	CmdRootLongDescription  = `mdev is a command-line tool for setting up and managing
+a development environment on macOS.
+
+It installs development tools, configures them, and relocates large
+tool caches to external storage to keep your system disk clean.`
+	CmdUninstallShortDescription = "Uninstall a tool from your local environment"
+	CmdUninstallLongDescription  = `Remove an installed tool from the local environment.
+
+This command uninstalls a tool that was previously installed using
+mdev. It removes the tool binaries and any managed directories that
+belong to the mdev environment while keeping unrelated user files
+untouched.
+
+The command validates that the environment is configured and that
+the specified tool is known by mdev before attempting removal.
+
+Usage:
+  mdev uninstall [tool]
+
+Arguments:
+  tool    Name of the tool to uninstall.
+
+Behavior:
+  • Verifies the mdev environment configuration.
+  • Confirms the tool is supported by mdev.
+  • Removes the installed tool from the managed environment.
+
+Examples:
+  mdev uninstall java
+  mdev uninstall gradle
+  mdev uninstall maven
+
+Notes:
+  Only tools managed by mdev can be removed using this command.
+  If the tool is not installed, the command will exit without
+  making changes.`
+	CmdUpShortDescription = "Start development services (like podman, ollama)"
+	CmdUpLongDescription  = `Start the development environment.
+
+mdev up starts the runtime services and tools required during development.
+
+This typically includes:
+- podman machine
+- ollama service
+
+
+Use this command at the beginning of your development session.`
+	CmdVersionShortDescription = "Show mdev version information"
+	CmdVersionLongDescription  = `Display the current version of mdev and basic
+information about the project.`
+)
+
+// Section headers
 const (
 	System                       = "System"
 	DoctorReport                 = "Doctor Report"
@@ -22,12 +161,9 @@ const (
 	UninstallingTools            = "Uninstalling tools"
 	ListAvailableTools           = "Available tools"
 	GraphTitle                   = "Tool dependency graph"
-	RootAvailableCommands        = "Available commands"
-	RootTypicalWorkflow          = "Typical workflow"
 )
 
 // Errors
-
 const (
 	DoctorFailed                   = "doctor failed"
 	ErrInstallAllWithTool          = "cannot use --all with a specific tool"
@@ -79,11 +215,11 @@ const (
 // Info and status
 
 const (
+	Run                        = "run"
 	Missing                    = "missing"
 	Aborted                    = "aborted"
 	Installed                  = "installed"
 	Installing                 = "Installing"
-	SetupCancelled             = "Setup cancelled"
 	EnvironmentSetupCompleted  = "Location setup done"
 	EnvironmentLocation        = "Location"
 	EnvironmentChooseDirectory = "Choose where to store development tool data."
@@ -92,12 +228,14 @@ const (
 	ToolsAlreadyInstalled      = "already installed"
 	ListInstalledSuffix        = " (installed)"
 	UninstallCancelled         = "Cancelled."
-	DoctorNothingToFix         = "Nothing to fix"
-	DoctorHintRunInstall       = "Run `mdev install`"
-	DoctorInstallIndividual    = "Install individual tools:"
-	DoctorInstallEverything    = "Install everything:"
-	DoctorFixHint              = "To fix system issues automatically:"
-	DoctorFixCmd               = "mdev doctor --fix"
+	IndentMark                 = "└─ "
+)
+
+const (
+	DoctorNothingToFix      = "Nothing to fix"
+	DoctorInstallIndividual = "Install individual tools:"
+	DoctorInstallEverything = "Install everything:"
+	DoctorFixHint           = "To fix system issues automatically:"
 )
 
 func DoctorInstallTool(name string) string {
@@ -131,14 +269,6 @@ func UninstallRemoved(name string) string {
 // Commands shown to users
 
 const (
-	RootCmdDoctor          = "mdev doctor   Initialize and validate your environment"
-	RootCmdInstall         = "mdev install  Install development tools"
-	RootCmdList            = "mdev list     Show supported tools and their status"
-	RootCmdGraph           = "mdev graph    Show dependency graph between tools"
-	RootCmdUp              = "Bring up the development environment (podman, ollama)"
-	RootCmdVersion         = "mdev version  Show version information"
-	RootWorkflowDoctor     = "mdev doctor"
-	RootWorkflowInstall    = "mdev install"
 	RootWorkflowInstallAll = "mdev install --all"
 )
 

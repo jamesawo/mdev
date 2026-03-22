@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/jamesawo/mdev/internal/command/doctor"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -11,13 +13,8 @@ var fix bool
 
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: "Inspect system, environment, and tools",
-	Long: `Analyze your system and development environment.
-
-This command reports missing prerequisites, environment issues,
-and tool installation status.
-
-Use --fix to attempt automatic remediation.`,
+	Short: messages.CmdDoctorShortDescription,
+	Long:  messages.CmdDoctorLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Execute fixes if requested
@@ -39,7 +36,7 @@ Use --fix to attempt automatic remediation.`,
 			if s.Status {
 				printer.Success(s.Name)
 			} else {
-				printer.Fail(s.Name + " " + messages.Missing)
+				printer.Fail(fmt.Sprintf("%s %s", messages.Missing, s.Name))
 			}
 		}
 
@@ -55,8 +52,7 @@ Use --fix to attempt automatic remediation.`,
 				}
 			} else {
 				printer.Fail(messages.DoctorNotConfigured(e.Name))
-
-				printer.Indent(2, messages.DoctorHintRunInstall)
+				printer.Indent(2, messages.Run+" mdev install")
 			}
 		}
 
@@ -69,7 +65,7 @@ Use --fix to attempt automatic remediation.`,
 				continue
 			}
 
-			// only show the name and not its dependencies, its noisy
+			// only show the name and not its dependencies,
 			printer.Fail(t.Name)
 		}
 
@@ -90,8 +86,7 @@ Use --fix to attempt automatic remediation.`,
 		printer.Blank()
 		//todo check if there are any identified issues before showing this
 		printer.Info(messages.DoctorFixHint)
-		printer.Indent(2, messages.DoctorFixCmd)
-		printer.Blank()
+		printer.Indent(2, "mdev doctor --fix")
 		printer.Blank()
 
 	},

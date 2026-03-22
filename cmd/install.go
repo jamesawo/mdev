@@ -14,45 +14,8 @@ import (
 var installCmd = &cobra.Command{
 	Use:   "install [tool]",
 	Args:  cobra.MaximumNArgs(1),
-	Short: "Install a tool in your local environment.",
-	Long: `
-	Install a development tool into your local environment.
-
-This command installs a supported tool and prepares it for use with the
-current mdev environment configuration. The tool will be downloaded,
-installed, and configured using the paths and settings defined in your
-mdev environment.
-
-Before running this command, your environment must be initialized and
-validated using 'mdev doctor'. The install process depends on the
-configured directories, tool paths, and system checks performed during
-that step.
-
-If the tool is already installed, the command will detect it and skip
-the installation to avoid overwriting an existing setup.
-
-Usage:
-  mdev install [tool]
-
-Arguments:
-  tool    Name of the tool to install.
-
-Behavior:
-  • Validates that the environment is configured.
-  • Checks whether the requested tool is supported.
-  • Detects if the tool is already installed.
-  • Runs the tool-specific installation process.
-
-Examples:
-  mdev install java
-  mdev install gradle
-  mdev install maven
-
-Notes:
-  Each tool provides its own installation logic. The command acts as a
-  dispatcher that resolves the requested tool and executes its install
-  routine using the current environment configuration.
-	`,
+	Short: messages.CmdInstallShortDescription,
+	Long:  messages.CmdInstallLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Prevent invalid usage
@@ -69,7 +32,9 @@ Notes:
 			printer.Section(messages.EnvironmentSetup)
 			printer.Info(messages.EnvironmentChooseDirectory)
 
-			if !interactive.AskYesNo(printer.FormatIndent(2, messages.EnvironmentCreateDirectoryQuestion)) {
+			if !interactive.AskYesNo(
+				printer.FormatIndent(2, messages.EnvironmentCreateDirectoryQuestion),
+			) {
 				printer.Info(messages.Aborted)
 				printer.Blank()
 				return

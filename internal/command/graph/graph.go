@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"fmt"
+
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -45,7 +47,7 @@ func printTree(node string, graph map[string][]string, level int) {
 	if level == 0 {
 		printer.Info(node)
 	} else {
-		printer.Info(indent + "└─ " + node)
+		printer.Info(fmt.Sprintf("%s %s %s", indent, messages.IndentMark, node))
 	}
 
 	for _, child := range graph[node] {
