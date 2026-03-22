@@ -7,7 +7,6 @@ import (
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
-// Run orchestrates the uninstall workflow.
 func Run(env *environment.Environment, name string) error {
 
 	// ---- Resolve uninstall plan (dependency-aware) ----
