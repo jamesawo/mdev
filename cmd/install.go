@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// installCmd represents the install command
+// installCmd represents the installation command
 var installCmd = &cobra.Command{
 	Use:   "install [tool]",
 	Args:  cobra.MaximumNArgs(1),
