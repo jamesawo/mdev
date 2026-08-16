@@ -95,6 +95,12 @@ a development environment on macOS.
 
 It installs development tools, configures them, and relocates large
 tool caches to external storage to keep your system disk clean.`
+	CmdSetupShortDescription = "Configure the development environment"
+	CmdSetupLongDescription  = `Configure where mdev stores development tool data.
+
+This command guides you through selecting an external drive, creates the
+managed data directory, and saves the environment configuration for use by
+other mdev commands.`
 	CmdUninstallShortDescription = "Uninstall a tool from your local environment"
 	CmdUninstallLongDescription  = `Remove an installed tool from the local environment.
 
@@ -199,6 +205,7 @@ const (
 	Installed                  = "installed"
 	Installing                 = "Installing"
 	EnvironmentSetupCompleted  = "Location setup done"
+	EnvironmentSetupCommand    = "mdev setup"
 	EnvironmentLocation        = "Location"
 	EnvironmentChooseDirectory = "Choose where to store development tool data."
 	ToolsSelectToInstall       = "Select tools to install"

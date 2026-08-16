@@ -64,7 +64,7 @@ func (r *progressReporter) EnvironmentCheck(result Check) {
 	}
 
 	printer.Fail(messages.DoctorNotConfigured(result.Name))
-	printer.Indent(2, messages.Run+" mdev install")
+	printer.Indent(2, messages.Run+" "+messages.EnvironmentSetupCommand)
 }
 
 func (r *progressReporter) ToolCheck(result ToolCheck) {
