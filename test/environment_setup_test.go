@@ -10,17 +10,37 @@ import (
 )
 
 func TestDefaultLocationUsesMdevDirectoryInUserHome(t *testing.T) {
+	home := givenUserHome(t)
+
+	location, err := environment.DefaultLocation()
+
+	assertDefaultLocationResolved(t, err)
+	assertDefaultLocationIsInsideUserHome(t, location, home)
+}
+
+func givenUserHome(t *testing.T) string {
+	t.Helper()
+
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	location, err := environment.DefaultLocation()
-	if err != nil {
-		t.Fatalf("DefaultLocation() error = %v", err)
-	}
+	return home
+}
 
-	want := filepath.Join(home, "mdev")
-	if location != want {
-		t.Fatalf("DefaultLocation() = %q, want %q", location, want)
+func assertDefaultLocationResolved(t *testing.T, err error) {
+	t.Helper()
+
+	if err != nil {
+		t.Fatalf("expected default location to resolve: %v", err)
+	}
+}
+
+func assertDefaultLocationIsInsideUserHome(t *testing.T, location string, home string) {
+	t.Helper()
+
+	expected := filepath.Join(home, "mdev")
+	if location != expected {
+		t.Fatalf("expected default location %q, got %q", expected, location)
 	}
 }
 
