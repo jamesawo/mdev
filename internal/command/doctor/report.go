@@ -63,7 +63,7 @@ func (r *progressReporter) EnvironmentCheck(result Check) {
 		return
 	}
 
-	printer.Fail(messages.DoctorNotConfigured(result.Name))
+	printer.Fail(messages.EnvironmentNotSetUp)
 	printer.Indent(2, messages.Run+" "+messages.EnvironmentSetupCommand)
 }
 

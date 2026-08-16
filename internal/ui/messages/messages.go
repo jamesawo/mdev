@@ -182,6 +182,7 @@ const (
 	EnvironmentNoDirectorySelected = "No location selected, setup cancelled"
 	EnvironmentSetupFailed         = "Location setup failed"
 	EnvironmentNotConfiguredShort  = "Not configured"
+	EnvironmentNotSetUp            = "Development environment is not set up"
 )
 
 // Prompts
@@ -235,10 +236,6 @@ const (
 	ToolGradleDescription = "Build automation tool"
 	ToolPodmanDescription = "Container runtime with Podman Desktop"
 )
-
-func DoctorNotConfigured(name string) string {
-	return fmt.Sprintf("%s not configured", name)
-}
 
 func DoctorInstallationFailed(name string) string {
 	return fmt.Sprintf("%s installation failed", name)
