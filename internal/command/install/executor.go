@@ -3,7 +3,7 @@ package install
 import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
-	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
@@ -17,7 +17,7 @@ func execute(env *environment.Environment, plan []tools.Tool) error {
 		printer.Info(t.Name())
 	}
 
-	ok := interactive.AskYesNo(messages.ToolsContinueInstallQuestion)
+	ok := confirmation.Ask(messages.ToolsContinueInstallQuestion)
 	if !ok {
 		printer.Info(messages.ToolsInstallCancelled)
 		printer.Blank()

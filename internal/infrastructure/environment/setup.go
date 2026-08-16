@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -26,7 +27,7 @@ func SetupInteractive() (*Environment, error) {
 			return nil, err
 		}
 
-		if !interactive.AskYesNo(messages.EnvironmentUseInternalStorage(location)) {
+		if !confirmation.Ask(messages.EnvironmentUseInternalStorage(location)) {
 			return nil, ErrSetupCancelled
 		}
 

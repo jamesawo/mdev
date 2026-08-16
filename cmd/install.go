@@ -6,6 +6,7 @@ import (
 	"github.com/jamesawo/mdev/internal/command/install"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -34,7 +35,7 @@ var installCmd = &cobra.Command{
 			printer.Section(messages.EnvironmentSetup)
 			printer.Info(messages.EnvironmentChooseDirectory)
 
-			if !interactive.AskYesNo(
+			if !confirmation.Ask(
 				printer.FormatIndent(2, messages.EnvironmentCreateDirectoryQuestion),
 			) {
 				printer.Info(messages.Aborted)

@@ -2,7 +2,7 @@ package uninstall
 
 import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
-	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
@@ -28,7 +28,7 @@ func Run(env *environment.Environment, name string) error {
 			printer.Info("  " + dep)
 		}
 
-		if !interactive.AskYesNo(messages.UninstallRemoveDependentsQuestion) {
+		if !confirmation.Ask(messages.UninstallRemoveDependentsQuestion) {
 			printer.Info(messages.UninstallCancelled)
 			return nil
 		}
@@ -49,12 +49,12 @@ func Run(env *environment.Environment, name string) error {
 		printer.Info(path)
 	}
 
-	if !interactive.AskYesNo(messages.UninstallContinueQuestion) {
+	if !confirmation.Ask(messages.UninstallContinueQuestion) {
 		printer.Info(messages.UninstallCancelled)
 		return nil
 	}
 
-	if !interactive.AskYesNo(messages.UninstallContinueQuestion) {
+	if !confirmation.Ask(messages.UninstallContinueQuestion) {
 		printer.Info(messages.UninstallCancelled)
 		return nil
 	}

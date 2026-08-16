@@ -149,7 +149,8 @@ information about the project.`
 )
 
 const (
-	FlagDoctorFix = "Attempt to fix detected issues"
+	FlagDoctorFix  = "Attempt to fix detected issues"
+	FlagConfirmAll = "Accept all confirmation prompts"
 )
 
 // Section headers

@@ -10,6 +10,7 @@ import (
 	_ "github.com/jamesawo/mdev/internal/tools/nvm"
 	_ "github.com/jamesawo/mdev/internal/tools/podman"
 	_ "github.com/jamesawo/mdev/internal/tools/sdkman"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 
 	"github.com/spf13/cobra"
@@ -19,6 +20,15 @@ var rootCmd = &cobra.Command{
 	Use:   "mdev",
 	Short: messages.CmdRootShortDescription,
 	Long:  messages.CmdRootLongDescription,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		confirmation.Configure(confirmAll)
+	},
+}
+
+var confirmAll bool
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&confirmAll, "yes", "y", false, messages.FlagConfirmAll)
 }
 
 // Execute runs the CLI.

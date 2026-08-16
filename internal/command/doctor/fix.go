@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
-	"github.com/jamesawo/mdev/internal/ui/interactive"
+	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
@@ -33,7 +33,7 @@ func Fix() {
 		printer.Info(m.Name())
 	}
 
-	if !interactive.AskYesNo(messages.DoctorInstallMissingPrerequisites) {
+	if !confirmation.Ask(messages.DoctorInstallMissingPrerequisites) {
 		printer.Info(messages.Aborted)
 		return
 	}
