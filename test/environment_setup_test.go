@@ -1,4 +1,4 @@
-package environment
+package test
 
 import (
 	"os"
@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 )
 
 func TestDefaultLocationUsesMdevDirectoryInUserHome(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	location, err := DefaultLocation()
+	location, err := environment.DefaultLocation()
 	if err != nil {
 		t.Fatalf("DefaultLocation() error = %v", err)
 	}
@@ -37,7 +38,7 @@ func TestSetupPreservesExistingContents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env, err := Setup(location)
+	env, err := environment.Setup(location)
 	if err != nil {
 		t.Fatalf("Setup() error = %v", err)
 	}
