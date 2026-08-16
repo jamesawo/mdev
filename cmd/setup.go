@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -15,7 +17,9 @@ var setupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		printer.Section(messages.EnvironmentSetup)
 
-		if _, err := environment.SetupInteractive(); err != nil {
+		if _, err := environment.SetupInteractive(); errors.Is(err, environment.ErrSetupCancelled) {
+			printer.Info(messages.Aborted)
+		} else if err != nil {
 			printer.Fail(messages.EnvironmentSetupFailed)
 		}
 	},

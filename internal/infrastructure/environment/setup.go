@@ -2,6 +2,7 @@ package environment
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
@@ -10,8 +11,8 @@ import (
 	"github.com/jamesawo/mdev/internal/ui/printer"
 )
 
-// SetupInteractive initializes the environment by asking the user
-// to choose which external drive should store development data.
+// SetupInteractive initializes the environment by asking the user where
+// development data should be stored.
 func SetupInteractive() (*Environment, error) {
 
 	drives, err := listExternalDrives()
@@ -20,7 +21,16 @@ func SetupInteractive() (*Environment, error) {
 	}
 
 	if len(drives) == 0 {
-		return nil, fmt.Errorf(messages.NoDriveDetected)
+		location, err := DefaultLocation()
+		if err != nil {
+			return nil, err
+		}
+
+		if !interactive.AskYesNo(messages.EnvironmentUseInternalStorage(location)) {
+			return nil, ErrSetupCancelled
+		}
+
+		return Setup(location)
 	}
 
 	index, err := interactive.RadioSelect(
@@ -35,29 +45,34 @@ func SetupInteractive() (*Environment, error) {
 		return nil, fmt.Errorf(messages.EnvironmentNoDirectorySelected)
 	}
 
-	selected := drives[index]
+	return Setup(filepath.Join("/Volumes", drives[index]))
+}
 
-	// todo: extract /volumns to a shared const file
-	externalDrive := filepath.Join("/Volumes", selected)
-
-	env := New(externalDrive)
-
-	err = CreateDataRoot(env)
+// DefaultLocation returns the standard internal storage location.
+func DefaultLocation() (string, error) {
+	home, err := os.UserHomeDir()
 	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(home, "mdev"), nil
+}
+
+// Setup creates the managed data directory and saves its location.
+// Existing directories and their contents are preserved.
+func Setup(location string) (*Environment, error) {
+	env := New(location)
+
+	if err := CreateDataRoot(env); err != nil {
 		return nil, err
 	}
 
-	cfg := config.Config{
-		ExternalDrive: externalDrive,
-	}
-
-	err = config.Save(cfg)
-	if err != nil {
+	if err := config.Save(config.Config{ExternalDrive: location}); err != nil {
 		return nil, err
 	}
 
 	printer.Success(messages.EnvironmentSetupCompleted)
-	printer.Info(messages.EnvironmentLocation + ": " + externalDrive)
+	printer.Info(messages.EnvironmentLocation + ": " + location)
 
 	return env, nil
 }

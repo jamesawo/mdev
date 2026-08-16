@@ -178,7 +178,6 @@ const (
 	DoctorFailed                   = "doctor failed"
 	ErrInstallAllWithTool          = "cannot use --all with a specific tool"
 	ErrEnvironmentNotConfigured    = "Environment not configured. Run `mdev doctor` first."
-	NoDriveDetected                = "no drive was detected"
 	EnvironmentNoDirectorySelected = "No location selected, setup cancelled"
 	EnvironmentSetupFailed         = "Location setup failed"
 	EnvironmentNotConfiguredShort  = "Not configured"
@@ -198,6 +197,10 @@ const (
 	SelectOutOfRange                   = "Selection out of range."
 )
 
+func EnvironmentUseInternalStorage(location string) string {
+	return fmt.Sprintf("No external drive detected. Use %s instead?", location)
+}
+
 // Info and status
 const (
 	Run                        = "run"
@@ -215,8 +218,8 @@ const (
 	ListInstalledSuffix        = " (installed)"
 	UninstallCancelled         = "Cancelled."
 	IndentMark                 = "└─ "
-	ExternalDrive              = "External drive"
-	DataDirectory              = "Data directory"
+	StorageLocation            = "mdev directory"
+	DataDirectory              = "data directory"
 )
 
 const (

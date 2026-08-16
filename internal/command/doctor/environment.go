@@ -31,14 +31,14 @@ func checkEnvironment(reporter Reporter) []Check {
 
 	env := environment.New(cfg.ExternalDrive)
 
-	reporter.StartCheck(messages.ExternalDrive)
-	externalDrive := Check{
-		Name:   messages.ExternalDrive,
+	reporter.StartCheck(messages.StorageLocation)
+	storageLocation := Check{
+		Name:   messages.StorageLocation,
 		Status: true,
 		Detail: env.ExternalDrive,
 	}
-	results = append(results, externalDrive)
-	reporter.EnvironmentCheck(externalDrive)
+	results = append(results, storageLocation)
+	reporter.EnvironmentCheck(storageLocation)
 
 	reporter.StartCheck(messages.DataDirectory)
 	_, err = os.Stat(env.DataRoot)

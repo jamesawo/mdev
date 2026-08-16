@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/jamesawo/mdev/internal/command/install"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
@@ -41,6 +43,11 @@ var installCmd = &cobra.Command{
 			}
 
 			env, err = environment.SetupInteractive()
+			if errors.Is(err, environment.ErrSetupCancelled) {
+				printer.Info(messages.Aborted)
+				printer.Blank()
+				return
+			}
 			if err != nil {
 				printer.Fail(messages.EnvironmentSetupFailed)
 				printer.Blank()
