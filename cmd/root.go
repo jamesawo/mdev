@@ -17,9 +17,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "mdev",
-	Short: messages.CmdRootShortDescription,
-	Long:  messages.CmdRootLongDescription,
+	Use:     "mdev",
+	Short:   messages.CmdRootShortDescription,
+	Long:    messages.CmdRootLongDescription,
+	Version: version,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		confirmation.Configure(confirmAll)
 	},
