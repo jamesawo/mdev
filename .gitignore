@@ -2,12 +2,15 @@
 mdev
 *.exe
 *.out
+/dist/
 
 # macOS
 .DS_Store
 
 # IDE
-.idea
+/.idea/*
+!/.idea/runConfigurations/
+!/.idea/runConfigurations/*.xml
 .vscode
 
 # Go
