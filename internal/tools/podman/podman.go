@@ -23,7 +23,7 @@ func (p *Podman) Name() string {
 }
 
 func (p *Podman) Description() string {
-	return messages.ToolPodmanDescription
+	return messages.ToolsPodmanDescription
 }
 
 func (p *Podman) IsInstalled(env *environment.Environment) bool {

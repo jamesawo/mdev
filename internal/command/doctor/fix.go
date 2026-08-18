@@ -34,7 +34,7 @@ func Fix() {
 	}
 
 	if !confirmation.Ask(messages.DoctorInstallMissingPrerequisites) {
-		printer.Info(messages.Aborted)
+		printer.Info(messages.CommonAborted)
 		return
 	}
 
@@ -45,7 +45,7 @@ func Fix() {
 	for _, m := range missing {
 
 		printer.Blank()
-		printer.Info(messages.Installing + " " + m.Name())
+		printer.Info(messages.CommonInstalling + " " + m.Name())
 
 		start := time.Now()
 
@@ -57,7 +57,7 @@ func Fix() {
 
 		elapsed := time.Since(start).Round(time.Second)
 
-		printer.Success(m.Name() + " " + messages.Installed)
+		printer.Success(m.Name() + " " + messages.CommonInstalled)
 		printer.Indent(1, messages.DoctorTimeElapsed(elapsed.String()))
 		printer.Blank()
 	}

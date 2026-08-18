@@ -49,7 +49,7 @@ func (r *progressReporter) SystemCheck(result Check) {
 		return
 	}
 
-	printer.Fail(fmt.Sprintf("%s %s", messages.Missing, result.Name))
+	printer.Fail(fmt.Sprintf("%s %s", messages.DoctorMissing, result.Name))
 }
 
 func (r *progressReporter) EnvironmentCheck(result Check) {
@@ -63,8 +63,8 @@ func (r *progressReporter) EnvironmentCheck(result Check) {
 		return
 	}
 
-	printer.Fail(messages.EnvironmentNotSetUp)
-	printer.Indent(2, messages.Run+" "+messages.EnvironmentSetupCommand)
+	printer.Fail(messages.DoctorEnvironmentNotSetUp)
+	printer.Indent(2, messages.CommonRun+" "+messages.SetupCommand)
 }
 
 func (r *progressReporter) ToolCheck(result ToolCheck) {

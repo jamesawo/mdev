@@ -20,7 +20,7 @@ func (j *Java) Name() string {
 }
 
 func (j *Java) Description() string {
-	return messages.ToolJavaDescription
+	return messages.ToolsJavaDescription
 }
 
 func (j *Java) IsInstalled(env *environment.Environment) bool {

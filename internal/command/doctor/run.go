@@ -11,12 +11,12 @@ func Run(reporter Reporter) (*Report, error) {
 	report := &Report{}
 
 	// Phase 1: system prerequisites
-	reporter.StartSection(messages.System)
+	reporter.StartSection(messages.DoctorSystem)
 	sys := checkSystemPrerequisites(reporter)
 	report.System = sys
 
 	// Phase 2: environment
-	reporter.StartSection(messages.Environment)
+	reporter.StartSection(messages.DoctorEnvironment)
 	envChecks := checkEnvironment(reporter)
 	report.Environment = envChecks
 

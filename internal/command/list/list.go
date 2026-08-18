@@ -26,7 +26,7 @@ func Run() {
 		// If environment exists and the tool is installed,
 		// mark it as installed in the output.
 		if env != nil && t.IsInstalled(env) {
-			printer.Success(name + messages.ListInstalledSuffix)
+			printer.Success(name + messages.ToolsInstalledSuffix)
 			continue
 		}
 

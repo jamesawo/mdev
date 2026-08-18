@@ -13,15 +13,15 @@ func checkEnvironment(reporter Reporter) []Check {
 
 	results := []Check{}
 
-	reporter.StartCheck(messages.EnvironmentConfiguration)
+	reporter.StartCheck(messages.DoctorEnvironmentConfiguration)
 	cfg, err := config.Load()
 
 	if err != nil {
 
 		check := Check{
-			Name:   messages.EnvironmentConfiguration,
+			Name:   messages.DoctorEnvironmentConfiguration,
 			Status: false,
-			Detail: messages.EnvironmentNotConfiguredShort,
+			Detail: messages.DoctorEnvironmentNotConfiguredShort,
 		}
 		results = append(results, check)
 		reporter.EnvironmentCheck(check)
@@ -31,20 +31,20 @@ func checkEnvironment(reporter Reporter) []Check {
 
 	env := environment.New(cfg.StoragePath)
 
-	reporter.StartCheck(messages.StorageLocation)
+	reporter.StartCheck(messages.DoctorStorageLocation)
 	storageLocation := Check{
-		Name:   messages.StorageLocation,
+		Name:   messages.DoctorStorageLocation,
 		Status: true,
 		Detail: env.StoragePath,
 	}
 	results = append(results, storageLocation)
 	reporter.EnvironmentCheck(storageLocation)
 
-	reporter.StartCheck(messages.StorageDirectory)
+	reporter.StartCheck(messages.DoctorStorageDirectory)
 	_, err = os.Stat(env.StoragePath)
 
 	dataDirectory := Check{
-		Name:   messages.StorageDirectory,
+		Name:   messages.DoctorStorageDirectory,
 		Status: err == nil,
 		Detail: env.StoragePath,
 	}

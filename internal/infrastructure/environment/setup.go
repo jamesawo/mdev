@@ -27,12 +27,12 @@ func SetupInteractive() (*Environment, error) {
 		return nil, err
 	}
 
-	options := []string{messages.EnvironmentDefaultStorageOption(defaultLocation)}
+	options := []string{messages.SetupDefaultStorageOption(defaultLocation)}
 	options = append(options, volumes...)
-	options = append(options, messages.EnvironmentCustomStorageOption)
+	options = append(options, messages.SetupCustomStorageOption)
 
 	index, err := interactive.RadioSelect(
-		messages.EnvironmentChooseDirectory,
+		messages.SetupChooseDirectory,
 		options,
 	)
 	if err != nil {
@@ -40,7 +40,7 @@ func SetupInteractive() (*Environment, error) {
 	}
 
 	if index == -1 {
-		return nil, fmt.Errorf(messages.EnvironmentNoDirectorySelected)
+		return nil, fmt.Errorf(messages.SetupNoDirectorySelected)
 	}
 
 	location := defaultLocation
@@ -48,7 +48,7 @@ func SetupInteractive() (*Environment, error) {
 		location = volumes[index-1]
 	}
 	if index == len(options)-1 {
-		location, err = interactive.Input(messages.EnvironmentEnterStoragePath, defaultLocation)
+		location, err = interactive.Input(messages.SetupEnterStoragePath, defaultLocation)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func SetupInteractive() (*Environment, error) {
 		return nil, err
 	}
 
-	if !confirmation.Ask(messages.EnvironmentUseStoragePath(location)) {
+	if !confirmation.Ask(messages.SetupUseStoragePath(location)) {
 		return nil, ErrSetupCancelled
 	}
 
@@ -134,8 +134,8 @@ func Setup(location string) (*Environment, error) {
 		return nil, err
 	}
 
-	printer.Success(messages.EnvironmentSetupCompleted)
-	printer.Info(messages.EnvironmentLocation + ": " + location)
+	printer.Success(messages.SetupCompleted)
+	printer.Info(messages.SetupLocation + ": " + location)
 
 	return env, nil
 }

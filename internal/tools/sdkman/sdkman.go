@@ -24,7 +24,7 @@ func (s *SDKMAN) Name() string {
 }
 
 func (s *SDKMAN) Description() string {
-	return messages.ToolSDKMANDescription
+	return messages.ToolsSDKMANDescription
 }
 
 func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {

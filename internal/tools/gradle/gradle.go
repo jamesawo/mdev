@@ -24,7 +24,7 @@ func (g *Gradle) Name() string {
 }
 
 func (g *Gradle) Description() string {
-	return messages.ToolGradleDescription
+	return messages.ToolsGradleDescription
 }
 
 func (g *Gradle) IsInstalled(env *environment.Environment) bool {

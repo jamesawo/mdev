@@ -26,7 +26,7 @@ func (m *Manager) Up(ctx context.Context) error {
 
 	for _, s := range m.services {
 		if err := s.Start(ctx); err != nil {
-			return messages.ServiceFailedToStart(s.Name(), err)
+			return messages.UpServiceFailedToStart(s.Name(), err)
 		}
 	}
 
@@ -38,7 +38,7 @@ func (m *Manager) Down(ctx context.Context) error {
 
 	for _, s := range m.services {
 		if err := s.Stop(ctx); err != nil {
-			return messages.ServiceFailedToStop(s.Name(), err)
+			return messages.UpServiceFailedToStop(s.Name(), err)
 		}
 	}
 

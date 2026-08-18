@@ -11,8 +11,8 @@ import (
 
 var upCmd = &cobra.Command{
 	Use:   "up",
-	Short: messages.CmdUpShortDescription,
-	Long:  messages.CmdUpLongDescription,
+	Short: messages.UpCmdShortDescription,
+	Long:  messages.UpCmdLongDescription,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return upcmd.New().Execute(context.Background())
 	},

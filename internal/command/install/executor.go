@@ -11,30 +11,30 @@ import (
 func execute(env *environment.Environment, plan []tools.Tool) error {
 
 	// ---- Install Plan Preview ----
-	printer.Section(messages.ToolsInstallPlan)
+	printer.Section(messages.InstallPlan)
 
 	for _, t := range plan {
 		printer.Info(t.Name())
 	}
 
-	ok := confirmation.Ask(messages.ToolsContinueInstallQuestion)
+	ok := confirmation.Ask(messages.InstallContinueQuestion)
 	if !ok {
-		printer.Info(messages.ToolsInstallCancelled)
+		printer.Info(messages.InstallCancelled)
 		printer.Blank()
 		return nil
 	}
 
 	// ---- Installation Execution ----
-	printer.Section(messages.ToolsInstallingStart)
+	printer.Section(messages.InstallStart)
 
 	for _, tool := range plan {
 
 		if tool.IsInstalled(env) {
-			printer.Success(tool.Name() + " " + messages.ToolsAlreadyInstalled)
+			printer.Success(tool.Name() + " " + messages.InstallAlreadyInstalled)
 			continue
 		}
 
-		printer.Info(messages.Installing + " " + tool.Name())
+		printer.Info(messages.CommonInstalling + " " + tool.Name())
 
 		err := tool.Install(env)
 		if err != nil {
@@ -51,7 +51,7 @@ func execute(env *environment.Environment, plan []tools.Tool) error {
 			return err
 		}
 
-		printer.Success(tool.Name() + " " + messages.Installed)
+		printer.Success(tool.Name() + " " + messages.CommonInstalled)
 	}
 
 	return nil

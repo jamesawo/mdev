@@ -8,8 +8,8 @@ import (
 
 var graphCmd = &cobra.Command{
 	Use:   "graph",
-	Short: messages.CmdGraphShortDescription,
-	Long:  messages.CmdGraphLongDescription,
+	Short: messages.GraphCmdShortDescription,
+	Long:  messages.GraphCmdLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 		graph.Run()
 	},

@@ -14,8 +14,8 @@ const (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: messages.CmdVersionShortDescription,
-	Long:  messages.CmdVersionLongDescription,
+	Short: messages.VersionCmdShortDescription,
+	Long:  messages.VersionCmdLongDescription,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

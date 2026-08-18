@@ -25,7 +25,7 @@ func (n *NVM) Name() string {
 }
 
 func (n *NVM) Description() string {
-	return messages.ToolNVMDescription
+	return messages.ToolsNVMDescription
 }
 
 func (n *NVM) IsInstalled(env *environment.Environment) bool {

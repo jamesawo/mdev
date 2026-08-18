@@ -10,8 +10,8 @@ var doctorFix bool
 
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: messages.CmdDoctorShortDescription,
-	Long:  messages.CmdDoctorLongDescription,
+	Short: messages.DoctorShortDescription,
+	Long:  messages.DoctorLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 		doctor.Execute(doctorFix)
 	},
@@ -19,5 +19,5 @@ var doctorCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(doctorCmd)
-	doctorCmd.Flags().BoolVar(&doctorFix, "fix", false, messages.FlagDoctorFix)
+	doctorCmd.Flags().BoolVar(&doctorFix, "fix", false, messages.DoctorFlagFix)
 }

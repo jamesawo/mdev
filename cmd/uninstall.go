@@ -11,15 +11,15 @@ import (
 var uninstallCmd = &cobra.Command{
 	Use:   "uninstall [tool]",
 	Args:  cobra.ExactArgs(1),
-	Short: messages.CmdUninstallShortDescription,
-	Long:  messages.CmdUninstallLongDescription,
+	Short: messages.UninstallCmdShortDescription,
+	Long:  messages.UninstallCmdLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		name := args[0]
 
 		env, err := environment.FromConfig()
 		if err != nil {
-			printer.Fail(messages.ErrEnvironmentNotConfigured)
+			printer.Fail(messages.UninstallEnvironmentNotConfigured)
 			return
 		}
 

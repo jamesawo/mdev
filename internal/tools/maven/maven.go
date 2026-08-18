@@ -24,7 +24,7 @@ func (m *Maven) Name() string {
 }
 
 func (m *Maven) Description() string {
-	return messages.ToolMavenDescription
+	return messages.ToolsMavenDescription
 }
 
 func (m *Maven) IsInstalled(env *environment.Environment) bool {

@@ -12,15 +12,15 @@ import (
 var setupCmd = &cobra.Command{
 	Use:   "setup",
 	Args:  cobra.NoArgs,
-	Short: messages.CmdSetupShortDescription,
-	Long:  messages.CmdSetupLongDescription,
+	Short: messages.SetupCmdShortDescription,
+	Long:  messages.SetupCmdLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
-		printer.Section(messages.EnvironmentSetup)
+		printer.Section(messages.SetupTitle)
 
 		if _, err := environment.SetupInteractive(); errors.Is(err, environment.ErrSetupCancelled) {
-			printer.Info(messages.Aborted)
+			printer.Info(messages.CommonAborted)
 		} else if err != nil {
-			printer.Fail(messages.EnvironmentSetupFailed)
+			printer.Fail(messages.SetupFailed)
 		}
 	},
 }

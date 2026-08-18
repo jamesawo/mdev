@@ -11,7 +11,7 @@ import (
 
 func execute(env *environment.Environment, names []string) error {
 
-	printer.Section(messages.UninstallingTools)
+	printer.Section(messages.UninstallTools)
 
 	for _, name := range names {
 

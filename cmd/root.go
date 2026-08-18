@@ -18,8 +18,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:     "mdev",
-	Short:   messages.CmdRootShortDescription,
-	Long:    messages.CmdRootLongDescription,
+	Short:   messages.RootCmdShortDescription,
+	Long:    messages.RootCmdLongDescription,
 	Version: version,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		confirmation.Configure(confirmAll)
@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 var confirmAll bool
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&confirmAll, "yes", "y", false, messages.FlagConfirmAll)
+	rootCmd.PersistentFlags().BoolVarP(&confirmAll, "yes", "y", false, messages.RootFlagConfirmAll)
 }
 
 // Execute runs the CLI.

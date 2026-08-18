@@ -47,7 +47,7 @@ func printTree(node string, graph map[string][]string, level int) {
 	if level == 0 {
 		printer.Info(node)
 	} else {
-		printer.Info(fmt.Sprintf("%s %s %s", indent, messages.IndentMark, node))
+		printer.Info(fmt.Sprintf("%s %s %s", indent, messages.GraphIndentMark, node))
 	}
 
 	for _, child := range graph[node] {

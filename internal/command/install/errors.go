@@ -7,5 +7,5 @@ import (
 )
 
 func ErrUnknownTool(name string) error {
-	return errors.New(messages.UnknownTool(name))
+	return errors.New(messages.InstallUnknownTool(name))
 }

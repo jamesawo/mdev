@@ -17,13 +17,13 @@ import (
 var installCmd = &cobra.Command{
 	Use:   "install [tool]",
 	Args:  cobra.MaximumNArgs(1),
-	Short: messages.CmdInstallShortDescription,
-	Long:  messages.CmdInstallLongDescription,
+	Short: messages.InstallCmdShortDescription,
+	Long:  messages.InstallCmdLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Prevent invalid usage
 		if installAll && len(args) > 0 {
-			printer.Fail(messages.ErrInstallAllWithTool)
+			printer.Fail(messages.InstallAllWithToolError)
 			return
 		}
 
@@ -32,30 +32,30 @@ var installCmd = &cobra.Command{
 		// First-time setup
 		if err != nil {
 
-			printer.Section(messages.EnvironmentSetup)
-			printer.Info(messages.EnvironmentChooseDirectory)
+			printer.Section(messages.SetupTitle)
+			printer.Info(messages.SetupChooseDirectory)
 
 			if !confirmation.Ask(
-				printer.FormatIndent(2, messages.EnvironmentCreateDirectoryQuestion),
+				printer.FormatIndent(2, messages.SetupCreateDirectoryQuestion),
 			) {
-				printer.Info(messages.Aborted)
+				printer.Info(messages.CommonAborted)
 				printer.Blank()
 				return
 			}
 
 			env, err = environment.SetupInteractive()
 			if errors.Is(err, environment.ErrSetupCancelled) {
-				printer.Info(messages.Aborted)
+				printer.Info(messages.CommonAborted)
 				printer.Blank()
 				return
 			}
 			if err != nil {
-				printer.Fail(messages.EnvironmentSetupFailed)
+				printer.Fail(messages.SetupFailed)
 				printer.Blank()
 				return
 			}
 
-			printer.Success(messages.EnvironmentSetupCompleted)
+			printer.Success(messages.SetupCompleted)
 		}
 
 		// install all tools
@@ -102,7 +102,7 @@ func runInteractiveInstall(env *environment.Environment) {
 		name := t.Name()
 
 		if t.IsInstalled(env) {
-			name = name + messages.ListInstalledSuffix
+			name = name + messages.ToolsInstalledSuffix
 		}
 
 		options = append(options, name)
@@ -110,7 +110,7 @@ func runInteractiveInstall(env *environment.Environment) {
 	}
 
 	selected, err := interactive.MultiSelect(
-		printer.FormatIndent(1, messages.ToolsSelectToInstall),
+		printer.FormatIndent(1, messages.InstallSelectTools),
 		options,
 	)
 

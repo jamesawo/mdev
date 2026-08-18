@@ -8,8 +8,8 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: messages.CmdListShortDescription,
-	Long:  messages.CmdListLongDescription,
+	Short: messages.ListCmdShortDescription,
+	Long:  messages.ListCmdLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 		list.Run()
 	},
