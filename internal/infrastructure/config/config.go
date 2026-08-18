@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jamesawo/mdev/internal/ui/messages"
 	"gopkg.in/yaml.v3"
 )
 
@@ -12,7 +13,7 @@ type Config struct {
 	StoragePath string `yaml:"storage_path"`
 }
 
-var ErrStoragePathRequired = errors.New("configuration storage_path is required")
+var ErrStoragePathRequired = errors.New(messages.SetupStoragePathRequired)
 
 func configDir() string {
 	home, err := os.UserHomeDir()
