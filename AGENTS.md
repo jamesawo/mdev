@@ -75,6 +75,16 @@ application, repository, adapter, or dependency-injection layers.
 - When existing code crosses a boundary, improve it only as far as the current
   task requires. Do not turn a local task into a repository-wide refactor.
 
+## Product specifications
+
+Files under `product/commands/`, such as `01-setup.md`, are the product
+specifications for their named commands.
+
+- Read the relevant command specification before working on a command.
+- Product specifications define intended behavior and user experience;
+  `AGENTS.md` defines engineering and agent rules.
+- Do not change product specifications unless explicitly asked.
+
 ## Persistent state and backward compatibility
 
 Existing installations depend on:
