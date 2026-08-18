@@ -86,6 +86,37 @@ application, repository, adapter, or dependency-injection layers.
 - Do not change product specifications, promote research into them, or change
   product intent without explicit human approval.
 
+### Command work files
+
+`product/work/<command>.md` tracks temporary implementation progress toward
+the corresponding `product/commands/<command>.md`. Use this format:
+
+```markdown
+# <command> work
+## status
+in progress
+## human decisions / blockers
+- [x] <resolved decision> — <decision made>
+- [ ] <decision or blocker requiring human input>
+## todo
+- [ ] <work item>
+- [ ] <work item>
+```
+
+- Status is `in progress` or `done`.
+- Human decisions / blockers records anything requiring human authority or
+  preventing progress. Keep resolved decisions and mark them `[x]`; do not
+  delete them.
+- Codex may add TODOs when implementation reveals additional work required to
+  satisfy the product specification.
+- Do not delete or rewrite existing TODO lines. Mark them `[x]` when completed.
+- Do not add unrelated discoveries or expand the command's scope.
+- Keep todo as the final section so required work can be appended naturally.
+- Set status to `done` only when the command satisfies its product specification
+  and the repository definition of done.
+- Work files are temporary and gitignored; command specifications remain the
+  durable source of truth.
+
 ## Persistent state and backward compatibility
 
 Existing installations depend on:
@@ -296,11 +327,29 @@ When asking, provide evidence, viable options, compatibility and safety impact,
 and a recommendation. Do not choose a product or architecture direction
 silently.
 
+## Feature branch and PR workflow
+
+- One human-approved `product/work/<command>.md` corresponds to one feature
+  branch and one pull request.
+- Name the branch `feature/<command>`.
+- The human must review and approve the work plan before implementation starts.
+- Agents may break TODO items into smaller implementation steps.
+- Prefer multiple meaningful commits where useful; do not force one TODO to
+  equal one commit.
+- Agents may push the feature branch regularly to preserve work remotely.
+- When the work-file status reaches `done`, open the pull request.
+- Address pull-request feedback on the same branch and pull request.
+- Agents must never merge their own pull requests. The human owns approval and
+  merging to `main`.
+- Never work directly on or push directly to `main`.
+
 ## Git behavior
 
 - Inspect `git status` before editing and before handoff.
-- Preserve all pre-existing staged, unstaged, and untracked work.
-- Do not revert, overwrite, stage, commit, amend, rebase, merge, push, publish,
+- Preserve all pre-existing staged, unstaged, and untracked work; do not revert
+  or overwrite it.
+- Within an approved feature workflow, follow the branch and pull-request rules
+  above. Otherwise, do not stage, commit, amend, rebase, merge, push, publish,
   or create a pull request unless explicitly requested.
 - Do not use destructive Git commands.
 - Keep changes limited to files required by the task.
