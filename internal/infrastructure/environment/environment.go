@@ -8,19 +8,32 @@ import (
 )
 
 type Environment struct {
-	ExternalDrive string
-	DataRoot      string
+	StoragePath string
 }
 
-func New(externalDrive string) *Environment {
+func New(storagePath string) *Environment {
 	return &Environment{
-		ExternalDrive: externalDrive,
-		DataRoot:      filepath.Join(externalDrive, "data"),
+		StoragePath: filepath.Clean(storagePath),
 	}
 }
 
-func CreateDataRoot(env *Environment) error {
-	return os.MkdirAll(env.DataRoot, 0755)
+func CreateStorageRoot(env *Environment) error {
+	if err := os.MkdirAll(env.StoragePath, 0755); err != nil {
+		return err
+	}
+
+	probe, err := os.CreateTemp(env.StoragePath, ".mdev-write-check-*")
+	if err != nil {
+		return err
+	}
+	probePath := probe.Name()
+
+	if err := probe.Close(); err != nil {
+		_ = os.Remove(probePath)
+		return err
+	}
+
+	return os.Remove(probePath)
 }
 
 func FromConfig() (*Environment, error) {
@@ -29,7 +42,7 @@ func FromConfig() (*Environment, error) {
 		return nil, err
 	}
 
-	env := New(cfg.ExternalDrive)
+	env := New(cfg.StoragePath)
 
 	return env, nil
 }

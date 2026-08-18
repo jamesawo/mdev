@@ -29,24 +29,24 @@ func checkEnvironment(reporter Reporter) []Check {
 		return results
 	}
 
-	env := environment.New(cfg.ExternalDrive)
+	env := environment.New(cfg.StoragePath)
 
 	reporter.StartCheck(messages.StorageLocation)
 	storageLocation := Check{
 		Name:   messages.StorageLocation,
 		Status: true,
-		Detail: env.ExternalDrive,
+		Detail: env.StoragePath,
 	}
 	results = append(results, storageLocation)
 	reporter.EnvironmentCheck(storageLocation)
 
-	reporter.StartCheck(messages.DataDirectory)
-	_, err = os.Stat(env.DataRoot)
+	reporter.StartCheck(messages.StorageDirectory)
+	_, err = os.Stat(env.StoragePath)
 
 	dataDirectory := Check{
-		Name:   messages.DataDirectory,
+		Name:   messages.StorageDirectory,
 		Status: err == nil,
-		Detail: env.DataRoot,
+		Detail: env.StoragePath,
 	}
 	results = append(results, dataDirectory)
 	reporter.EnvironmentCheck(dataDirectory)

@@ -4,8 +4,8 @@ import "github.com/jamesawo/mdev/internal/infrastructure/fs"
 
 // TODO(mdev-refactor):
 // Tools currently duplicate the pattern of relocating a cache/config directory
-// from the user's home (e.g. ~/.gradle, ~/.m2, ~/.nvm) into the mdev external
-// storage and creating a symlink back.
+// from the user's home (e.g. ~/.gradle, ~/.m2, ~/.nvm) into the configured mdev
+// storage path and creating a symlink back.
 //
 // Future improvement:
 //   1. Add SourceDir() to the Tool interface.

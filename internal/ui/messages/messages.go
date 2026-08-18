@@ -94,13 +94,13 @@ Typical usage:
 a development environment on macOS.
 
 It installs development tools, configures them, and relocates large
-tool caches to external storage to keep your system disk clean.`
+tool caches into a configurable storage path.`
 	CmdSetupShortDescription = "Configure the development environment"
 	CmdSetupLongDescription  = `Configure where mdev stores development tool data.
 
-This command guides you through selecting an external drive, creates the
-managed data directory, and saves the environment configuration for use by
-other mdev commands.`
+This command guides you through selecting a storage path, creates the managed
+storage directory, and saves the environment configuration for use by other
+mdev commands.`
 	CmdUninstallShortDescription = "Uninstall a tool from your local environment"
 	CmdUninstallLongDescription  = `Remove an installed tool from the local environment.
 
@@ -198,29 +198,35 @@ const (
 	SelectOutOfRange                   = "Selection out of range."
 )
 
-func EnvironmentUseInternalStorage(location string) string {
-	return fmt.Sprintf("No external drive detected. Use %s instead?", location)
+func EnvironmentDefaultStorageOption(location string) string {
+	return fmt.Sprintf("Default: %s", location)
+}
+
+func EnvironmentUseStoragePath(location string) string {
+	return fmt.Sprintf("Use %s as the mdev storage path?", location)
 }
 
 // Info and status
 const (
-	Run                        = "run"
-	Missing                    = "missing"
-	Aborted                    = "aborted"
-	Installed                  = "installed"
-	Installing                 = "Installing"
-	EnvironmentSetupCompleted  = "Location setup done"
-	EnvironmentSetupCommand    = "mdev setup"
-	EnvironmentLocation        = "Location"
-	EnvironmentChooseDirectory = "Choose where to store development tool data."
-	ToolsSelectToInstall       = "Select tools to install"
-	ToolsInstallCancelled      = "Installation cancelled."
-	ToolsAlreadyInstalled      = "already installed"
-	ListInstalledSuffix        = " (installed)"
-	UninstallCancelled         = "Cancelled."
-	IndentMark                 = "└─ "
-	StorageLocation            = "mdev directory"
-	DataDirectory              = "data directory"
+	Run                            = "run"
+	Missing                        = "missing"
+	Aborted                        = "aborted"
+	Installed                      = "installed"
+	Installing                     = "Installing"
+	EnvironmentSetupCompleted      = "Location setup done"
+	EnvironmentSetupCommand        = "mdev setup"
+	EnvironmentLocation            = "Location"
+	EnvironmentChooseDirectory     = "Choose where to store development tool data."
+	EnvironmentCustomStorageOption = "Choose another filesystem path"
+	EnvironmentEnterStoragePath    = "Storage path"
+	ToolsSelectToInstall           = "Select tools to install"
+	ToolsInstallCancelled          = "Installation cancelled."
+	ToolsAlreadyInstalled          = "already installed"
+	ListInstalledSuffix            = " (installed)"
+	UninstallCancelled             = "Cancelled."
+	IndentMark                     = "└─ "
+	StorageLocation                = "storage path"
+	StorageDirectory               = "storage directory"
 )
 
 const (

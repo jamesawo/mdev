@@ -24,3 +24,16 @@ func RadioSelect(title string, options []string) (int, error) {
 
 	return -1, nil
 }
+
+// Input prompts the user for a free-form value.
+func Input(message string, defaultValue string) (string, error) {
+	var value string
+
+	prompt := &survey.Input{
+		Message: message,
+		Default: defaultValue,
+	}
+
+	err := survey.AskOne(prompt, &value)
+	return value, err
+}

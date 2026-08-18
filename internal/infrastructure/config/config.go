@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -8,8 +9,10 @@ import (
 )
 
 type Config struct {
-	ExternalDrive string `yaml:"external_drive"`
+	StoragePath string `yaml:"storage_path"`
 }
+
+var ErrStoragePathRequired = errors.New("configuration storage_path is required")
 
 func configDir() string {
 	home, err := os.UserHomeDir()
@@ -29,6 +32,10 @@ func Exists() bool {
 }
 
 func Save(cfg Config) error {
+	if cfg.StoragePath == "" {
+		return ErrStoragePathRequired
+	}
+
 	err := os.MkdirAll(configDir(), 0755)
 	if err != nil {
 		return err
@@ -54,13 +61,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	return &cfg, nil
-}
-
-func SaveExternalDrive(path string) error {
-	cfg := Config{
-		ExternalDrive: path,
+	if cfg.StoragePath == "" {
+		return nil, ErrStoragePathRequired
 	}
 
-	return Save(cfg)
+	return &cfg, nil
 }

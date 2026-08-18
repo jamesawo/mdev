@@ -7,5 +7,5 @@ import (
 )
 
 func ToolDir(env *environment.Environment, tool string) string {
-	return filepath.Join(env.DataRoot, tool)
+	return filepath.Join(env.StoragePath, tool)
 }

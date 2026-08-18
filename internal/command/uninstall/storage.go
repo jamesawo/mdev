@@ -8,5 +8,5 @@ import (
 
 // StoragePath returns the directory used by a tool inside mdev storage.
 func StoragePath(env *environment.Environment, name string) string {
-	return filepath.Join(env.DataRoot, name)
+	return filepath.Join(env.StoragePath, name)
 }

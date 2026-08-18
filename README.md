@@ -1,6 +1,34 @@
 # mdev
 
-`mdev` is a Go CLI for setting up and managing a macOS development environment. It installs common development tools and keeps their managed data in one predictable location.
+`mdev` is a Go CLI for setting up and managing a macOS development environment. It installs common development tools and
+keeps their managed data under a configurable filesystem storage path.
+
+## Managed storage
+
+Run `mdev setup` to choose where mdev stores managed tool data. The storage path
+can be a directory on the internal disk, under your home directory, on an
+external volume, or at another writable filesystem location.
+
+The selection is saved in `~/.mdev/config.yaml`:
+
+```yaml
+storage_path: /path/to/mdev
+```
+
+Each tool owns a directory directly below that path. There is no intermediate
+`data` directory:
+
+```text
+/path/to/mdev/
+├── gradle/
+├── maven/
+├── nvm/
+└── ...
+```
+
+For tools whose normal data lives under the user's home directory, mdev may
+relocate that data into the configured storage path and replace the original
+location with a symlink.
 
 ## Local development
 
@@ -19,7 +47,8 @@ make build
 
 ## macOS VM development
 
-The project uses a disposable macOS VM to test machine-level setup without changing the host Mac. Source code and the Go toolchain remain on the host; only the compiled ARM64 binary runs in the VM.
+The project uses a disposable macOS VM to test machine-level setup without changing the host Mac. Source code and the Go
+toolchain remain on the host; only the compiled binary runs in the VM.
 
 ```text
 GoLand or host terminal
@@ -28,7 +57,7 @@ GoLand or host terminal
         ▼
     dist/mdev
         │
-        │ UTM shared directory
+        │ VM shared directory
         ▼
 macOS VM: macOs-mdev
         │
@@ -39,9 +68,11 @@ macOS VM: macOs-mdev
 
 ### One-time setup
 
-1. Install [UTM](https://mac.getutm.app/) and create an Apple Silicon macOS VM named `macOs-mdev` with a local user named `mdev`. The VM does not need Go, GoLand, or a repository clone.
+1. Install [UTM](https://mac.getutm.app/) and create an Apple Silicon macOS VM named `macOs-mdev` with a local user
+   named `mdev`. The VM does not need Go, GoLand, or a repository clone.
 
-2. Share the host repository's build directory with the VM. The shared binary must be visible inside the VM; for the standard UTM share this is:
+2. Share the host repository's build directory with the VM. The shared binary must be visible inside the VM; for the
+   standard UTM share:
 
    ```text
    /Volumes/My Shared Files/dist/mdev
@@ -58,7 +89,9 @@ macOS VM: macOs-mdev
 
 4. In the VM, enable **System Settings → General → Sharing → Remote Login** and grant access to the `mdev` user.
 
-5. Configure public-key authentication from the host. Generate or select a local SSH key, append its public key to `~/.ssh/authorized_keys` in the VM, and verify that login no longer requires the VM password. Private keys and passwords must remain outside this repository.
+5. Configure public-key authentication from the host. Generate or select a local SSH key, append its public key to
+   `~/.ssh/authorized_keys` in the VM, and verify that login no longer requires the VM password. Private keys and
+   passwords must remain outside this repository.
 
 6. Add the expected alias to the host's `~/.ssh/config`:
 
@@ -75,7 +108,8 @@ macOS VM: macOs-mdev
    ssh mdev-vm
    ```
 
-VM addresses can change. If SSH stops connecting, determine the current address inside the VM and update the local alias.
+VM addresses can change. If SSH stops connecting, determine the current address inside the VM and update the local
+alias.
 
 ### Daily workflow
 
@@ -89,7 +123,8 @@ The repository provides these scripts:
 ./scripts/vm/run.sh mdev doctor
 ```
 
-The scripts use the `mdev-vm` SSH alias and expect a VM named `macOs-mdev`. A developer with a differently named local VM can override only the VM name:
+The scripts use the `mdev-vm` SSH alias and expect a VM named `macOs-mdev`. A developer with a differently named local
+VM can override only the VM name:
 
 ```sh
 MDEV_VM_NAME=my-local-vm ./scripts/vm/shell.sh
@@ -106,7 +141,8 @@ MDEV_VM_WAIT_TIMEOUT=240 ./scripts/vm/shell.sh
 Two shared run configurations are included:
 
 - `build mdev` builds the repository's main package for macOS ARM64 at `dist/mdev`.
-- `run mdev` runs `build mdev`, ensures the VM and SSH are ready, and opens an interactive SSH shell in GoLand's Terminal tool window.
+- `run mdev` runs `build mdev`, ensures the VM and SSH are ready, and opens an interactive SSH shell in GoLand's
+  Terminal tool window.
 
 The normal GoLand loop is therefore:
 
@@ -119,4 +155,5 @@ The normal GoLand loop is therefore:
 - **`utmctl` is unavailable:** install UTM in `/Applications`, or make `utmctl` available on `PATH`.
 - **The VM cannot be found:** ensure its UTM name is `macOs-mdev`, or set `MDEV_VM_NAME` locally.
 - **SSH times out:** start the VM in UTM, confirm Remote Login is enabled, and verify `ssh mdev-vm` independently.
-- **`mdev` is missing in the VM:** confirm `dist/mdev` is visible through the UTM share and recreate the `/usr/local/bin/mdev` symlink.
+- **`mdev` is missing in the VM:** confirm `dist/mdev` is visible through the UTM share and recreate the
+  `/usr/local/bin/mdev` symlink.

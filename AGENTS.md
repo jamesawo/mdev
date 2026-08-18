@@ -79,10 +79,11 @@ application, repository, adapter, or dependency-injection layers.
 
 Existing installations depend on:
 
-- configuration at `~/.mdev/config.yaml`;
-- the YAML key `external_drive`;
-- managed data at `<external_drive>/data`;
-- per-tool storage paths;
+- configuration created at `~/.mdev/config.yaml` when setup occurs;
+- the YAML key `storage_path`;
+- managed tool data at `<storage_path>/<tool-specific-path>`, with no mandatory
+  intermediate `data` directory;
+- per-tool storage paths directly below the configured storage path;
 - symlinks from selected home-directory locations into managed storage;
 - registered tool names and dependencies.
 
