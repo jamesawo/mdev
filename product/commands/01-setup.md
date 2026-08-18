@@ -168,6 +168,12 @@ mdev will use:  /Volumes/SanDisk/dev/mdev
 
 if accepted, persist the resolved physical path.
 
+## already configured
+
+if mdev is already configured, show that setup is complete and display the current storage path.
+
+setup must not change storage, reset configuration, migrate data, or move or copy managed data.
+
 ## non-interactive setup
 
 advanced users can configure setup directly:
@@ -180,7 +186,7 @@ this performs the same validation and safety checks without interactive prompts 
 
 if the supplied location does not exist, create it automatically.
 
-if mdev is already configured, `--storage-path` must not silently replace the existing configuration.
+if mdev is already configured, `--storage-path` must refuse to replace the existing configuration and show the current storage path.
 
 `setup` does not support `--yes`.
 
@@ -230,12 +236,17 @@ storage is not available.
 
 expected: /Volumes/SanDisk/mdev
 
-> choose a new storage location
-  connect drive and try again
+> connect drive and try again
   cancel
 ```
 
-the behavior of changing storage and handling data at the previous location requires further product research.
+do not fall back to another location, create new storage, or change configuration.
+
+## malformed or unreadable configuration
+
+if `~/.mdev/config.yaml` is malformed or cannot be read, leave it untouched.
+
+calmly tell the user to fix or remove the configuration manually and try again. exit as a failure.
 
 ## filesystem behavior
 
@@ -315,17 +326,3 @@ setup is done when:
 - user-facing copy has been reviewed;
 - relevant unit/component tests pass;
 - the happy-path E2E journey passes in the macOS VM.
-
-## open questions / research
-
-- why do users return to `mdev setup` after already configuring mdev?
-- when changing storage, do users expect existing managed data to be moved or copied?
-- should changing storage become its own workflow or command?
-- what should the complete recovery UX be when `config.yaml` exists but cannot be understood?
-- how should mdev behave when the previous storage is unavailable but the user wants to establish a new storage location?
-- should mdev eventually support Linux or Windows, and which product concepts should remain platform-neutral to make that possible?
-
-## future ideas
-
-- machine-readable output such as `--json`.
-- revisit setup behavior based on real user feedback and research.

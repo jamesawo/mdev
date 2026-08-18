@@ -16,3 +16,7 @@ mdev
 # Go
 bin/
 .gocache
+
+# Agent working state
+/product/work/
+/product/research/

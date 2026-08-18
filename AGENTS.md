@@ -77,13 +77,14 @@ application, repository, adapter, or dependency-injection layers.
 
 ## Product specifications
 
-Files under `product/commands/`, such as `01-setup.md`, are the product
-specifications for their named commands.
-
-- Read the relevant command specification before working on a command.
+- `product/commands/` contains the committed product source of truth for each
+  command. Read the relevant specification before working on a command.
+- `product/work/` contains temporary agent progress and checklist state.
+- `product/research/` contains unresolved, private product thinking.
 - Product specifications define intended behavior and user experience;
   `AGENTS.md` defines engineering and agent rules.
-- Do not change product specifications unless explicitly asked.
+- Do not change product specifications, promote research into them, or change
+  product intent without explicit human approval.
 
 ## Persistent state and backward compatibility
 
