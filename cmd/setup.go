@@ -36,7 +36,7 @@ func runSetup(cmd *cobra.Command, _ []string) error {
 		}
 		if errors.Is(err, environment.ErrAlreadyConfigured) {
 			printer.Info("setup is complete.")
-			printer.Info("storage: " + env.StoragePath)
+			printer.Info("storage: " + environment.DisplayPath(env.StoragePath))
 			return nil
 		}
 		if err != nil {
@@ -66,7 +66,7 @@ func runSetup(cmd *cobra.Command, _ []string) error {
 
 func printSetupSuccess(env *environment.Environment) {
 	printer.Section(messages.SetupReady)
-	printer.Info("storage: " + env.StoragePath)
+	printer.Info("storage: " + environment.DisplayPath(env.StoragePath))
 	printer.Blank()
 	printer.Info(messages.SetupNextStep)
 	printer.Command("mdev list")
@@ -75,4 +75,16 @@ func printSetupSuccess(env *environment.Environment) {
 func init() {
 	rootCmd.AddCommand(setupCmd)
 	setupCmd.Flags().StringVar(&setupStoragePath, "storage-path", "", messages.SetupStoragePathFlag)
+	defaultHelp := setupCmd.HelpFunc()
+	setupCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		flag := cmd.InheritedFlags().Lookup("yes")
+		if flag == nil {
+			defaultHelp(cmd, args)
+			return
+		}
+		hidden := flag.Hidden
+		flag.Hidden = true
+		defer func() { flag.Hidden = hidden }()
+		defaultHelp(cmd, args)
+	})
 }

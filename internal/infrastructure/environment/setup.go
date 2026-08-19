@@ -20,6 +20,11 @@ type Volume struct {
 	Writable bool
 }
 
+type locationChoice struct {
+	path   string
+	custom bool
+}
+
 var saveConfig = config.Save
 
 func SetupInteractive() (*Environment, error) {
@@ -39,11 +44,31 @@ func SetupInteractive() (*Environment, error) {
 		return nil, err
 	}
 	for {
-		location, err := chooseLocation(defaultLocation)
+		choice, err := chooseLocation(defaultLocation)
 		if err != nil {
 			return nil, err
 		}
-		resolved, symlinkSource, err := ResolveStoragePath(location)
+		if choice.custom {
+			inputPath, pathErr := absoluteInputPath(choice.path)
+			if pathErr != nil {
+				return nil, pathErr
+			}
+			if _, statErr := os.Stat(inputPath); errors.Is(statErr, os.ErrNotExist) {
+				printer.Section("that location doesn't exist.")
+				printer.Info(inputPath)
+				missingChoice, err := selectChoice([]string{messages.SetupCreateIt, messages.SetupTryAgain, messages.SetupCancel})
+				if err != nil {
+					return nil, err
+				}
+				if missingChoice == 1 {
+					continue
+				}
+				if missingChoice != 0 {
+					return nil, ErrSetupCancelled
+				}
+			}
+		}
+		resolved, symlinkSource, err := ResolveStoragePath(choice.path)
 		if err != nil {
 			printer.Fail(err.Error())
 			if retry, retryErr := retryLocation(); retryErr != nil {
@@ -84,16 +109,26 @@ func SetupInteractive() (*Environment, error) {
 			}
 		}
 
-		return SetupResolved(resolved)
+		env, err := SetupResolved(resolved)
+		if err == nil {
+			return env, nil
+		}
+		printer.Fail(err.Error())
+		if retry, retryErr := retryLocation(); retryErr != nil {
+			return nil, retryErr
+		} else if retry {
+			continue
+		}
+		return nil, ErrSetupCancelled
 	}
 }
 
-func chooseLocation(defaultLocation string) (string, error) {
+func chooseLocation(defaultLocation string) (locationChoice, error) {
 	volumes, err := ListExternalVolumes()
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return "", err
+		return locationChoice{}, err
 	}
-	options := []string{messages.SetupDefaultStorageOption(defaultLocation)}
+	options := []string{messages.SetupDefaultStorageOption(DisplayPath(defaultLocation))}
 	for _, volume := range volumes {
 		options = append(options, messages.SetupVolumeOption(volume.Name, volume.Path, volume.Writable))
 	}
@@ -102,26 +137,26 @@ func chooseLocation(defaultLocation string) (string, error) {
 	for {
 		index, err := interactive.RadioSelect(messages.SetupChooseDirectory, options)
 		if err != nil {
-			return "", interruptionError(err)
+			return locationChoice{}, interruptionError(err)
 		}
 		switch {
 		case index < 0:
-			return "", ErrSetupCancelled
+			return locationChoice{}, ErrSetupCancelled
 		case index == 0:
-			return defaultLocation, nil
+			return locationChoice{path: defaultLocation}, nil
 		case index == len(options)-1:
 			location, err := interactive.Input(messages.SetupEnterStoragePath, defaultLocation)
 			if err != nil {
-				return "", interruptionError(err)
+				return locationChoice{}, interruptionError(err)
 			}
-			return location, nil
+			return locationChoice{path: location, custom: true}, nil
 		default:
 			volume := volumes[index-1]
 			if !volume.Writable {
 				printer.Fail(messages.SetupReadOnly(volume.Path))
 				continue
 			}
-			return volume.Path, nil
+			return locationChoice{path: volume.Path}, nil
 		}
 	}
 }
@@ -174,6 +209,28 @@ func DefaultLocation() (string, error) {
 	return filepath.Join(home, "mdev"), nil
 }
 
+// DisplayPath shortens paths below the invoking user's home for calm,
+// user-facing output while persisted paths remain canonical and absolute.
+func DisplayPath(path string) string {
+	home, err := config.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	canonicalHome, _, err := resolveExistingPrefix(home)
+	if err != nil {
+		canonicalHome = filepath.Clean(home)
+	}
+	canonicalPath := filepath.Clean(path)
+	relative, err := filepath.Rel(canonicalHome, canonicalPath)
+	if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return path
+	}
+	if relative == "." {
+		return "~"
+	}
+	return filepath.Join("~", relative)
+}
+
 // ResolveStoragePath turns a selected parent or mdev directory into the
 // canonical absolute mdev-owned storage path. Environment variables are not
 // expanded, and symlinks in the longest existing prefix are resolved.
@@ -186,16 +243,10 @@ func ResolveStoragePath(path string) (resolved string, symlinkSource string, err
 	if err != nil {
 		return "", "", err
 	}
-	if path == "~" {
-		path = home
-	} else if strings.HasPrefix(path, "~/") {
-		path = filepath.Join(home, strings.TrimPrefix(path, "~/"))
-	}
-	absPath, err := filepath.Abs(path)
+	absPath, err := absoluteInputPath(path)
 	if err != nil {
 		return "", "", err
 	}
-	absPath = filepath.Clean(absPath)
 	if absPath == string(filepath.Separator) || absPath == filepath.Clean(home) {
 		return "", "", fmt.Errorf("storage location must be a dedicated directory, not %s", absPath)
 	}
@@ -218,6 +269,24 @@ func ResolveStoragePath(path string) (resolved string, symlinkSource string, err
 		return "", "", fmt.Errorf("inspect storage location: %w", statErr)
 	}
 	return physical, symlinkSource, nil
+}
+
+func absoluteInputPath(path string) (string, error) {
+	path = strings.TrimSpace(path)
+	home, err := config.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	if path == "~" {
+		path = home
+	} else if strings.HasPrefix(path, "~/") {
+		path = filepath.Join(home, strings.TrimPrefix(path, "~/"))
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Clean(absPath), nil
 }
 
 func ValidateStoragePath(path string) (string, error) {
@@ -274,6 +343,14 @@ func Setup(location string) (*Environment, error) {
 }
 
 func SetupResolved(location string) (*Environment, error) {
+	canonicalLocation, _, err := resolveExistingPrefix(location)
+	if err != nil {
+		return nil, err
+	}
+	location = canonicalLocation
+	if err := validateResolvedStoragePath(location); err != nil {
+		return nil, err
+	}
 	if _, configured, err := Existing(); err != nil {
 		return nil, err
 	} else if configured {
@@ -297,6 +374,23 @@ func SetupResolved(location string) (*Environment, error) {
 	}
 	committed = true
 	return New(location), nil
+}
+
+func validateResolvedStoragePath(path string) error {
+	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
+		return fmt.Errorf("storage path must be a clean absolute path")
+	}
+	if filepath.Base(path) != "mdev" {
+		return fmt.Errorf("storage path must end in mdev")
+	}
+	home, err := config.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	if path == string(filepath.Separator) || path == filepath.Clean(home) {
+		return fmt.Errorf("storage path is too broad: %s", path)
+	}
+	return nil
 }
 
 func createStorageRoot(path string) ([]string, error) {

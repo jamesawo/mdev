@@ -39,3 +39,21 @@ func TestListVolumesReturnsEmptyList(t *testing.T) {
 		t.Fatalf("volumes = %#v", volumes)
 	}
 }
+
+func TestListVolumesMarksReadOnlyVolume(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "Archive")
+	if err := os.Mkdir(path, 0755); err != nil {
+		t.Fatal(err)
+	}
+	original := volumeWritable
+	volumeWritable = func(candidate string) bool { return candidate != path }
+	t.Cleanup(func() { volumeWritable = original })
+	volumes, err := listVolumes(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(volumes) != 1 || volumes[0].Writable {
+		t.Fatalf("volumes = %#v", volumes)
+	}
+}

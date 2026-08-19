@@ -34,7 +34,7 @@ const (
 )
 
 func SetupDefaultStorageOption(location string) string {
-	return fmt.Sprintf("%s (recommended)", displayHomePath(location))
+	return fmt.Sprintf("%s (recommended)", location)
 }
 
 func SetupVolumeOption(name, path string, writable bool) string {
@@ -50,5 +50,3 @@ func SetupReadOnly(path string) string {
 
 func SetupWillUse(path string) string  { return "mdev will use:  " + path }
 func SetupExpected(path string) string { return "expected: " + path }
-
-func displayHomePath(path string) string { return path }

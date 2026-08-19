@@ -6,6 +6,8 @@ import (
 	"sort"
 )
 
+var volumeWritable = directoryWritable
+
 // ListExternalVolumes returns every mounted directory below the macOS volume
 // root in deterministic, case-insensitive name order.
 func ListExternalVolumes() ([]Volume, error) {
@@ -25,7 +27,7 @@ func listVolumes(volumeRoot string) ([]Volume, error) {
 			continue
 		}
 		path := filepath.Join(volumeRoot, entry.Name())
-		volumes = append(volumes, Volume{Name: entry.Name(), Path: path, Writable: directoryWritable(path)})
+		volumes = append(volumes, Volume{Name: entry.Name(), Path: path, Writable: volumeWritable(path)})
 	}
 	sort.Slice(volumes, func(i, j int) bool {
 		return volumes[i].Name < volumes[j].Name

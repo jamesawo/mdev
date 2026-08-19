@@ -9,6 +9,20 @@ Run `mdev setup` to choose where mdev stores managed tool data. The storage path
 can be a directory on the internal disk, under your home directory, on an
 external volume, or at another writable filesystem location.
 
+The interactive command recommends `~/mdev`, lists mounted external volumes,
+and supports custom paths. A selected parent directory gets an `mdev`
+subdirectory; a path already ending in `mdev` is used as-is. For unattended
+setup, pass the location directly:
+
+```sh
+mdev setup --storage-path ~/mdev
+```
+
+Setup never replaces an existing configuration. Paths are stored as canonical
+absolute paths, including resolved symlink destinations. Running through
+`sudo` still writes configuration for the invoking user, and mdev never
+elevates itself automatically.
+
 The selection is saved in `~/.mdev/config.yaml`:
 
 ```yaml
@@ -121,6 +135,7 @@ The repository provides these scripts:
 ./scripts/vm/shell.sh                 # build separately, then open a VM shell
 ./scripts/vm/run.sh mdev --version    # run any command in the VM
 ./scripts/vm/run.sh mdev doctor
+./scripts/vm/test-setup.sh            # run isolated setup journeys in the VM
 ```
 
 The scripts use the `mdev-vm` SSH alias and expect a VM named `macOs-mdev`. A developer with a differently named local

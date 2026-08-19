@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
 )
 
@@ -70,6 +71,16 @@ func TestResolveStoragePathCanonicalizesSymlink(t *testing.T) {
 	}
 }
 
+func TestDisplayPathShortensCanonicalHomePath(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("SUDO_USER", "")
+	canonicalHome := canonical(t, home)
+	if got := DisplayPath(filepath.Join(canonicalHome, "mdev")); got != filepath.Join("~", "mdev") {
+		t.Fatalf("DisplayPath() = %q", got)
+	}
+}
+
 func TestResolveStoragePathRejectsFileAndBroadPaths(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
@@ -106,6 +117,17 @@ func TestSetupRollsBackStorageWhenPersistenceFails(t *testing.T) {
 	}
 }
 
+func TestSetupResolvedRejectsUnresolvedOrBroadPaths(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("SUDO_USER", "")
+	for _, path := range []string{"relative/mdev", "/", filepath.Join(home, "other")} {
+		if _, err := SetupResolved(path); err == nil {
+			t.Fatalf("SetupResolved(%q) unexpectedly succeeded", path)
+		}
+	}
+}
+
 func TestSetupNeverReplacesExistingConfiguration(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
@@ -125,7 +147,7 @@ func TestSetupNeverReplacesExistingConfiguration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.StoragePath != first {
+	if cfg.StoragePath != canonical(t, first) {
 		t.Fatalf("configuration changed to %q", cfg.StoragePath)
 	}
 }
@@ -152,6 +174,19 @@ func TestExistingLeavesMalformedConfigurationUntouched(t *testing.T) {
 	}
 	if string(got) != string(original) {
 		t.Fatalf("malformed configuration changed to %q", got)
+	}
+}
+
+func TestInterruptIsCancellation(t *testing.T) {
+	if err := interruptionError(terminal.InterruptErr); !errors.Is(err, ErrSetupCancelled) {
+		t.Fatalf("interruptionError() = %v", err)
+	}
+}
+
+func TestPermissionErrorSuggestsAnotherLocationOrSudo(t *testing.T) {
+	err := actionablePathError("/protected/mdev", os.ErrPermission)
+	if !strings.Contains(err.Error(), "choose another location") || !strings.Contains(err.Error(), "sudo") {
+		t.Fatalf("actionablePathError() = %q", err)
 	}
 }
 
