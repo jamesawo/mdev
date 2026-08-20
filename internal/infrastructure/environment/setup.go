@@ -25,7 +25,10 @@ type locationChoice struct {
 	custom bool
 }
 
-var saveConfig = config.Save
+var (
+	saveConfig = config.Save
+	ownPath    = config.OwnPathForInvokingUser
+)
 
 func SetupInteractive() (*Environment, error) {
 	if env, configured, err := Existing(); err != nil {
@@ -54,7 +57,7 @@ func SetupInteractive() (*Environment, error) {
 				return nil, pathErr
 			}
 			if _, statErr := os.Stat(inputPath); errors.Is(statErr, os.ErrNotExist) {
-				printer.Section("that location doesn't exist.")
+				printer.Section(messages.SetupMissingLocation)
 				printer.Info(inputPath)
 				missingChoice, err := selectChoice([]string{messages.SetupCreateIt, messages.SetupTryAgain, messages.SetupCancel})
 				if err != nil {
@@ -413,6 +416,12 @@ func createStorageRoot(path string) ([]string, error) {
 	}
 	if err := os.MkdirAll(path, 0755); err != nil {
 		return nil, err
+	}
+	for _, createdPath := range missing {
+		if err := ownPath(createdPath); err != nil {
+			rollbackCreatedDirectories(missing)
+			return nil, err
+		}
 	}
 	probe, err := os.CreateTemp(path, ".mdev-write-check-*")
 	if err != nil {

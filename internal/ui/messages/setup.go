@@ -19,6 +19,7 @@ const (
 	SetupChooseDirectory     = "where should mdev store data?"
 	SetupCustomStorageOption = "choose another location"
 	SetupEnterStoragePath    = "storage path"
+	SetupMissingLocation     = "that location doesn't exist."
 	SetupExistingTitle       = "an mdev folder already exists here."
 	SetupUseExisting         = "use existing folder"
 	SetupChooseAnother       = "choose another location"

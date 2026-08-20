@@ -117,6 +117,31 @@ func TestSetupRollsBackStorageWhenPersistenceFails(t *testing.T) {
 	}
 }
 
+func TestCreateStorageRootOwnsEveryNewDirectory(t *testing.T) {
+	parent := filepath.Join(t.TempDir(), "new", "nested")
+	storage := filepath.Join(parent, "mdev")
+	var owned []string
+	originalOwnPath := ownPath
+	ownPath = func(path string) error {
+		owned = append(owned, path)
+		return nil
+	}
+	t.Cleanup(func() { ownPath = originalOwnPath })
+
+	created, err := createStorageRoot(storage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(owned) != len(created) {
+		t.Fatalf("owned paths = %#v, created paths = %#v", owned, created)
+	}
+	for index := range created {
+		if owned[index] != created[index] {
+			t.Fatalf("owned paths = %#v, created paths = %#v", owned, created)
+		}
+	}
+}
+
 func TestSetupResolvedRejectsUnresolvedOrBroadPaths(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)

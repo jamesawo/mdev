@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 var volumeWritable = directoryWritable
@@ -30,7 +31,12 @@ func listVolumes(volumeRoot string) ([]Volume, error) {
 		volumes = append(volumes, Volume{Name: entry.Name(), Path: path, Writable: volumeWritable(path)})
 	}
 	sort.Slice(volumes, func(i, j int) bool {
-		return volumes[i].Name < volumes[j].Name
+		left := strings.ToLower(volumes[i].Name)
+		right := strings.ToLower(volumes[j].Name)
+		if left == right {
+			return volumes[i].Name < volumes[j].Name
+		}
+		return left < right
 	})
 	return volumes, nil
 }

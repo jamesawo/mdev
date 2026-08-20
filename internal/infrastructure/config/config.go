@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"gopkg.in/yaml.v3"
@@ -18,18 +19,65 @@ type Config struct {
 var ErrStoragePathRequired = errors.New(messages.SetupStoragePathRequired)
 var ErrAlreadyConfigured = errors.New("mdev is already configured")
 
+var (
+	lookupUser   = user.Lookup
+	effectiveUID = os.Geteuid
+	changeOwner  = os.Chown
+)
+
+type invokingUser struct {
+	homeDir string
+	uid     int
+	gid     int
+	viaSudo bool
+}
+
 func UserHomeDir() (string, error) {
-	if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" && sudoUser != "root" {
-		account, err := user.Lookup(sudoUser)
-		if err != nil {
-			return "", fmt.Errorf("look up invoking user %q: %w", sudoUser, err)
-		}
-		if account.HomeDir == "" {
-			return "", fmt.Errorf("invoking user %q has no home directory", sudoUser)
-		}
-		return account.HomeDir, nil
+	invoker, err := resolveInvokingUser()
+	if err != nil {
+		return "", err
 	}
-	return os.UserHomeDir()
+	return invoker.homeDir, nil
+}
+
+// OwnPathForInvokingUser transfers a newly created setup artifact to the user
+// who invoked sudo. It is a no-op during normal, non-sudo execution.
+func OwnPathForInvokingUser(path string) error {
+	invoker, err := resolveInvokingUser()
+	if err != nil {
+		return err
+	}
+	if !invoker.viaSudo {
+		return nil
+	}
+	if err := changeOwner(path, invoker.uid, invoker.gid); err != nil {
+		return fmt.Errorf("set invoking-user ownership on %s: %w", path, err)
+	}
+	return nil
+}
+
+func resolveInvokingUser() (invokingUser, error) {
+	sudoUser := os.Getenv("SUDO_USER")
+	if effectiveUID() != 0 || sudoUser == "" || sudoUser == "root" {
+		home, err := os.UserHomeDir()
+		return invokingUser{homeDir: home}, err
+	}
+	account, err := lookupUser(sudoUser)
+	if err != nil {
+		return invokingUser{}, fmt.Errorf("look up invoking user %q: %w", sudoUser, err)
+	}
+	if account.HomeDir == "" {
+		return invokingUser{}, fmt.Errorf("invoking user %q has no home directory", sudoUser)
+	}
+	uid, err := strconv.Atoi(account.Uid)
+	if err != nil {
+		return invokingUser{}, fmt.Errorf("parse invoking user UID %q: %w", account.Uid, err)
+	}
+	gid, err := strconv.Atoi(account.Gid)
+	if err != nil {
+		return invokingUser{}, fmt.Errorf("parse invoking user GID %q: %w", account.Gid, err)
+	}
+	return invokingUser{homeDir: account.HomeDir, uid: uid, gid: gid, viaSudo: true}, nil
 }
 
 func configDir() string {
@@ -66,6 +114,9 @@ func Save(cfg Config) error {
 	}
 	if dirCreated {
 		defer func() { _ = os.Remove(dir) }()
+		if err := OwnPathForInvokingUser(dir); err != nil {
+			return err
+		}
 	}
 
 	data, err := yaml.Marshal(&cfg)
@@ -92,6 +143,9 @@ func Save(cfg Config) error {
 		return err
 	}
 	if err := temporary.Close(); err != nil {
+		return err
+	}
+	if err := OwnPathForInvokingUser(temporaryPath); err != nil {
 		return err
 	}
 	if err := os.Link(temporaryPath, configFile()); err != nil {

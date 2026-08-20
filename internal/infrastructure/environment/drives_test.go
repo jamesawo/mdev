@@ -30,6 +30,25 @@ func TestListVolumesReturnsSortedWritableDirectories(t *testing.T) {
 	}
 }
 
+func TestListVolumesSortsNamesCaseInsensitively(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"Zulu", "beta", "Alpha"} {
+		if err := os.Mkdir(filepath.Join(root, name), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	volumes, err := listVolumes(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"Alpha", "beta", "Zulu"}
+	for index, name := range want {
+		if volumes[index].Name != name {
+			t.Fatalf("volumes = %#v", volumes)
+		}
+	}
+}
+
 func TestListVolumesReturnsEmptyList(t *testing.T) {
 	volumes, err := listVolumes(t.TempDir())
 	if err != nil {
