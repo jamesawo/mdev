@@ -80,8 +80,8 @@ func TestSetupPreservesExistingContents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load() error = %v", err)
 	}
-	if cfg.StoragePath != location {
-		t.Fatalf("configured location = %q, want %q", cfg.StoragePath, location)
+	if cfg.StoragePath != env.StoragePath {
+		t.Fatalf("configured location = %q, want %q", cfg.StoragePath, env.StoragePath)
 	}
 }
 
@@ -98,7 +98,11 @@ func TestSetupWritesStoragePathConfiguration(t *testing.T) {
 		t.Fatalf("read config: %v", err)
 	}
 
-	expected := "storage_path: " + location + "\n"
+	resolved, err := environment.ValidateStoragePath(location)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "storage_path: " + resolved + "\n"
 	if string(data) != expected {
 		t.Fatalf("config contents = %q, want %q", data, expected)
 	}
@@ -167,7 +171,11 @@ func TestValidateStoragePathExpandsHomeDirectory(t *testing.T) {
 		t.Fatalf("ValidateStoragePath() error = %v", err)
 	}
 
-	want := filepath.Join(home, "Documents", "mdev")
+	want, err := filepath.EvalSymlinks(home)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = filepath.Join(want, "Documents", "mdev")
 	if got != want {
 		t.Fatalf("ValidateStoragePath() = %q, want %q", got, want)
 	}

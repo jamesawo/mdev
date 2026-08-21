@@ -20,6 +20,7 @@ var uninstallCmd = &cobra.Command{
 		env, err := environment.FromConfig()
 		if err != nil {
 			printer.Fail(messages.UninstallEnvironmentNotConfigured)
+			printer.Info(messages.CommonRun + " " + messages.SetupCommand)
 			return
 		}
 

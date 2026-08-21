@@ -1,12 +1,9 @@
 package cmd
 
 import (
-	"errors"
-
 	"github.com/jamesawo/mdev/internal/command/install"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/tools"
-	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -29,33 +26,10 @@ var installCmd = &cobra.Command{
 
 		env, err := environment.FromConfig()
 
-		// First-time setup
 		if err != nil {
-
-			printer.Section(messages.SetupTitle)
-			printer.Info(messages.SetupChooseDirectory)
-
-			if !confirmation.Ask(
-				printer.FormatIndent(2, messages.SetupCreateDirectoryQuestion),
-			) {
-				printer.Info(messages.CommonAborted)
-				printer.Blank()
-				return
-			}
-
-			env, err = environment.SetupInteractive()
-			if errors.Is(err, environment.ErrSetupCancelled) {
-				printer.Info(messages.CommonAborted)
-				printer.Blank()
-				return
-			}
-			if err != nil {
-				printer.Fail(messages.SetupFailed)
-				printer.Blank()
-				return
-			}
-
-			printer.Success(messages.SetupCompleted)
+			printer.Fail("mdev is not configured")
+			printer.Info(messages.CommonRun + " " + messages.SetupCommand)
+			return
 		}
 
 		// install all tools

@@ -4,7 +4,7 @@ import "fmt"
 
 // PrintBanner prints the CLI banner when running `mdev` without arguments.
 func PrintBanner() {
-	fmt.Println(`
+	fmt.Print(`
 ███╗   ███╗██████╗ ███████╗██╗   ██╗
 ████╗ ████║██╔══██╗██╔════╝██║   ██║
 ██╔████╔██║██║  ██║█████╗  ██║   ██║
