@@ -1,10 +1,8 @@
-package test
+package confirmation
 
 import (
 	"bytes"
 	"testing"
-
-	"github.com/jamesawo/mdev/internal/ui/confirmation"
 )
 
 func TestConfirmation_WhenAssumeYesIsEnabled_AcceptsWithoutPrompting(t *testing.T) {
@@ -24,9 +22,9 @@ func TestConfirmation_WhenUserAnswersNo_Declines(t *testing.T) {
 	assertConfirmationDeclined(t, accepted)
 }
 
-func givenConfirmer(answer string, assumeYes bool) (*confirmation.Confirmer, *bytes.Buffer) {
+func givenConfirmer(answer string, assumeYes bool) (*Confirmer, *bytes.Buffer) {
 	output := &bytes.Buffer{}
-	confirmer := confirmation.New(bytes.NewBufferString(answer), output, assumeYes)
+	confirmer := New(bytes.NewBufferString(answer), output, assumeYes)
 
 	return confirmer, output
 }
