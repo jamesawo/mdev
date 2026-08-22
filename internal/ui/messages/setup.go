@@ -63,17 +63,30 @@ const (
 	SetupParseInvokingUID        = "parse invoking user UID %q: %w"
 	SetupParseInvokingGID        = "parse invoking user GID %q: %w"
 	SetupResolveConfigDir        = "resolve configuration directory"
-	SetupReadinessApply          = "apply these changes?"
+	SetupReadinessApply          = "allow mdev to install these requirements?"
 	SetupReadinessDeclined       = "setup is incomplete; required system changes were declined"
+	SetupReadinessNoChanges      = "no system changes were made."
+	SetupReadinessResume         = "run `mdev setup` when you're ready to continue."
 	SetupReadinessNonInteractive = "setup requires system changes; rerun interactively to review and approve them"
-	SetupReadinessChecking       = "checking %s...\n"
-	SetupReadinessReady          = "✓ %s ready\n"
-	SetupReadinessNeeds          = "  %s  %s\n"
-	SetupReadinessRemediating    = "%s %s...\n"
-	SetupReadinessVerified       = "✓ %s verified\n"
+	SetupReadinessChecking       = "checking system requirements...\n"
+	SetupReadinessReady          = "✓ %s\n"
+	SetupReadinessRequired       = "\nsystem changes required\n\n"
+	SetupReadinessChange         = "  %s\n    %s\n\n"
+	SetupReadinessOneChange      = "1 system change is required to finish setup.\n"
+	SetupReadinessManyChanges    = "%d system changes are required to finish setup.\n"
+	SetupReadinessInstalling     = "\ninstalling system requirements...\n"
+	SetupReadinessRemediating    = "installing %s...\n"
+	SetupReadinessVerified       = "✓ %s\n"
+	SetupReadinessDeferred       = "%s\n%s\n"
 )
 
 func SetupStorage(path string) string { return fmt.Sprintf(SetupStorageFormat, path) }
+func SetupReadinessChanges(count int) string {
+	if count == 1 {
+		return SetupReadinessOneChange
+	}
+	return fmt.Sprintf(SetupReadinessManyChanges, count)
+}
 func SetupSymlinkResolution(source, resolved string) string {
 	return fmt.Sprintf(SetupSymlinkFormat, source, resolved)
 }

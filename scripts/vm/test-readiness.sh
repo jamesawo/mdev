@@ -75,8 +75,8 @@ MDEV_FAKE_BIN="$fake_bin"
 export MDEV_FAKE_BIN
 
 HOME="$home" SUDO_USER= "$TEST_ROOT/mdev" setup --storage-path "$storage_parent" >"$TEST_ROOT/setup.out"
-grep -q 'checking bash' "$TEST_ROOT/setup.out"
-grep -q 'bash ready' "$TEST_ROOT/setup.out"
+grep -q 'checking system requirements' "$TEST_ROOT/setup.out"
+grep -q '✓ bash' "$TEST_ROOT/setup.out"
 grep -q 'mdev is ready' "$TEST_ROOT/setup.out"
 test -f "$home/.mdev/config.yaml"
 

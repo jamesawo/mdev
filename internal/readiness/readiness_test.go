@@ -102,3 +102,41 @@ func TestRemediateHonorsCancellationBeforeMutation(t *testing.T) {
 		t.Fatalf("calls = %v", calls)
 	}
 }
+
+type deferredPrerequisite struct {
+	fakePrerequisite
+}
+
+func (*deferredPrerequisite) RemediationStartedMessage() string      { return "started" }
+func (*deferredPrerequisite) RemediationContinuationMessage() string { return "continue externally" }
+
+type recordingDeferredReporter struct {
+	noopReporter
+	started      string
+	continuation string
+}
+
+func (r *recordingDeferredReporter) Deferred(started, continuation string) error {
+	r.started = started
+	r.continuation = continuation
+	return nil
+}
+
+func TestRemediateDefersVerificationUntilExternalInstallationCompletes(t *testing.T) {
+	var calls []string
+	p := &deferredPrerequisite{fakePrerequisite: fakePrerequisite{
+		name: "xcode-cli", state: prerequisites.StateMissing, calls: &calls,
+	}}
+	reporter := &recordingDeferredReporter{}
+	err := Remediate(context.Background(), []Item{{Prerequisite: p, State: prerequisites.StateMissing}}, reporter)
+	var pending *PendingRemediationError
+	if !errors.As(err, &pending) || pending.Prerequisite != "xcode-cli" {
+		t.Fatalf("error = %v", err)
+	}
+	if !reflect.DeepEqual(calls, []string{"remediate:xcode-cli"}) {
+		t.Fatalf("calls = %v", calls)
+	}
+	if reporter.started != "started" || reporter.continuation != "continue externally" {
+		t.Fatalf("deferred output = %q, %q", reporter.started, reporter.continuation)
+	}
+}

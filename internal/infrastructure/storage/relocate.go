@@ -62,6 +62,9 @@ func Relocate(source, target string) error {
 		}
 	}
 
+	if err := os.MkdirAll(filepath.Dir(source), 0755); err != nil {
+		return fmt.Errorf("prepare tool state parent for %s: %w", source, err)
+	}
 	if err := os.Symlink(target, source); err != nil {
 		return fmt.Errorf("link tool state from %s to %s: %w", source, target, err)
 	}

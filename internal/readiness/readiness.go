@@ -42,6 +42,19 @@ type Reporter interface {
 	Verified(Item) error
 }
 
+type deferredReporter interface {
+	Deferred(string, string) error
+}
+
+// PendingRemediationError reports that remediation started but must complete externally.
+type PendingRemediationError struct {
+	Prerequisite string
+}
+
+func (e *PendingRemediationError) Error() string {
+	return fmt.Sprintf(messages.ReadinessRemediationPending, e.Prerequisite)
+}
+
 type noopReporter struct{}
 
 func (noopReporter) Checking(string) error            { return nil }
@@ -134,6 +147,14 @@ func Remediate(ctx context.Context, items []Item, reporter Reporter) error {
 		}
 		if err := remediator.RemediateContext(ctx); err != nil {
 			return fmt.Errorf(messages.ReadinessRemediationError, item.Prerequisite.Name(), err)
+		}
+		if deferred, ok := item.Prerequisite.(prerequisites.DeferredRemediator); ok {
+			if reporter, ok := reporter.(deferredReporter); ok {
+				if err := reporter.Deferred(deferred.RemediationStartedMessage(), deferred.RemediationContinuationMessage()); err != nil {
+					return err
+				}
+			}
+			return &PendingRemediationError{Prerequisite: item.Prerequisite.Name()}
 		}
 		if verifier, ok := item.Prerequisite.(prerequisites.Verifier); ok {
 			if err := verifier.VerifyContext(ctx); err != nil {

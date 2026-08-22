@@ -30,6 +30,11 @@ the concrete changes and asks for explicit consent with a default of no. Each
 approved change is verified before configuration is committed. Declining,
 failure, or cancellation leaves setup incomplete and safe to retry.
 
+Some macOS prerequisites complete through a system installer. In that case,
+setup starts the supported installer, explains what remains, and stops before
+dependent changes. Complete the macOS installation and rerun `mdev setup`;
+mdev rechecks current state and continues the remaining work.
+
 `setup --storage-path` never treats the supplied path as permission to change
 system tooling. If prerequisite remediation is required, it exits actionably
 and asks the user to rerun interactive setup.

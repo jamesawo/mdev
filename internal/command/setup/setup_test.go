@@ -183,9 +183,19 @@ func TestInteractiveSetupDeclineDoesNotCommitConfiguration(t *testing.T) {
 		return []readiness.Item{{Prerequisite: setupRemediablePrerequisite{name: "brew"}, State: prerequisites.StateMissing}}, nil
 	}
 	deps.confirm = func(string) bool { return false }
-	err := run(Options{}, deps, &recordingOutput{})
-	if err == nil || !strings.Contains(err.Error(), "declined") {
+	var out recordingOutput
+	err := run(Options{}, deps, &out)
+	if !errors.Is(err, ErrReadinessDeclined) {
 		t.Fatalf("error = %v", err)
+	}
+	wantOutput := []string{
+		"section:" + messages.SetupTitle,
+		"info:" + messages.SetupCancelled,
+		"info:" + messages.SetupReadinessNoChanges,
+		"info:" + messages.SetupReadinessResume,
+	}
+	if !reflect.DeepEqual(out.calls, wantOutput) {
+		t.Fatalf("output calls = %#v, want %#v", out.calls, wantOutput)
 	}
 	if committed {
 		t.Fatal("configuration was committed after declined remediation")

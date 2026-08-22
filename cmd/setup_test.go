@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	commandsetup "github.com/jamesawo/mdev/internal/command/setup"
+	"github.com/jamesawo/mdev/internal/readiness"
 )
 
 func TestSetupHelpOmitsYesAndDocumentsStoragePath(t *testing.T) {
@@ -23,6 +24,24 @@ func TestSetupHelpOmitsYesAndDocumentsStoragePath(t *testing.T) {
 	}
 	if !strings.Contains(help, "--storage-path") {
 		t.Fatalf("setup help omits --storage-path:\n%s", help)
+	}
+}
+
+func TestSetupCommandSilencesPendingExternalRemediation(t *testing.T) {
+	original := rootCmd.SilenceErrors
+	t.Cleanup(func() { rootCmd.SilenceErrors = original })
+	runSetup = func(context.Context, commandsetup.Streams, commandsetup.Options) error {
+		return &readiness.PendingRemediationError{Prerequisite: "xcode-cli"}
+	}
+	t.Cleanup(func() { runSetup = defaultRunSetup })
+
+	err := setupCmd.RunE(setupCmd, nil)
+	var pending *readiness.PendingRemediationError
+	if !errors.As(err, &pending) {
+		t.Fatalf("RunE() error = %v", err)
+	}
+	if !rootCmd.SilenceErrors {
+		t.Fatal("pending remediation did not suppress Cobra error decoration")
 	}
 }
 
@@ -58,5 +77,22 @@ func TestSetupCommandDelegatesOptionsAndError(t *testing.T) {
 	}
 	if got.StoragePath != setupStoragePath {
 		t.Fatalf("RunE() options = %#v", got)
+	}
+}
+
+func TestSetupCommandSilencesExpectedReadinessDecline(t *testing.T) {
+	original := rootCmd.SilenceErrors
+	t.Cleanup(func() { rootCmd.SilenceErrors = original })
+	runSetup = func(context.Context, commandsetup.Streams, commandsetup.Options) error {
+		return commandsetup.ErrReadinessDeclined
+	}
+	t.Cleanup(func() { runSetup = defaultRunSetup })
+
+	err := setupCmd.RunE(setupCmd, nil)
+	if !errors.Is(err, commandsetup.ErrReadinessDeclined) {
+		t.Fatalf("RunE() error = %v", err)
+	}
+	if !rootCmd.SilenceErrors {
+		t.Fatal("expected cancellation did not suppress Cobra error decoration")
 	}
 }

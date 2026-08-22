@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	commandsetup "github.com/jamesawo/mdev/internal/command/setup"
+	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/spf13/cobra"
 )
@@ -25,9 +26,14 @@ var setupCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runSetup(cmd.Context(), commandsetup.Streams{
+		err := runSetup(cmd.Context(), commandsetup.Streams{
 			In: cmd.InOrStdin(), Out: cmd.OutOrStdout(), Err: cmd.ErrOrStderr(),
 		}, commandsetup.Options{StoragePath: setupStoragePath})
+		var pending *readiness.PendingRemediationError
+		if errors.Is(err, commandsetup.ErrReadinessDeclined) || errors.As(err, &pending) {
+			cmd.Root().SilenceErrors = true
+		}
+		return err
 	},
 }
 

@@ -45,7 +45,7 @@ cat >"$fake_bin/podman" <<'EOF'
 #!/bin/sh
 case "$*" in
     "--version") exit 0 ;;
-    "machine init --image-path "*) touch "$HOME/.podman-machine-initialized" ;;
+    "machine init") touch "$HOME/.podman-machine-initialized" ;;
     "machine inspect") test -f "$HOME/.podman-machine-initialized" ;;
     *) exit 2 ;;
 esac
