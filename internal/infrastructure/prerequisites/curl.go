@@ -12,7 +12,8 @@ func (c *Curl) Name() string {
 }
 
 func (c *Curl) Check() bool {
-	return true
+	installed, _ := c.InstallationStatus()
+	return installed
 }
 
 func (c *Curl) InstallationStatus() (bool, error) {

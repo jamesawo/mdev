@@ -24,6 +24,16 @@ absolute paths, including resolved symlink destinations. Running through
 elevates itself automatically. Running `mdev setup` again reports the existing
 storage and ends by recommending `mdev list` as the next command.
 
+Before reporting readiness, interactive setup checks the system prerequisites
+needed by mdev and its supported tools. If preparation is required, setup shows
+the concrete changes and asks for explicit consent with a default of no. Each
+approved change is verified before configuration is committed. Declining,
+failure, or cancellation leaves setup incomplete and safe to retry.
+
+`setup --storage-path` never treats the supplied path as permission to change
+system tooling. If prerequisite remediation is required, it exits actionably
+and asks the user to rerun interactive setup.
+
 The selection is saved in `~/.mdev/config.yaml`:
 
 ```yaml
@@ -65,6 +75,10 @@ dependencies are skipped, while partial work resumes through the owning tool's
 lifecycle. Install does not update valid tools or start their normal runtime
 state. If configured storage is missing or unavailable, install fails instead
 of creating or selecting a replacement location.
+
+Install defensively checks only the system prerequisites required by the
+resolved tool plan. If the machine has drifted since setup, it fails before tool
+mutation and recommends setup or doctor for recovery.
 
 ## List supported tools
 
@@ -230,6 +244,7 @@ The repository provides these scripts:
 ./scripts/vm/test-setup.sh            # run isolated setup journeys in the VM
 ./scripts/vm/test-list.sh             # run the configured list journey in the VM
 ./scripts/vm/test-install.sh          # run isolated install lifecycle journeys in the VM
+./scripts/vm/test-readiness.sh        # run the controlled setup/readiness/install journey
 ./scripts/vm/test-version.sh          # run isolated version journeys in the VM
 ```
 

@@ -56,3 +56,21 @@ func TestResolveDependenciesReportsCycle(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestSystemPrerequisitesAreDeduplicatedAndSorted(t *testing.T) {
+	plan := []Tool{
+		systemPrerequisiteTool{dependencyTool{name: "one"}, []string{"git", "brew"}},
+		systemPrerequisiteTool{dependencyTool{name: "two"}, []string{"brew", "bash"}},
+	}
+	got := SystemPrerequisites(plan)
+	if strings.Join(got, ",") != "bash,brew,git" {
+		t.Fatalf("requirements = %v", got)
+	}
+}
+
+type systemPrerequisiteTool struct {
+	dependencyTool
+	requirements []string
+}
+
+func (t systemPrerequisiteTool) SystemPrerequisites() []string { return t.requirements }

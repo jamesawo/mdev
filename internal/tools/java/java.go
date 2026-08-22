@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
@@ -31,7 +32,11 @@ func (*Java) InstallationStatus(_ *environment.Environment) (bool, error) {
 	if err != nil || !installed {
 		return installed, err
 	}
-	return tools.CommandInstallationStatus("bash", "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"")
+	bash, err := prerequisites.ModernBashPath(context.Background())
+	if err != nil {
+		return false, nil
+	}
+	return tools.CommandInstallationStatus(bash, "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"")
 }
 func (j *Java) Install(env *environment.Environment) error {
 	return j.InstallContext(context.Background(), env)
@@ -43,7 +48,11 @@ func (j *Java) Configure(env *environment.Environment) error {
 	return j.ConfigureContext(context.Background(), env)
 }
 func (*Java) ConfigureContext(ctx context.Context, _ *environment.Environment) error {
-	return exec.CommandContext(ctx, "bash", "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"").Run()
+	bash, err := prerequisites.ModernBashPath(ctx)
+	if err != nil {
+		return err
+	}
+	return exec.CommandContext(ctx, bash, "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"").Run()
 }
 func (j *Java) Verify(env *environment.Environment) error {
 	return j.VerifyContext(context.Background(), env)

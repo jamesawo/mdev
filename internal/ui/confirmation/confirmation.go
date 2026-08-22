@@ -47,3 +47,17 @@ func (c *Confirmer) Ask(question string) bool {
 
 	return answer != "n" && answer != "no"
 }
+
+// AskDefaultNo requests explicit affirmative consent for a system mutation.
+func (c *Confirmer) AskDefaultNo(question string) bool {
+	if c.assumeYes {
+		return true
+	}
+	fmt.Fprintf(c.output, "%s (y/N): ", question)
+	input, err := c.input.ReadString('\n')
+	if err != nil && input == "" {
+		return false
+	}
+	answer := strings.TrimSpace(strings.ToLower(input))
+	return answer == "y" || answer == "yes"
+}

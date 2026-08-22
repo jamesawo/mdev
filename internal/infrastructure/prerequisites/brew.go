@@ -1,9 +1,12 @@
 package prerequisites
 
 import (
+	"context"
 	"errors"
 	"os"
 	"os/exec"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Brew struct{}
@@ -28,9 +31,28 @@ func (Brew) InstallationStatus() (bool, error) {
 	return false, err
 }
 
-func (Brew) Install() error {
+func (Brew) Readiness(ctx context.Context) (State, string, error) {
+	path, err := exec.LookPath("brew")
+	if errors.Is(err, exec.ErrNotFound) {
+		return StateMissing, messages.ReadinessHomebrewRequired, nil
+	}
+	if err != nil {
+		return StateBroken, "", err
+	}
+	if output, err := exec.CommandContext(ctx, path, "--version").CombinedOutput(); err != nil {
+		return StateBroken, string(output), nil
+	}
+	return StateReady, path, nil
+}
 
-	if err := runInstaller(); err != nil {
+func (Brew) Install() error {
+	return (Brew{}).RemediateContext(context.Background())
+}
+
+func (Brew) PrerequisiteDependencies() []string { return []string{"curl", "xcode-cli"} }
+func (Brew) RemediationDescription() string     { return messages.ReadinessInstallHomebrew }
+func (Brew) RemediateContext(ctx context.Context) error {
+	if err := runInstaller(ctx); err != nil {
 		return err
 	}
 
@@ -39,12 +61,18 @@ func (Brew) Install() error {
 	return nil
 }
 
+func (Brew) VerifyContext(context.Context) error {
+	_, err := exec.LookPath("brew")
+	return err
+}
+
 // runInstaller executes the official Homebrew installation script
 // and attaches the process to the user's terminal so interactive
 // prompts (like sudo password) work correctly.
-func runInstaller() error {
+func runInstaller(ctx context.Context) error {
 
-	cmd := exec.Command(
+	cmd := exec.CommandContext(
+		ctx,
 		"/bin/bash",
 		"-c",
 		`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
@@ -66,7 +94,7 @@ func refreshPath() {
 
 	current := os.Getenv("PATH")
 
-	os.Setenv("PATH", current+":"+brewPath)
+	os.Setenv("PATH", brewPath+":"+current)
 }
 
 func init() {

@@ -8,7 +8,10 @@ import (
 type Git struct{}
 
 func (Git) Name() string { return "git" }
-func (Git) Check() bool  { return true }
+func (Git) Check() bool {
+	installed, _ := (Git{}).InstallationStatus()
+	return installed
+}
 func (Git) InstallationStatus() (bool, error) {
 	_, err := exec.LookPath("git")
 	if err == nil {

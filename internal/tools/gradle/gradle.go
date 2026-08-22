@@ -20,6 +20,7 @@ type Gradle struct{}
 func (*Gradle) Name() string                                   { return "gradle" }
 func (*Gradle) Description() string                            { return messages.ToolsGradleDescription }
 func (*Gradle) Dependencies() []string                         { return []string{"java"} }
+func (*Gradle) SystemPrerequisites() []string                  { return []string{"brew"} }
 func (*Gradle) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "gradle") }
 func (g *Gradle) IsInstalled(env *environment.Environment) bool {
 	installed, _ := g.InstallationStatus(env)

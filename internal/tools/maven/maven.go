@@ -20,6 +20,7 @@ type Maven struct{}
 func (*Maven) Name() string                                   { return "maven" }
 func (*Maven) Description() string                            { return messages.ToolsMavenDescription }
 func (*Maven) Dependencies() []string                         { return []string{"java"} }
+func (*Maven) SystemPrerequisites() []string                  { return []string{"brew"} }
 func (*Maven) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "maven") }
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
 	installed, _ := m.InstallationStatus(env)

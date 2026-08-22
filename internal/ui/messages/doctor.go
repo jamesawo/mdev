@@ -36,6 +36,15 @@ const (
 	DoctorInstallIndividual             = "Install individual tools:"
 	DoctorInstallEverything             = "Install everything:"
 	DoctorFixHint                       = "To fix system issues automatically:"
+	DoctorChecking                      = "checking %s"
+	DoctorCheckingProgress              = "checking %s..."
+	DoctorMissingCheck                  = "%s %s"
+	DoctorReadinessState                = "%s %s"
+	DoctorRemediating                   = "%s: %s"
+	DoctorVerified                      = "%s verified"
+	DoctorCheckDetail                   = "%s: %s"
+	DoctorInstallAllCommand             = "mdev install --all"
+	DoctorFixCommand                    = "mdev doctor --fix"
 )
 
 func DoctorInstallationFailed(name string) string {

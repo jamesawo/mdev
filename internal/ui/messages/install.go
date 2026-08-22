@@ -44,4 +44,6 @@ start normal runtime state, manage services, or provide JSON output.`
 	InstallPlanError           = "resolve install plan: %w"
 	InstallStatusError         = "determine %s installation status: %w"
 	InstallPhaseError          = "%s %s: %w"
+	InstallReadinessError      = "check system readiness: %w"
+	InstallPrerequisiteMissing = "system prerequisite %s is %s; rerun mdev setup or use mdev doctor for diagnosis"
 )

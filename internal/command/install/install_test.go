@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
+	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -50,6 +52,7 @@ func testDependencies(all []tools.Tool, plan []tools.Tool, installed map[string]
 		status:          func(tool tools.Tool, _ *environment.Environment) (bool, error) { return installed[tool.Name()], nil },
 		selectTools:     func([]choice) ([]string, error) { return nil, nil },
 		newReporter:     func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+		checkReadiness:  func(context.Context, []string) ([]readiness.Item, error) { return nil, nil },
 	}
 }
 
@@ -133,3 +136,25 @@ func TestRunCancellationDoesNotMutate(t *testing.T) {
 		t.Fatalf("output = %q", output.String())
 	}
 }
+
+func TestRunFailsBeforeMutationWhenReadinessHasDrifted(t *testing.T) {
+	var calls []string
+	tool := &fakeTool{name: "example", calls: &calls}
+	deps := testDependencies([]tools.Tool{tool}, []tools.Tool{tool}, map[string]bool{})
+	deps.checkReadiness = func(context.Context, []string) ([]readiness.Item, error) {
+		return []readiness.Item{{Prerequisite: installTestPrerequisite{name: "brew"}, State: prerequisites.StateMissing}}, nil
+	}
+	err := run(context.Background(), Streams{In: strings.NewReader(""), Out: &bytes.Buffer{}}, Options{Tool: "example", AssumeYes: true}, deps)
+	if err == nil || !strings.Contains(err.Error(), "mdev setup") {
+		t.Fatalf("error = %v", err)
+	}
+	if len(calls) != 0 {
+		t.Fatalf("tool mutated before readiness: %v", calls)
+	}
+}
+
+type installTestPrerequisite struct{ name string }
+
+func (p installTestPrerequisite) Name() string { return p.name }
+func (installTestPrerequisite) Check() bool    { return false }
+func (installTestPrerequisite) Install() error { return nil }

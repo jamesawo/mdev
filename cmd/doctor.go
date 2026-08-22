@@ -12,8 +12,8 @@ var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: messages.DoctorShortDescription,
 	Long:  messages.DoctorLongDescription,
-	Run: func(cmd *cobra.Command, args []string) {
-		doctor.Execute(doctorFix)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return doctor.ExecuteContext(cmd.Context(), doctorFix)
 	},
 }
 

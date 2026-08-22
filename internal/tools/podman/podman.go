@@ -20,6 +20,7 @@ type Podman struct{}
 func (*Podman) Name() string                                   { return "podman" }
 func (*Podman) Description() string                            { return messages.ToolsPodmanDescription }
 func (*Podman) Dependencies() []string                         { return nil }
+func (*Podman) SystemPrerequisites() []string                  { return []string{"brew"} }
 func (*Podman) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "podman") }
 func (p *Podman) IsInstalled(env *environment.Environment) bool {
 	installed, _ := p.InstallationStatus(env)

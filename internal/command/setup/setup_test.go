@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -11,6 +12,8 @@ import (
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
+	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
@@ -77,7 +80,7 @@ func TestNonInteractiveSetupCreatesCanonicalStorageAndConfig(t *testing.T) {
 	t.Setenv("SUDO_USER", "")
 	parent := filepath.Join(t.TempDir(), "parent with spaces")
 	var out recordingOutput
-	if err := run(Options{StoragePath: parent}, productionDependencies(), &out); err != nil {
+	if err := run(Options{StoragePath: parent}, readyDependencies(), &out); err != nil {
 		t.Fatal(err)
 	}
 	cfg, err := config.Load()
@@ -107,7 +110,7 @@ func TestNonInteractiveSetupRefusesExistingConfiguration(t *testing.T) {
 		t.Fatal(err)
 	}
 	replacement := filepath.Join(t.TempDir(), "replacement")
-	err := run(Options{StoragePath: replacement}, productionDependencies(), &recordingOutput{})
+	err := run(Options{StoragePath: replacement}, readyDependencies(), &recordingOutput{})
 	if err == nil || !strings.Contains(err.Error(), existing) {
 		t.Fatalf("run() error = %v", err)
 	}
@@ -135,9 +138,67 @@ func stubDependencies() dependencies {
 		setupResolved: func(path string) (*environment.Environment, error) {
 			return environment.New(path), nil
 		},
+		validateResolved:   func(string) error { return nil },
 		displayStoragePath: func(path string) string { return "display:" + path },
+		checkReadiness:     func(context.Context, readiness.Reporter) ([]readiness.Item, error) { return nil, nil },
+		remediate:          func(context.Context, []readiness.Item, readiness.Reporter) error { return nil },
+		confirm:            func(string) bool { return true },
 	}
 }
+
+func readyDependencies() dependencies {
+	deps := productionDependencies()
+	deps.checkReadiness = func(context.Context, readiness.Reporter) ([]readiness.Item, error) { return nil, nil }
+	return deps
+}
+
+func TestNonInteractiveSetupDoesNotRemediateSystemPrerequisites(t *testing.T) {
+	deps := stubDependencies()
+	called := false
+	prerequisite := setupRemediablePrerequisite{name: "bash"}
+	deps.checkReadiness = func(context.Context, readiness.Reporter) ([]readiness.Item, error) {
+		return []readiness.Item{{Prerequisite: prerequisite, State: prerequisites.StateOutdated}}, nil
+	}
+	deps.remediate = func(context.Context, []readiness.Item, readiness.Reporter) error {
+		called = true
+		return nil
+	}
+	err := run(Options{StoragePath: "/storage"}, deps, &recordingOutput{})
+	if err == nil || !strings.Contains(err.Error(), "rerun interactively") {
+		t.Fatalf("error = %v", err)
+	}
+	if called {
+		t.Fatal("non-interactive setup remediated system state")
+	}
+}
+
+func TestInteractiveSetupDeclineDoesNotCommitConfiguration(t *testing.T) {
+	deps := stubDependencies()
+	committed := false
+	deps.setupResolved = func(string) (*environment.Environment, error) {
+		committed = true
+		return environment.New("/storage/mdev"), nil
+	}
+	deps.checkReadiness = func(context.Context, readiness.Reporter) ([]readiness.Item, error) {
+		return []readiness.Item{{Prerequisite: setupRemediablePrerequisite{name: "brew"}, State: prerequisites.StateMissing}}, nil
+	}
+	deps.confirm = func(string) bool { return false }
+	err := run(Options{}, deps, &recordingOutput{})
+	if err == nil || !strings.Contains(err.Error(), "declined") {
+		t.Fatalf("error = %v", err)
+	}
+	if committed {
+		t.Fatal("configuration was committed after declined remediation")
+	}
+}
+
+type setupRemediablePrerequisite struct{ name string }
+
+func (p setupRemediablePrerequisite) Name() string                         { return p.name }
+func (setupRemediablePrerequisite) Check() bool                            { return false }
+func (setupRemediablePrerequisite) Install() error                         { return nil }
+func (setupRemediablePrerequisite) RemediationDescription() string         { return "prepare" }
+func (setupRemediablePrerequisite) RemediateContext(context.Context) error { return nil }
 
 type recordingOutput struct {
 	calls []string

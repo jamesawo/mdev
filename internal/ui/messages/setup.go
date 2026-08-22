@@ -7,10 +7,11 @@ const (
 	SetupStoragePathFlagName = "storage-path"
 	SetupYesFlagName         = "yes"
 	SetupCmdShortDescription = "configure where mdev stores managed data"
-	SetupCmdLongDescription  = `Configure where mdev stores managed data.
+	SetupCmdLongDescription  = `Prepare mdev for normal use.
 
-Setup creates the selected mdev storage directory and saves its canonical path
-in ~/.mdev/config.yaml. It does not install tools or move existing data.`
+Setup validates system prerequisites, asks before making system changes, then
+creates the selected storage directory and saves its canonical path in
+~/.mdev/config.yaml. It does not install registered development tools.`
 	SetupStoragePathFlag = "storage location or final mdev directory"
 	SetupYesUnsupported  = "setup does not support --yes"
 )
@@ -62,6 +63,14 @@ const (
 	SetupParseInvokingUID        = "parse invoking user UID %q: %w"
 	SetupParseInvokingGID        = "parse invoking user GID %q: %w"
 	SetupResolveConfigDir        = "resolve configuration directory"
+	SetupReadinessApply          = "apply these changes?"
+	SetupReadinessDeclined       = "setup is incomplete; required system changes were declined"
+	SetupReadinessNonInteractive = "setup requires system changes; rerun interactively to review and approve them"
+	SetupReadinessChecking       = "checking %s...\n"
+	SetupReadinessReady          = "✓ %s ready\n"
+	SetupReadinessNeeds          = "  %s  %s\n"
+	SetupReadinessRemediating    = "%s %s...\n"
+	SetupReadinessVerified       = "✓ %s verified\n"
 )
 
 func SetupStorage(path string) string { return fmt.Sprintf(SetupStorageFormat, path) }
