@@ -19,7 +19,7 @@ mdev version
 The normal output contains the product name and version, source commit identifier, and build value:
 
 ```text
-mdev 0.4.2
+mdev 0.2.0
 commit: a81f37c
 built: 2026-08-22
 ```
@@ -50,7 +50,7 @@ This project is currently local-development only. When real build metadata has n
 defaults:
 
 ```text
-version: 0.4.2
+version: 0.2.0
 commit: unknown
 built: unknown
 ```
@@ -58,7 +58,7 @@ built: unknown
 The corresponding default human output is:
 
 ```text
-mdev 0.4.2
+mdev 0.2.0
 commit: unknown
 built: unknown
 ```
@@ -82,7 +82,7 @@ JSON output is one complete object containing the same underlying values as norm
 
 ```json
 {
-  "version": "0.4.2",
+  "version": "0.2.0",
   "commit": "a81f37c",
   "built": "2026-08-22"
 }
@@ -111,7 +111,7 @@ mdev --version
 The root flag is the concise compatibility form and prints:
 
 ```text
-mdev 0.4.2
+mdev 0.2.0
 ```
 
 It uses the same `version` value as `mdev version`. Commit and build values remain available through the detailed
@@ -176,7 +176,7 @@ The current implementation must be changed as follows:
 - move formatting and execution out of `cmd/version.go` into `internal/command/version`;
 - replace direct `fmt.Println` calls with the Cobra-provided output writer;
 - remove the hard-coded author field and `Created by ...` output;
-- replace the current `0.1.0` value with the approved local default `0.4.2`;
+- replace the current `0.1.0` value with the approved local default `0.2.0`;
 - add deterministic `commit` and `built` fallback values;
 - add `--json` without changing the normal three-line output contract;
 - preserve both `mdev version` and `mdev --version`;
@@ -229,7 +229,7 @@ in `README.md`. Do not document future release or build automation as existing f
 Version is done when:
 
 - `mdev version` prints exactly the version, commit, and built lines in the specified order;
-- local builds deterministically report `0.4.2`, `unknown`, and `unknown` unless metadata is supplied;
+- local builds deterministically report `0.2.0`, `unknown`, and `unknown` unless metadata is supplied;
 - `mdev version --json` emits one valid JSON object with matching `version`, `commit`, and `built` strings;
 - `mdev --version` remains supported and uses the same version value;
 - `cmd/version.go` is a thin Cobra layer delegating to `internal/command/version`;

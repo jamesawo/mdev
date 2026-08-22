@@ -14,7 +14,7 @@ import (
 )
 
 func TestRunTextUsesDeterministicDefaults(t *testing.T) {
-	const want = "mdev 0.4.2\ncommit: unknown\nbuilt: unknown\n"
+	const want = "mdev 0.2.0\ncommit: unknown\nbuilt: unknown\n"
 
 	for _, metadata := range []Metadata{{}, DefaultMetadata()} {
 		var first bytes.Buffer

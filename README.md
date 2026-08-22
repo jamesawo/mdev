@@ -99,7 +99,7 @@ show dependency relationships, or diagnose installation health. Use
 Run `mdev version` to identify the binary currently running:
 
 ```text
-mdev 0.4.2
+mdev 0.2.0
 commit: unknown
 built: unknown
 ```
@@ -107,16 +107,16 @@ built: unknown
 The version is the product version without a leading `v`. Commit identifies the
 source revision when supplied, and built is the build date or another stable
 build value when supplied. Local development builds use deterministic fallbacks:
-version `0.4.2`, commit `unknown`, and built `unknown`.
+version `0.2.0`, commit `unknown`, and built `unknown`.
 
 For scripts, `mdev version --json` emits the same three values as one JSON-only
 document:
 
 ```json
-{"version":"0.4.2","commit":"unknown","built":"unknown"}
+{"version":"0.2.0","commit":"unknown","built":"unknown"}
 ```
 
-The compatibility form `mdev --version` prints only `mdev 0.4.2`. Both forms
+The compatibility form `mdev --version` prints only `mdev 0.2.0`. Both forms
 are read-only and work without mdev configuration or storage.
 
 ## Local development

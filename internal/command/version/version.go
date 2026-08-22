@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultVersion = "0.4.2"
+	defaultVersion = "0.2.0"
 	unknownValue   = "unknown"
 )
 

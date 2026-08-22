@@ -35,18 +35,18 @@ mkdir -p "$test_home"
 
 env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" version >"$TEST_ROOT/version.out"
 printf '%s\n' \
-    'mdev 0.4.2' \
+    'mdev 0.2.0' \
     'commit: unknown' \
     'built: unknown' >"$TEST_ROOT/version.expected"
 cmp "$TEST_ROOT/version.expected" "$TEST_ROOT/version.out"
 
 env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" version --json >"$TEST_ROOT/version.json"
-printf '%s\n' '{"version":"0.4.2","commit":"unknown","built":"unknown"}' >"$TEST_ROOT/version-json.expected"
+printf '%s\n' '{"version":"0.2.0","commit":"unknown","built":"unknown"}' >"$TEST_ROOT/version-json.expected"
 cmp "$TEST_ROOT/version-json.expected" "$TEST_ROOT/version.json"
 /usr/bin/jq empty "$TEST_ROOT/version.json"
 
 env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" --version >"$TEST_ROOT/root-version.out"
-printf '%s\n' 'mdev 0.4.2' >"$TEST_ROOT/root-version.expected"
+printf '%s\n' 'mdev 0.2.0' >"$TEST_ROOT/root-version.expected"
 cmp "$TEST_ROOT/root-version.expected" "$TEST_ROOT/root-version.out"
 
 test ! -e "$test_home/.mdev"
