@@ -41,6 +41,34 @@ func TestInstallationStatusFallsBackToToolContract(t *testing.T) {
 	}
 }
 
+func TestManagedSymlinkStatusRequiresExpectedTarget(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "target")
+	other := filepath.Join(root, "other")
+	if err := os.Mkdir(target, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(other, 0755); err != nil {
+		t.Fatal(err)
+	}
+	source := filepath.Join(root, "source")
+	if err := os.Symlink(other, source); err != nil {
+		t.Fatal(err)
+	}
+	if installed, err := ManagedSymlinkStatus(source, target); err != nil || installed {
+		t.Fatalf("wrong symlink status = %v, %v", installed, err)
+	}
+	if err := os.Remove(source); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, source); err != nil {
+		t.Fatal(err)
+	}
+	if installed, err := ManagedSymlinkStatus(source, target); err != nil || !installed {
+		t.Fatalf("managed symlink status = %v, %v", installed, err)
+	}
+}
+
 type fallbackStatusTool struct {
 	installed bool
 }

@@ -45,6 +45,27 @@ For tools whose normal data lives under the user's home directory, mdev may
 relocate that data into the configured storage path and replace the original
 location with a symlink.
 
+## Install tools
+
+Install one registered tool, choose tools interactively, or install all
+registered tools:
+
+```sh
+mdev install gradle
+mdev install
+mdev install --all
+```
+
+mdev displays a deterministic dependency-first plan and asks for confirmation.
+Use the global `--yes` flag for unattended installation. Progress is written as
+plain text while each tool is installed, configured, and verified.
+
+Re-running install is retry-safe: valid installations and completed
+dependencies are skipped, while partial work resumes through the owning tool's
+lifecycle. Install does not update valid tools or start their normal runtime
+state. If configured storage is missing or unavailable, install fails instead
+of creating or selecting a replacement location.
+
 ## List supported tools
 
 After setup, run `mdev list` for a read-only overview of every registered tool:
@@ -208,6 +229,7 @@ The repository provides these scripts:
 ./scripts/vm/run.sh mdev doctor
 ./scripts/vm/test-setup.sh            # run isolated setup journeys in the VM
 ./scripts/vm/test-list.sh             # run the configured list journey in the VM
+./scripts/vm/test-install.sh          # run isolated install lifecycle journeys in the VM
 ./scripts/vm/test-version.sh          # run isolated version journeys in the VM
 ```
 

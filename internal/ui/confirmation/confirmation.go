@@ -39,7 +39,10 @@ func (c *Confirmer) Ask(question string) bool {
 
 	fmt.Fprintf(c.output, "%s (Y/n): ", question)
 
-	input, _ := c.input.ReadString('\n')
+	input, err := c.input.ReadString('\n')
+	if err != nil && input == "" {
+		return false
+	}
 	answer := strings.TrimSpace(strings.ToLower(input))
 
 	return answer != "n" && answer != "no"

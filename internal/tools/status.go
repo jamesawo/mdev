@@ -3,7 +3,9 @@ package tools
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
@@ -14,6 +16,32 @@ import (
 // an unexpected failure separately from a missing installation.
 type StatusChecker interface {
 	InstallationStatus(env *environment.Environment) (bool, error)
+}
+
+// ManagedSymlinkStatus reports whether source is a symlink resolving to target.
+func ManagedSymlinkStatus(source, target string) (bool, error) {
+	info, err := os.Lstat(source)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		return false, nil
+	}
+	destination, err := filepath.EvalSymlinks(source)
+	if err != nil {
+		return false, err
+	}
+	expected, err := filepath.EvalSymlinks(target)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return filepath.Clean(destination) == filepath.Clean(expected), nil
 }
 
 // InstallationStatus preserves compatibility with existing Tool
