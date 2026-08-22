@@ -2,7 +2,9 @@ package environment
 
 import "errors"
 
+import "github.com/jamesawo/mdev/internal/ui/messages"
+
 var (
-	ErrSetupCancelled    = errors.New("setup cancelled")
-	ErrAlreadyConfigured = errors.New("mdev is already configured")
+	ErrSetupCancelled    = errors.New(messages.SetupCancelledError)
+	ErrAlreadyConfigured = errors.New(messages.SetupConfiguredError)
 )

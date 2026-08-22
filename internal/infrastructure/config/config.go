@@ -17,7 +17,7 @@ type Config struct {
 }
 
 var ErrStoragePathRequired = errors.New(messages.SetupStoragePathRequired)
-var ErrAlreadyConfigured = errors.New("mdev is already configured")
+var ErrAlreadyConfigured = errors.New(messages.SetupConfiguredError)
 
 var (
 	lookupUser   = user.Lookup
@@ -51,7 +51,7 @@ func OwnPathForInvokingUser(path string) error {
 		return nil
 	}
 	if err := changeOwner(path, invoker.uid, invoker.gid); err != nil {
-		return fmt.Errorf("set invoking-user ownership on %s: %w", path, err)
+		return fmt.Errorf(messages.SetupSetOwnership, path, err)
 	}
 	return nil
 }
@@ -64,18 +64,18 @@ func resolveInvokingUser() (invokingUser, error) {
 	}
 	account, err := lookupUser(sudoUser)
 	if err != nil {
-		return invokingUser{}, fmt.Errorf("look up invoking user %q: %w", sudoUser, err)
+		return invokingUser{}, fmt.Errorf(messages.SetupLookupInvokingUser, sudoUser, err)
 	}
 	if account.HomeDir == "" {
-		return invokingUser{}, fmt.Errorf("invoking user %q has no home directory", sudoUser)
+		return invokingUser{}, fmt.Errorf(messages.SetupInvokingUserNoHome, sudoUser)
 	}
 	uid, err := strconv.Atoi(account.Uid)
 	if err != nil {
-		return invokingUser{}, fmt.Errorf("parse invoking user UID %q: %w", account.Uid, err)
+		return invokingUser{}, fmt.Errorf(messages.SetupParseInvokingUID, account.Uid, err)
 	}
 	gid, err := strconv.Atoi(account.Gid)
 	if err != nil {
-		return invokingUser{}, fmt.Errorf("parse invoking user GID %q: %w", account.Gid, err)
+		return invokingUser{}, fmt.Errorf(messages.SetupParseInvokingGID, account.Gid, err)
 	}
 	return invokingUser{homeDir: account.HomeDir, uid: uid, gid: gid, viaSudo: true}, nil
 }
@@ -104,7 +104,7 @@ func Save(cfg Config) error {
 
 	dir := configDir()
 	if dir == "" {
-		return fmt.Errorf("resolve configuration directory")
+		return errors.New(messages.SetupResolveConfigDir)
 	}
 	_, statErr := os.Stat(dir)
 	dirCreated := errors.Is(statErr, os.ErrNotExist)

@@ -123,7 +123,7 @@ func run(out io.Writer, options Options, deps dependencies) error {
 	if options.JSON {
 		return runJSON(out, systemChecks, toolChecks)
 	}
-	return runHuman(out, systemChecks, toolChecks)
+	return runText(out, systemChecks, toolChecks)
 }
 
 func loadEnvironment(deps dependencies) (*environment.Environment, error) {
@@ -145,7 +145,7 @@ func loadEnvironment(deps dependencies) (*environment.Environment, error) {
 	return env, nil
 }
 
-func runHuman(out io.Writer, systemChecks, toolChecks []check) error {
+func runText(out io.Writer, systemChecks, toolChecks []check) error {
 	var allResults []result
 	printedSection := false
 
