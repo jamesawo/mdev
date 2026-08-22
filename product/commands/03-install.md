@@ -38,6 +38,22 @@ Install requires readable mdev configuration and an existing, writable storage
 directory. It does not create replacement configuration/storage or fall back to
 another path when configured storage is unavailable.
 
+Install also performs the lightweight shared readiness checks required for the
+requested tool plan before mutation. This is defensive drift detection, not a
+replacement for setup: a successful setup is responsible for establishing
+normal readiness initially.
+
+If required system readiness has drifted, install fails before tool mutation
+with the affected prerequisite and an actionable recovery path. It may recommend
+rerunning setup or using doctor for diagnosis, but normal first-time usage must
+not require an undocumented doctor step. Generic install does not remediate
+system prerequisites and does not hardcode prerequisite strategy by tool name.
+
+System prerequisites remain separate from registered `tools.Tool` dependencies.
+The relationship between a requested tool plan and required host capabilities
+must be represented through reusable metadata/check boundaries rather than
+tool-name switches in install.
+
 The requested tools and their transitive `Dependencies()` form a deterministic,
 deduplicated, dependency-first plan. A missing dependency or cycle fails before
 mutation. Invalid unrelated registry entries must not prevent a single-tool
@@ -140,6 +156,10 @@ cmd/install.go
 selection, planning, confirmation, orchestration, cancellation, progressive
 reporting, and contextual errors. Concrete tools own all installation strategy
 and tool-specific state.
+
+Install consumes the same readiness model used by setup and doctor for its
+narrow defensive preflight; it does not depend on doctor command code or
+duplicate prerequisite checks.
 
 Do not add PostgreSQL, `mdev update`, JSON output, service lifecycle behavior,
 tool-name switches, a new spinner dependency, or speculative architectural

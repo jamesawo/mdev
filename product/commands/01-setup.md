@@ -2,9 +2,64 @@
 
 ## purpose
 
-`mdev setup` prepares mdev for first use by configuring where mdev stores its managed data.
+`mdev setup` prepares mdev for first use by configuring where mdev stores its
+managed data and establishing the system readiness required for normal mdev
+usage.
 
 setup should feel easy, calm, and deliberate. a new user should be able to complete it without understanding how mdev works internally.
+
+a successful first-time journey is:
+
+```text
+mdev setup
+mdev list
+mdev install <tool>
+```
+
+`doctor` is not a hidden step in this journey. it diagnoses readiness later,
+after machine drift, manual changes, or when troubleshooting.
+
+## system readiness
+
+after the storage choice is resolved and validated, setup checks the system
+prerequisites required by mdev and supported tool installation. setup reuses a
+shared readiness boundary; it does not execute or depend on the doctor command.
+
+the readiness flow is:
+
+```text
+resolve and validate storage
+check required system prerequisites
+show required remediation
+ask for consent
+perform approved remediation progressively
+verify readiness
+persist configuration and report success
+```
+
+system prerequisites are distinct from registered development tools.
+setup may prepare required host capabilities such as a package manager or
+compatible shell, but it does not call `tools.Tool.Install` or install the
+user's selected development tools.
+
+setup must distinguish ready, missing, outdated, broken, and unknown/error
+states when the underlying check can do so. remediation must describe the real
+change, require explicit consent, preserve underlying errors, and be verified
+after it runs. setup must not assume that every installed prerequisite needs an
+update or silently update system software.
+
+meaningful checking, remediation, verification, and completion results are
+written progressively through an injected writer/reporting boundary. redirected
+and non-interactive output remains stable plain text; setup does not fabricate
+stages or require terminal animation.
+
+if required readiness is declined, fails, remains unverified, or is cancelled,
+setup is incomplete and must not report `mdev is ready`. completed system
+changes remain in place; setup performs no broad rollback. rerunning setup
+rechecks current state and continues only the remaining work.
+
+when mdev cannot remediate a required prerequisite safely, setup fails with an
+actionable manual recovery instruction and does not claim success.
 
 ## first run
 
@@ -188,11 +243,14 @@ if the supplied location does not exist, create it automatically.
 
 if mdev is already configured, `--storage-path` must refuse to replace the existing configuration and show the current storage path.
 
-`setup` does not support `--yes`.
+`setup` does not currently support `--yes`. system-level remediation always
+requires an explicit approved consent policy; unattended behavior must not
+silently mutate system tooling.
 
 ## successful setup
 
-only create `~/.mdev/` and persist configuration once setup can complete successfully.
+only create `~/.mdev/` and persist configuration once storage validation and
+required readiness verification can complete successfully.
 
 a successful setup creates:
 
@@ -201,7 +259,9 @@ a successful setup creates:
 <storage_path>/
 ```
 
-it does not pre-create tool directories, modify shell configuration, or install tools.
+it does not pre-create development-tool directories or install registered
+development tools. it may make explicitly approved system-prerequisite changes
+required to establish readiness.
 
 after completion:
 
@@ -272,6 +332,11 @@ mdev setup
 
 `doctor` should also detect when setup has not been completed and recommend it.
 
+setup prepares and verifies the normal operating environment. doctor reuses the
+same checks to diagnose it later. install defensively rechecks the prerequisites
+needed for its requested operation and reports an actionable recovery path if
+the machine has drifted.
+
 setup does not install development tools.
 
 setup does not own reset/reinstallation behavior.
@@ -308,9 +373,18 @@ cover smaller behavior such as:
 
 ### e2e
 
-the setup E2E test exercises the real happy-path user journey using the compiled `mdev` binary inside the macOS VM.
+the setup E2E test records the relevant VM baseline and exercises the real
+compiled CLI journey `setup -> list -> install <representative tool> -> install
+<same tool>`. it must not manually hide prerequisites that setup is responsible
+for establishing.
 
 E2E testing should validate the experience a real user goes through rather than duplicating every small edge case covered by unit tests.
+
+controlled VM journeys also cover repeated setup, satisfied prerequisites,
+missing/remediable prerequisites, declined and failed remediation, safe
+cancellation, dependency installation, retry, redirected output, and readiness
+drift. destructive system mutation may use controlled fixtures, but the primary
+happy path uses real safe environment boundaries.
 
 ## done when
 
@@ -321,8 +395,15 @@ setup is done when:
 - custom paths work;
 - `--storage-path` works;
 - configuration contains the canonical `storage_path`;
+- required system readiness is prepared with consent and verified before setup
+  reports success;
+- declining, failing, or cancelling readiness leaves setup incomplete and safe
+  to retry;
 - cancellation leaves no partial setup behind;
 - setup never unexpectedly overwrites user data;
 - user-facing copy has been reviewed;
 - relevant unit/component tests pass;
-- the happy-path E2E journey passes in the macOS VM.
+- the VM baseline, detected prerequisites, remediation, commands, exit statuses,
+  and resulting state are recorded;
+- the complete happy-path CLI journey passes in the macOS VM without hidden
+  manual prerequisite preparation.
