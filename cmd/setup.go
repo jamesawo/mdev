@@ -10,7 +10,7 @@ import (
 
 var setupStoragePath string
 
-var defaultRunSetup = commandsetup.Run
+var defaultRunSetup = commandsetup.RunContext
 var runSetup = defaultRunSetup
 
 var setupCmd = &cobra.Command{
@@ -25,7 +25,9 @@ var setupCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runSetup(commandsetup.Options{StoragePath: setupStoragePath})
+		return runSetup(cmd.Context(), commandsetup.Streams{
+			In: cmd.InOrStdin(), Out: cmd.OutOrStdout(), Err: cmd.ErrOrStderr(),
+		}, commandsetup.Options{StoragePath: setupStoragePath})
 	},
 }
 

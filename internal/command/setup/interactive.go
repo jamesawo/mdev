@@ -98,17 +98,7 @@ func setupInteractive() (*environment.Environment, error) {
 			}
 		}
 
-		env, err := environment.SetupResolved(resolved)
-		if err == nil {
-			return env, nil
-		}
-		printer.Fail(err.Error())
-		if retry, retryErr := retryLocation(); retryErr != nil {
-			return nil, retryErr
-		} else if retry {
-			continue
-		}
-		return nil, environment.ErrSetupCancelled
+		return environment.New(resolved), nil
 	}
 }
 

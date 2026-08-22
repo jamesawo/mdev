@@ -199,6 +199,45 @@ func SetupResolved(location string) (*Environment, error) {
 	return New(location), nil
 }
 
+// ValidateResolvedSetupStorage verifies that a canonical setup path can be
+// created or reused without creating mdev-owned state.
+func ValidateResolvedSetupStorage(location string) error {
+	if err := validateResolvedStoragePath(location); err != nil {
+		return err
+	}
+	probeRoot := location
+	for {
+		info, err := os.Stat(probeRoot)
+		if err == nil {
+			if !info.IsDir() {
+				return fmt.Errorf(messages.SetupLocationIsFile, probeRoot)
+			}
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return actionablePathError(location, err)
+		}
+		parent := filepath.Dir(probeRoot)
+		if parent == probeRoot {
+			return actionablePathError(location, err)
+		}
+		probeRoot = parent
+	}
+	probe, err := os.CreateTemp(probeRoot, ".mdev-setup-check-*")
+	if err != nil {
+		return actionablePathError(location, err)
+	}
+	name := probe.Name()
+	if err := probe.Close(); err != nil {
+		_ = os.Remove(name)
+		return actionablePathError(location, err)
+	}
+	if err := os.Remove(name); err != nil {
+		return actionablePathError(location, err)
+	}
+	return nil
+}
+
 func validateResolvedStoragePath(path string) error {
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
 		return errors.New(messages.SetupStorageCleanAbsolute)

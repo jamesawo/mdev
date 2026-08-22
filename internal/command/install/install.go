@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/interactive"
@@ -42,6 +43,7 @@ type workflowDependencies struct {
 	status          func(tools.Tool, *environment.Environment) (bool, error)
 	selectTools     func([]choice) ([]string, error)
 	newReporter     func(io.Writer) progressReporter
+	checkReadiness  func(context.Context, []string) ([]readiness.Item, error)
 }
 
 // Run validates, plans, confirms, and executes an install request.
@@ -59,6 +61,9 @@ func defaultWorkflowDependencies() workflowDependencies {
 		resolve:         tools.ResolveDependencies,
 		status:          tools.InstallationStatus,
 		newReporter:     func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+		checkReadiness: func(ctx context.Context, names []string) ([]readiness.Item, error) {
+			return readiness.CheckNames(ctx, names, nil)
+		},
 		selectTools: func(choices []choice) ([]string, error) {
 			labels := make([]string, 0, len(choices))
 			byLabel := make(map[string]string, len(choices))
@@ -109,6 +114,13 @@ func run(ctx context.Context, streams Streams, options Options, deps workflowDep
 	plan, err := deps.resolve(selected)
 	if err != nil {
 		return fmt.Errorf(messages.InstallPlanError, err)
+	}
+	readinessItems, err := deps.checkReadiness(ctx, tools.SystemPrerequisites(plan))
+	if err != nil {
+		return fmt.Errorf("check system readiness: %w", err)
+	}
+	for _, item := range readiness.Unready(readinessItems) {
+		return fmt.Errorf("system prerequisite %s is %s; rerun mdev setup or use mdev doctor for diagnosis", item.Prerequisite.Name(), item.State)
 	}
 	states := make(map[string]bool, len(plan))
 	for _, tool := range plan {

@@ -1,9 +1,9 @@
 package doctor
 
 import (
-	"time"
+	"context"
 
-	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
+	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 	"github.com/jamesawo/mdev/internal/ui/printer"
@@ -11,61 +11,61 @@ import (
 
 // Fix attempts to resolve issues detected by doctor.
 // Currently focuses on system prerequisites.
-func Fix() {
+func Fix() error { return FixContext(context.Background()) }
 
-	var missing []prerequisites.Prerequisite
-
-	for _, p := range prerequisites.List() {
-		if !p.Check() {
-			missing = append(missing, p)
-		}
+// FixContext checks, confirms, remediates, and verifies system readiness.
+func FixContext(ctx context.Context) error {
+	reporter := doctorFixReporter{}
+	items, err := readiness.CheckAll(ctx, reporter)
+	if err != nil {
+		return err
 	}
-
-	if len(missing) == 0 {
+	unready := readiness.Unready(items)
+	if len(unready) == 0 {
 		printer.Success(messages.DoctorNothingToFix)
 		printer.Blank()
-		return
+		return nil
 	}
 
 	printer.Section(messages.DoctorFixingPrerequisites)
 
-	for _, m := range missing {
-		printer.Info(m.Name())
+	for _, item := range unready {
+		printer.Info(item.Prerequisite.Name())
 	}
 
 	if !confirmation.Ask(messages.DoctorInstallMissingPrerequisites) {
 		printer.Info(messages.CommonAborted)
-		return
+		return nil
 	}
 
 	printer.Section(messages.DoctorFixingSystem)
 
-	startAll := time.Now()
-
-	for _, m := range missing {
-
-		printer.Blank()
-		printer.Info(messages.CommonInstalling + " " + m.Name())
-
-		start := time.Now()
-
-		err := m.Install()
-		if err != nil {
-			printer.Fail(messages.DoctorInstallationFailed(m.Name()))
-			continue
-		}
-
-		elapsed := time.Since(start).Round(time.Second)
-
-		printer.Success(m.Name() + " " + messages.CommonInstalled)
-		printer.Indent(1, messages.DoctorTimeElapsed(elapsed.String()))
-		printer.Blank()
+	if err := readiness.Remediate(ctx, items, reporter); err != nil {
+		return err
 	}
+	printer.Success(messages.DoctorNothingToFix)
+	return nil
+}
 
-	total := time.Since(startAll).Round(time.Second)
+type doctorFixReporter struct{}
 
-	printer.Blank()
-	printer.Section(messages.DoctorFixSummary)
-	printer.Info(messages.DoctorTotalFixTime(total.String()))
-	printer.Blank()
+func (doctorFixReporter) Checking(name string) error {
+	printer.Info("checking " + name)
+	return nil
+}
+func (doctorFixReporter) Checked(item readiness.Item) error {
+	if item.Ready() {
+		printer.Success(item.Prerequisite.Name())
+	} else {
+		printer.Fail(item.Prerequisite.Name() + " " + string(item.State))
+	}
+	return nil
+}
+func (doctorFixReporter) Remediating(name, description string) error {
+	printer.Info(description + ": " + name)
+	return nil
+}
+func (doctorFixReporter) Verified(item readiness.Item) error {
+	printer.Success(item.Prerequisite.Name() + " verified")
+	return nil
 }

@@ -1,6 +1,10 @@
 package tools
 
-import "github.com/jamesawo/mdev/internal/infrastructure/environment"
+import (
+	"sort"
+
+	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+)
 
 type Tool interface {
 	Name() string
@@ -15,4 +19,29 @@ type Tool interface {
 	Uninstall(env *environment.Environment) error
 
 	StorageDir(env *environment.Environment) string
+}
+
+// SystemPrerequisiteProvider optionally declares host capabilities required by a tool.
+type SystemPrerequisiteProvider interface {
+	SystemPrerequisites() []string
+}
+
+// SystemPrerequisites returns the deduplicated host requirements for a tool plan.
+func SystemPrerequisites(plan []Tool) []string {
+	seen := map[string]bool{}
+	var result []string
+	for _, tool := range plan {
+		provider, ok := tool.(SystemPrerequisiteProvider)
+		if !ok {
+			continue
+		}
+		for _, name := range provider.SystemPrerequisites() {
+			if !seen[name] {
+				seen[name] = true
+				result = append(result, name)
+			}
+		}
+	}
+	sort.Strings(result)
+	return result
 }

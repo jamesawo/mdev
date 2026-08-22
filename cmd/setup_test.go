@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -43,7 +44,7 @@ func TestSetupRejectsInheritedYes(t *testing.T) {
 func TestSetupCommandDelegatesOptionsAndError(t *testing.T) {
 	wantErr := errors.New("setup failed")
 	var got commandsetup.Options
-	runSetup = func(options commandsetup.Options) error {
+	runSetup = func(_ context.Context, _ commandsetup.Streams, options commandsetup.Options) error {
 		got = options
 		return wantErr
 	}

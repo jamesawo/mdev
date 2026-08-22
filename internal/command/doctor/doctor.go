@@ -1,25 +1,26 @@
 package doctor
 
-import (
-	"github.com/jamesawo/mdev/internal/ui/messages"
-	"github.com/jamesawo/mdev/internal/ui/printer"
-)
+import "context"
 
 // Execute runs the doctor command flow.
-func Execute(isFixFlag bool) {
+func Execute(isFixFlag bool) error {
+	return ExecuteContext(context.Background(), isFixFlag)
+}
+
+// ExecuteContext runs diagnosis or remediation with cancellation.
+func ExecuteContext(ctx context.Context, isFixFlag bool) error {
 
 	if isFixFlag {
-		Fix()
-		return
+		return FixContext(ctx)
 	}
 
 	reporter := &progressReporter{}
-	report, err := Run(reporter)
+	report, err := RunContext(ctx, reporter)
 
 	if err != nil {
-		printer.Fail(messages.DoctorFailed)
-		return
+		return err
 	}
 
 	renderSummary(report)
+	return nil
 }

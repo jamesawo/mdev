@@ -37,6 +37,10 @@ cat >"$fake_bin/brew" <<'EOF'
 #!/bin/sh
 exit 0
 EOF
+cat >"$fake_bin/xcode-select" <<'EOF'
+#!/bin/sh
+test "$1" = "-p"
+EOF
 cat >"$fake_bin/podman" <<'EOF'
 #!/bin/sh
 case "$*" in
@@ -46,7 +50,7 @@ case "$*" in
     *) exit 2 ;;
 esac
 EOF
-chmod 0755 "$fake_bin/brew" "$fake_bin/podman"
+chmod 0755 "$fake_bin/brew" "$fake_bin/podman" "$fake_bin/xcode-select"
 PATH="$fake_bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH
 

@@ -30,6 +30,15 @@ func TestConfirmation_WhenInputIsClosed_Declines(t *testing.T) {
 	assertConfirmationDeclined(t, accepted)
 }
 
+func TestConfirmation_DefaultNoRequiresExplicitYes(t *testing.T) {
+	for _, answer := range []string{"\n", "no\n"} {
+		confirmer, _ := givenConfirmer(answer, false)
+		assertConfirmationDeclined(t, confirmer.AskDefaultNo("Apply?"))
+	}
+	confirmer, _ := givenConfirmer("yes\n", false)
+	assertConfirmationAccepted(t, confirmer.AskDefaultNo("Apply?"))
+}
+
 func givenConfirmer(answer string, assumeYes bool) (*Confirmer, *bytes.Buffer) {
 	output := &bytes.Buffer{}
 	confirmer := New(bytes.NewBufferString(answer), output, assumeYes)

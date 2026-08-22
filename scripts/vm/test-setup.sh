@@ -26,7 +26,22 @@ scp -q "$BINARY" "$SSH_ALIAS:$remote_root/mdev"
 
 ssh "$SSH_ALIAS" "TEST_ROOT='$remote_root' sh -s" <<'REMOTE'
 set -eu
-PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+fake_bin="$TEST_ROOT/bin"
+mkdir -p "$fake_bin"
+cat >"$fake_bin/bash" <<'EOF'
+#!/bin/sh
+printf 5
+EOF
+cat >"$fake_bin/brew" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+cat >"$fake_bin/xcode-select" <<'EOF'
+#!/bin/sh
+test "$1" = "-p"
+EOF
+chmod 0755 "$fake_bin"/*
+PATH="$fake_bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH
 chmod 0755 "$TEST_ROOT/mdev"
 canonical_root=$(CDPATH= cd -- "$TEST_ROOT" && pwd -P)
@@ -47,6 +62,9 @@ expect {
     "this location is a symlink." {
         expect "continue"
         send "\r"
+        exp_continue
+    }
+    "checking curl" {
         exp_continue
     }
     "mdev is ready." {}

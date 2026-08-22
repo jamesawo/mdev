@@ -20,6 +20,7 @@ type NVM struct{}
 func (*NVM) Name() string                                   { return "nvm" }
 func (*NVM) Description() string                            { return messages.ToolsNVMDescription }
 func (*NVM) Dependencies() []string                         { return nil }
+func (*NVM) SystemPrerequisites() []string                  { return []string{"curl", "git"} }
 func (*NVM) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "nvm") }
 func (n *NVM) IsInstalled(env *environment.Environment) bool {
 	installed, _ := n.InstallationStatus(env)

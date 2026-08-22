@@ -7,6 +7,7 @@ import (
 
 	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
@@ -20,6 +21,7 @@ type SDKMAN struct{}
 func (*SDKMAN) Name() string                                   { return "sdkman" }
 func (*SDKMAN) Description() string                            { return messages.ToolsSDKMANDescription }
 func (*SDKMAN) Dependencies() []string                         { return nil }
+func (*SDKMAN) SystemPrerequisites() []string                  { return []string{"bash", "curl"} }
 func (*SDKMAN) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "sdkman") }
 func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
 	installed, _ := s.InstallationStatus(env)
@@ -34,13 +36,21 @@ func (s *SDKMAN) InstallationStatus(env *environment.Environment) (bool, error) 
 	if err != nil || !managed {
 		return managed, err
 	}
-	return tools.CommandInstallationStatus("bash", "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && sdk version")
+	bash, err := prerequisites.ModernBashPath(context.Background())
+	if err != nil {
+		return false, nil
+	}
+	return tools.CommandInstallationStatus(bash, "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && sdk version")
 }
 func (s *SDKMAN) Install(env *environment.Environment) error {
 	return s.InstallContext(context.Background(), env)
 }
 func (*SDKMAN) InstallContext(ctx context.Context, _ *environment.Environment) error {
-	return command.RunContext(ctx, "bash", "-c", "curl -s https://get.sdkman.io | bash")
+	bash, err := prerequisites.ModernBashPath(ctx)
+	if err != nil {
+		return err
+	}
+	return command.RunContext(ctx, bash, "-c", "curl -s https://get.sdkman.io | \"$0\"", bash)
 }
 func (s *SDKMAN) Configure(env *environment.Environment) error {
 	return s.ConfigureContext(context.Background(), env)
