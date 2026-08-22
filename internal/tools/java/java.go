@@ -2,6 +2,7 @@ package java
 
 import (
 	"os/exec"
+	"strings"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/infrastructure/shell"
@@ -24,12 +25,16 @@ func (j *Java) Description() string {
 }
 
 func (j *Java) IsInstalled(env *environment.Environment) bool {
+	installed, _ := j.InstallationStatus(env)
+	return installed
+}
 
-	cmd := exec.Command("java", "-version")
-
-	err := cmd.Run()
-
-	return err == nil
+func (j *Java) InstallationStatus(_ *environment.Environment) (bool, error) {
+	installed, err := tools.CommandInstallationStatus("java", "-version")
+	if err != nil && strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		return false, nil
+	}
+	return installed, err
 }
 
 func (j *Java) Install(env *environment.Environment) error {

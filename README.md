@@ -44,6 +44,33 @@ For tools whose normal data lives under the user's home directory, mdev may
 relocate that data into the configured storage path and replace the original
 location with a symlink.
 
+## List supported tools
+
+After setup, run `mdev list` for a read-only overview of every registered tool:
+
+```text
+system tools
+  ○ brew       missing
+  ✓ curl       installed
+  ✓ git        installed
+
+tools
+  ○ gradle     missing
+  ✓ java       installed
+  ○ maven      missing
+```
+
+System prerequisites and other tools are shown separately and sorted
+alphabetically. `✓`, `○`, and `?` mean installed, missing, and unknown. An
+unknown status indicates that verification failed unexpectedly; mdev continues
+checking the remaining tools, reports the failure details, and exits with a
+failure status.
+
+List requires valid mdev configuration and available configured storage. It
+does not create or repair configuration or storage, install or configure tools,
+show dependency relationships, or diagnose installation health. Use
+`mdev graph` for dependencies and `mdev doctor` for health diagnosis.
+
 ## Local development
 
 Run the CLI directly:
@@ -136,6 +163,7 @@ The repository provides these scripts:
 ./scripts/vm/run.sh mdev --version    # run any command in the VM
 ./scripts/vm/run.sh mdev doctor
 ./scripts/vm/test-setup.sh            # run isolated setup journeys in the VM
+./scripts/vm/test-list.sh             # run the configured list journey in the VM
 ```
 
 The scripts use the `mdev-vm` SSH alias and expect a VM named `macOs-mdev`. A developer with a differently named local

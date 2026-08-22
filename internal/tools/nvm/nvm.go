@@ -29,15 +29,27 @@ func (n *NVM) Description() string {
 }
 
 func (n *NVM) IsInstalled(env *environment.Environment) bool {
+	installed, _ := n.InstallationStatus(env)
+	return installed
+}
+
+func (n *NVM) InstallationStatus(_ *environment.Environment) (bool, error) {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	path := filepath.Join(home, ".nvm")
+	_, err = os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
 
-	return fs.Exists(path)
+	return false, err
 }
 
 func (n *NVM) Install(env *environment.Environment) error {

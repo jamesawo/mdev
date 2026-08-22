@@ -28,7 +28,12 @@ func (g *Gradle) Description() string {
 }
 
 func (g *Gradle) IsInstalled(env *environment.Environment) bool {
-	return brew.IsInstalled("gradle")
+	installed, _ := g.InstallationStatus(env)
+	return installed
+}
+
+func (g *Gradle) InstallationStatus(_ *environment.Environment) (bool, error) {
+	return tools.CommandInstallationStatus("gradle", "-version")
 }
 
 func (g *Gradle) Install(env *environment.Environment) error {
