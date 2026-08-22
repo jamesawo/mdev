@@ -15,7 +15,7 @@ var defaultRunList = func(out io.Writer, options list.Options) error {
 var runList = defaultRunList
 
 var listCmd = &cobra.Command{
-	Use:   "list",
+	Use:   messages.ListCommandName,
 	Args:  cobra.NoArgs,
 	Short: messages.ListCmdShortDescription,
 	Long:  messages.ListCmdLongDescription,
@@ -28,5 +28,5 @@ var listJSON bool
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-	listCmd.Flags().BoolVar(&listJSON, "json", false, messages.ListJSONFlag)
+	listCmd.Flags().BoolVar(&listJSON, messages.ListJSONFlagName, false, messages.ListJSONFlag)
 }

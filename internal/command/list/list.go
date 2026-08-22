@@ -18,9 +18,9 @@ import (
 type status string
 
 const (
-	statusInstalled status = "installed"
-	statusMissing   status = "missing"
-	statusUnknown   status = "unknown"
+	statusInstalled status = messages.ListStatusInstalled
+	statusMissing   status = messages.ListStatusMissing
+	statusUnknown   status = messages.ListStatusUnknown
 )
 
 // Options controls how list results are encoded.
@@ -172,7 +172,7 @@ func runHuman(out io.Writer, systemChecks, toolChecks []check) error {
 		for _, item := range section.checks {
 			itemResult := performCheck(item)
 			allResults = append(allResults, itemResult)
-			if _, err := fmt.Fprintf(out, "  %s %-*s  %s\n", statusSymbol(itemResult.status), width, itemResult.name, itemResult.status); err != nil {
+			if _, err := fmt.Fprintf(out, messages.ListRowFormat, statusSymbol(itemResult.status), width, itemResult.name, itemResult.status); err != nil {
 				return err
 			}
 		}
@@ -185,7 +185,7 @@ func runHuman(out io.Writer, systemChecks, toolChecks []check) error {
 		}
 	}
 	for _, item := range unknown {
-		if _, err := fmt.Fprintf(out, messages.ListUnknownDetail+"\n", item.name, conciseError(item.err)); err != nil {
+		if _, err := fmt.Fprintf(out, messages.ListUnknownDetail, item.name, conciseError(item.err)); err != nil {
 			return err
 		}
 	}
@@ -201,7 +201,7 @@ func runJSON(out io.Writer, systemChecks, toolChecks []check) error {
 	}
 	encoded, err := json.Marshal(document)
 	if err != nil {
-		return fmt.Errorf("encode list JSON: %w", err)
+		return fmt.Errorf(messages.ListEncodeJSONError, err)
 	}
 	encoded = append(encoded, '\n')
 	if _, err := out.Write(encoded); err != nil {
@@ -259,7 +259,7 @@ func unknownStatusError(unknown []result) error {
 	}
 	statusErrors := make([]error, 0, len(unknown))
 	for _, item := range unknown {
-		statusErrors = append(statusErrors, fmt.Errorf("%s: %w", item.name, item.err))
+		statusErrors = append(statusErrors, fmt.Errorf(messages.ListStatusError, item.name, item.err))
 	}
 	return &UnknownStatusError{errors: statusErrors}
 }
@@ -291,7 +291,7 @@ func conciseError(err error) string {
 	}
 	const maxLength = 240
 	if len(detail) > maxLength {
-		detail = detail[:maxLength-3] + "..."
+		detail = detail[:maxLength-len(messages.ListTruncationSuffix)] + messages.ListTruncationSuffix
 	}
 	return detail
 }
@@ -299,10 +299,10 @@ func conciseError(err error) string {
 func statusSymbol(state status) string {
 	switch state {
 	case statusInstalled:
-		return "✓"
+		return messages.ListInstalledSymbol
 	case statusMissing:
-		return "○"
+		return messages.ListMissingSymbol
 	default:
-		return "?"
+		return messages.ListUnknownSymbol
 	}
 }

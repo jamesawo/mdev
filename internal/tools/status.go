@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 // StatusChecker is implemented by tools whose installation check can report
@@ -43,5 +44,5 @@ func CommandInstallationStatus(name string, args ...string) (bool, error) {
 	if detail == "" {
 		return false, err
 	}
-	return false, fmt.Errorf("%w: %s", err, detail)
+	return false, fmt.Errorf(messages.CommonCommandErrorDetail, err, detail)
 }
