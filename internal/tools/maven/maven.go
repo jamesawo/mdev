@@ -1,12 +1,12 @@
 package maven
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
-	"github.com/jamesawo/mdev/internal/infrastructure/fs"
 	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
@@ -15,93 +15,65 @@ import (
 
 type Maven struct{}
 
-func (m *Maven) StorageDir(env *environment.Environment) string {
-	return storage.ToolDir(env, "maven")
-}
-
-func (m *Maven) Name() string {
-	return "maven"
-}
-
-func (m *Maven) Description() string {
-	return messages.ToolsMavenDescription
-}
-
+// Tool contract methods below describe Maven metadata, authoritative state,
+// cancellable lifecycle operations, managed storage, and uninstall behavior.
+func (*Maven) Name() string                                   { return "maven" }
+func (*Maven) Description() string                            { return messages.ToolsMavenDescription }
+func (*Maven) Dependencies() []string                         { return []string{"java"} }
+func (*Maven) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "maven") }
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
 	installed, _ := m.InstallationStatus(env)
 	return installed
 }
-
-func (m *Maven) InstallationStatus(_ *environment.Environment) (bool, error) {
-	return tools.CommandInstallationStatus("mvn", "-version")
+func (m *Maven) InstallationStatus(env *environment.Environment) (bool, error) {
+	installed, err := tools.CommandInstallationStatus("mvn", "-version")
+	if err != nil || !installed {
+		return installed, err
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+	return tools.ManagedSymlinkStatus(filepath.Join(home, ".m2"), m.StorageDir(env))
 }
-
 func (m *Maven) Install(env *environment.Environment) error {
-	return brew.Install("maven")
+	return m.InstallContext(context.Background(), env)
 }
-
+func (*Maven) InstallContext(ctx context.Context, _ *environment.Environment) error {
+	return brew.InstallContext(ctx, "maven")
+}
 func (m *Maven) Configure(env *environment.Environment) error {
-
+	return m.ConfigureContext(context.Background(), env)
+}
+func (m *Maven) ConfigureContext(ctx context.Context, env *environment.Environment) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
-
-	source := filepath.Join(home, ".m2")
-	target := m.StorageDir(env)
-
-	err = fs.EnsureDir(target)
-	if err != nil {
-		return err
-	}
-
-	if fs.IsSymlink(source) {
-		return nil
-	}
-
-	if fs.Exists(source) {
-		err = fs.Move(source, target)
-		if err != nil {
-			return err
-		}
-	}
-
-	return fs.CreateSymlink(target, source)
+	return storage.Relocate(filepath.Join(home, ".m2"), m.StorageDir(env))
 }
-
 func (m *Maven) Verify(env *environment.Environment) error {
-
-	cmd := exec.Command("mvn", "-version")
-
-	return cmd.Run()
+	return m.VerifyContext(context.Background(), env)
 }
-
+func (*Maven) VerifyContext(ctx context.Context, _ *environment.Environment) error {
+	return exec.CommandContext(ctx, "mvn", "-version").Run()
+}
 func (m *Maven) Uninstall(env *environment.Environment) error {
-
-	err := brew.Uninstall("maven")
-	if err != nil {
+	if err := brew.Uninstall("maven"); err != nil {
 		return err
 	}
-
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
-
 	source := filepath.Join(home, ".m2")
-
-	if fs.IsSymlink(source) {
-		return fs.Remove(source)
+	if info, err := os.Lstat(source); err == nil && info.Mode()&os.ModeSymlink != 0 {
+		return os.Remove(source)
 	}
-
 	return nil
 }
 
-func (m *Maven) Dependencies() []string {
-	return []string{"java"}
-}
-
-// register Maven as a tool
-func init() {
-	tools.Register(&Maven{})
-}
+func init() { tools.Register(&Maven{}) }

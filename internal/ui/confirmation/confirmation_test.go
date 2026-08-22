@@ -22,6 +22,14 @@ func TestConfirmation_WhenUserAnswersNo_Declines(t *testing.T) {
 	assertConfirmationDeclined(t, accepted)
 }
 
+func TestConfirmation_WhenInputIsClosed_Declines(t *testing.T) {
+	confirmer, _ := givenConfirmer("", false)
+
+	accepted := confirmer.Ask("Continue?")
+
+	assertConfirmationDeclined(t, accepted)
+}
+
 func givenConfirmer(answer string, assumeYes bool) (*Confirmer, *bytes.Buffer) {
 	output := &bytes.Buffer{}
 	confirmer := New(bytes.NewBufferString(answer), output, assumeYes)

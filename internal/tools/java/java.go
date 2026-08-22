@@ -1,6 +1,7 @@
 package java
 
 import (
+	"context"
 	"os/exec"
 	"strings"
 
@@ -12,61 +13,46 @@ import (
 
 type Java struct{}
 
-func (j *Java) StorageDir(env *environment.Environment) string {
-	panic("implement me")
-}
-
-func (j *Java) Name() string {
-	return "java"
-}
-
-func (j *Java) Description() string {
-	return messages.ToolsJavaDescription
-}
-
+// Tool contract methods below describe Java metadata, authoritative state,
+// cancellable SDKMAN lifecycle operations, and uninstall behavior.
+func (*Java) Name() string                               { return "java" }
+func (*Java) Description() string                        { return messages.ToolsJavaDescription }
+func (*Java) Dependencies() []string                     { return []string{"sdkman"} }
+func (*Java) StorageDir(*environment.Environment) string { return "" }
 func (j *Java) IsInstalled(env *environment.Environment) bool {
 	installed, _ := j.InstallationStatus(env)
 	return installed
 }
-
-func (j *Java) InstallationStatus(_ *environment.Environment) (bool, error) {
+func (*Java) InstallationStatus(_ *environment.Environment) (bool, error) {
 	installed, err := tools.CommandInstallationStatus("java", "-version")
 	if err != nil && strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
 		return false, nil
 	}
-	return installed, err
+	if err != nil || !installed {
+		return installed, err
+	}
+	return tools.CommandInstallationStatus("bash", "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"")
 }
-
 func (j *Java) Install(env *environment.Environment) error {
-
-	return shell.RunWithSDKMAN("sdk install java 21.0.8-tem")
+	return j.InstallContext(context.Background(), env)
 }
-
+func (*Java) InstallContext(ctx context.Context, _ *environment.Environment) error {
+	return shell.RunWithSDKMANContext(ctx, "sdk install java 21.0.8-tem")
+}
 func (j *Java) Configure(env *environment.Environment) error {
-
-	cmd := exec.Command(
-		"bash",
-		"-c",
-		"source $HOME/.sdkman/bin/sdkman-init.sh && echo $JAVA_HOME",
-	)
-
-	return cmd.Run()
+	return j.ConfigureContext(context.Background(), env)
 }
-
+func (*Java) ConfigureContext(ctx context.Context, _ *environment.Environment) error {
+	return exec.CommandContext(ctx, "bash", "-c", "source $HOME/.sdkman/bin/sdkman-init.sh && test -n \"$JAVA_HOME\"").Run()
+}
 func (j *Java) Verify(env *environment.Environment) error {
-
-	return shell.RunWithSDKMAN("java -version")
+	return j.VerifyContext(context.Background(), env)
 }
-
-func (j *Java) Uninstall(env *environment.Environment) error {
-	// todo: version 21 is the default for now, will be adjusted so user can change that later on
+func (*Java) VerifyContext(ctx context.Context, _ *environment.Environment) error {
+	return shell.RunWithSDKMANContext(ctx, "java -version")
+}
+func (*Java) Uninstall(_ *environment.Environment) error {
 	return shell.RunWithSDKMAN("sdk uninstall java 21.0.8-tem")
 }
 
-func (j *Java) Dependencies() []string {
-	return []string{"sdkman"}
-}
-
-func init() {
-	tools.Register(&Java{})
-}
+func init() { tools.Register(&Java{}) }

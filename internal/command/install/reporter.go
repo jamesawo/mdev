@@ -1,0 +1,77 @@
+package install
+
+import (
+	"fmt"
+	"io"
+
+	"github.com/jamesawo/mdev/internal/tools"
+	"github.com/jamesawo/mdev/internal/ui/messages"
+)
+
+// progressReporter receives install lifecycle events and separates orchestration
+// from how those events are presented to the user.
+type progressReporter interface {
+	Plan([]tools.Tool) error
+	Started(string, string) error
+	Completed(string) error
+	AlreadyInstalled(string, bool) error
+	Cancelled() error
+	NoSelection() error
+}
+
+// textProgressReporter renders lifecycle events as stable plain text.
+type textProgressReporter struct{ out io.Writer }
+
+// newTextProgressReporter creates the default writer-backed progress reporter.
+func newTextProgressReporter(out io.Writer) *textProgressReporter {
+	return &textProgressReporter{out: out}
+}
+
+// Plan writes the dependency-first plan before confirmation.
+func (r *textProgressReporter) Plan(plan []tools.Tool) error {
+	if _, err := fmt.Fprintln(r.out, messages.InstallPlan); err != nil {
+		return err
+	}
+	for _, tool := range plan {
+		if _, err := fmt.Fprintf(r.out, messages.InstallPlanItem, tool.Name()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Started writes a lifecycle boundary immediately before work begins.
+func (r *textProgressReporter) Started(name, phase string) error {
+	_, err := fmt.Fprintf(r.out, messages.InstallProgress, phase, name)
+	return err
+}
+
+// Completed reports a tool only after verification succeeds.
+func (r *textProgressReporter) Completed(name string) error {
+	_, err := fmt.Fprintf(r.out, messages.InstallCompleted, name)
+	return err
+}
+
+// AlreadyInstalled reports a skipped tool and optionally its recovery command.
+func (r *textProgressReporter) AlreadyInstalled(name string, recovery bool) error {
+	if _, err := fmt.Fprintf(r.out, messages.InstallAlreadyInstalled, name); err != nil {
+		return err
+	}
+	if recovery {
+		_, err := fmt.Fprintf(r.out, messages.InstallUninstallHint, name)
+		return err
+	}
+	return nil
+}
+
+// Cancelled writes the concise successful-cancellation message.
+func (r *textProgressReporter) Cancelled() error {
+	_, err := fmt.Fprintln(r.out, messages.InstallCancelled)
+	return err
+}
+
+// NoSelection reports an interactive request that selected no tools.
+func (r *textProgressReporter) NoSelection() error {
+	_, err := fmt.Fprintln(r.out, messages.InstallNoSelection)
+	return err
+}

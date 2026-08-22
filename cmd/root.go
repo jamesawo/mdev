@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
 	// Register tools
 	_ "github.com/jamesawo/mdev/internal/tools/gradle"
@@ -36,7 +38,9 @@ func init() {
 
 // Execute runs the CLI.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}
 }

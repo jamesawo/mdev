@@ -1,59 +1,47 @@
 package messages
 
-import "fmt"
-
 const (
-	InstallCmdShortDescription = "Install a tool in your local environment."
-	InstallCmdLongDescription  = `
-	Install a development tool into your local environment.
+	InstallCommandUse          = "install [tool]"
+	InstallAllFlagName         = "all"
+	InstallAllFlag             = "install all registered tools"
+	InstallCmdShortDescription = "install a development tool"
+	InstallCmdLongDescription  = `make one or more registered development tools available.
 
-This command installs a supported tool and prepares it for use with the
-current mdev environment configuration. The tool will be downloaded,
-installed, and configured using the paths and settings defined in your
-mdev environment.
+each tool owns how it is installed, configured, verified, and stored. mdev
+resolves tool dependencies and runs their lifecycle in dependency order.
 
-Before running this command, your environment must be initialized and
-validated using 'mdev doctor'. The install process depends on the
-configured directories, tool paths, and system checks performed during
-that step.
+usage:
+  mdev install <tool>
+  mdev install
+  mdev install --all
 
-If the tool is already installed, the command will detect it and skip
-the installation to avoid overwriting an existing setup.
+install is progressive and retry-safe. it does not update valid installations,
+start normal runtime state, manage services, or provide JSON output.`
 
-Usage:
-  mdev install [tool]
-
-Arguments:
-  tool    Name of the tool to install.
-
-Behavior:
-  • Validates that the environment is configured.
-  • Checks whether the requested tool is supported.
-  • Detects if the tool is already installed.
-  • Runs the tool-specific installation process.
-
-Examples:
-  mdev install java
-  mdev install gradle
-  mdev install maven
-
-Notes:
-  Each tool provides its own installation logic. The command acts as a
-  dispatcher that resolves the requested tool and executes its install
-  routine using the current environment configuration.
-	`
+	InstallAllWithToolError    = "cannot use --all with a specific tool"
+	InstallSelectTools         = "select tools to install"
+	InstallContinueQuestion    = "Continue installation?"
+	InstallCancelled           = "Installation cancelled."
+	InstallNoSelection         = "No tools selected."
+	InstallPlan                = "Install plan"
+	InstallPlanItem            = "  %s\n"
+	InstallProgress            = "%s %s...\n"
+	InstallCompleted           = "✓ %s installed\n"
+	InstallAlreadyInstalled    = "%s is already installed.\n"
+	InstallUninstallHint       = "Uninstall: mdev uninstall %s\n"
+	InstallPhaseInstall        = "Installing"
+	InstallPhaseConfigure      = "Configuring"
+	InstallPhaseVerify         = "Verifying"
+	InstallActionInstall       = "install"
+	InstallActionConfigure     = "configure"
+	InstallActionVerify        = "verify"
+	InstallNotConfigured       = "mdev is not configured; run mdev setup"
+	InstallConfigurationError  = "mdev configuration cannot be read: %w"
+	InstallStorageUnavailable  = "configured storage is unavailable at %s: %v"
+	InstallStorageNotDirectory = "configured storage is unavailable at %s: expected a directory"
+	InstallStorageNotWritable  = "configured storage is not writable at %s: %v"
+	InstallUnknownTool         = "Unknown tool %q. Run `mdev list` to see available tools."
+	InstallPlanError           = "resolve install plan: %w"
+	InstallStatusError         = "determine %s installation status: %w"
+	InstallPhaseError          = "%s %s: %w"
 )
-
-const (
-	InstallAllWithToolError = "cannot use --all with a specific tool"
-	InstallPlan             = "Install plan"
-	InstallStart            = "Installing tools"
-	InstallContinueQuestion = "Continue installation?"
-	InstallSelectTools      = "Select tools to install"
-	InstallCancelled        = "Installation cancelled."
-	InstallAlreadyInstalled = "already installed"
-)
-
-func InstallUnknownTool(name string) string {
-	return fmt.Sprintf("unknown tool: %s", name)
-}

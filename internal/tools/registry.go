@@ -1,47 +1,41 @@
 package tools
 
+import "sort"
+
 var registry = map[string]Tool{}
 
+// Register adds a tool under its canonical name.
 func Register(tool Tool) {
 	registry[tool.Name()] = tool
 }
 
+// Get returns the tool registered under an exact canonical name.
 func Get(name string) (Tool, bool) {
 	tool, ok := registry[name]
 	return tool, ok
 }
 
+// List returns all registered tools ordered by canonical name.
 func List() []Tool {
-	var tools []Tool
+	var registered []Tool
 
 	for _, t := range registry {
-		tools = append(tools, t)
+		registered = append(registered, t)
 	}
-
-	return tools
+	sort.Slice(registered, func(i, j int) bool { return registered[i].Name() < registered[j].Name() })
+	return registered
 }
 
-// ResolveSubset resolves dependency order for a subset of tools.
-// todo: should this be here?
+// ResolveSubset resolves named tools and their dependency closure in order.
 func ResolveSubset(names []string) ([]Tool, error) {
 
-	ordered, err := ResolveOrder()
-	if err != nil {
-		return nil, err
-	}
-
-	selected := map[string]bool{}
+	selected := make([]Tool, 0, len(names))
 	for _, n := range names {
-		selected[n] = true
-	}
-
-	var result []Tool
-
-	for _, t := range ordered {
-		if selected[t.Name()] {
-			result = append(result, t)
+		tool, ok := Get(n)
+		if !ok {
+			return nil, ErrUnknownDependency(n)
 		}
+		selected = append(selected, tool)
 	}
-
-	return result, nil
+	return ResolveDependencies(selected)
 }
