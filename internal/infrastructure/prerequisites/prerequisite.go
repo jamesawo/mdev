@@ -1,6 +1,10 @@
 package prerequisites
 
-import "context"
+import (
+	"context"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
+)
 
 // Prerequisite defines a system requirement that must exist
 // before mdev can install development tools.
@@ -20,10 +24,10 @@ type Prerequisite interface {
 type State string
 
 const (
-	StateReady    State = "ready"
-	StateMissing  State = "missing"
-	StateOutdated State = "outdated"
-	StateBroken   State = "broken"
+	StateReady    State = messages.ReadinessStateReady
+	StateMissing  State = messages.ReadinessStateMissing
+	StateOutdated State = messages.ReadinessStateOutdated
+	StateBroken   State = messages.ReadinessStateBroken
 )
 
 // StateChecker provides an error-aware, context-aware readiness check.

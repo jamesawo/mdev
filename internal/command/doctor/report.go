@@ -22,7 +22,7 @@ func (r *progressReporter) StartSection(title string) {
 }
 
 func (r *progressReporter) StartCheck(name string) {
-	printer.Info("checking " + name + "...")
+	printer.Info(fmt.Sprintf(messages.DoctorCheckingProgress, name))
 }
 
 func (r *progressReporter) SystemCheck(result Check) {
@@ -31,13 +31,13 @@ func (r *progressReporter) SystemCheck(result Check) {
 		return
 	}
 
-	printer.Fail(fmt.Sprintf("%s %s", messages.DoctorMissing, result.Name))
+	printer.Fail(fmt.Sprintf(messages.DoctorMissingCheck, messages.DoctorMissing, result.Name))
 }
 
 func (r *progressReporter) EnvironmentCheck(result Check) {
 	if result.Status {
 		if result.Detail != "" {
-			printer.Success(result.Name + ": " + result.Detail)
+			printer.Success(fmt.Sprintf(messages.DoctorCheckDetail, result.Name, result.Detail))
 		} else {
 			printer.Success(result.Name)
 		}
@@ -71,10 +71,10 @@ func renderSummary(report *Report) {
 
 	printer.Blank()
 	printer.Info(messages.DoctorInstallEverything)
-	printer.Indent(2, "mdev install --all")
+	printer.Indent(2, messages.DoctorInstallAllCommand)
 
 	printer.Blank()
 	printer.Info(messages.DoctorFixHint)
-	printer.Indent(2, "mdev doctor --fix")
+	printer.Indent(2, messages.DoctorFixCommand)
 	printer.Blank()
 }

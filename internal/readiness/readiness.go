@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 // Item is one checked prerequisite and its current readiness state.
@@ -28,7 +29,7 @@ func (i Item) Remediable() bool {
 func (i Item) RemediationDescription() string {
 	remediator, ok := i.Prerequisite.(prerequisites.Remediator)
 	if !ok {
-		return "manual remediation required"
+		return messages.ReadinessManualRemediation
 	}
 	return remediator.RemediationDescription()
 }
@@ -64,7 +65,7 @@ func CheckNames(ctx context.Context, names []string, reporter Reporter) ([]Item,
 		seen[name] = true
 		prerequisite, ok := prerequisites.Get(name)
 		if !ok {
-			return nil, fmt.Errorf("unknown system prerequisite %s", name)
+			return nil, fmt.Errorf(messages.ReadinessUnknownPrerequisite, name)
 		}
 		selected = append(selected, prerequisite)
 	}
@@ -90,7 +91,7 @@ func Check(ctx context.Context, selected []prerequisites.Prerequisite, reporter 
 		}
 		state, detail, err := prerequisites.ReadinessStatus(ctx, prerequisite)
 		if err != nil {
-			return nil, fmt.Errorf("check system prerequisite %s: %w", prerequisite.Name(), err)
+			return nil, fmt.Errorf(messages.ReadinessCheckError, prerequisite.Name(), err)
 		}
 		item := Item{Prerequisite: prerequisite, State: state, Detail: detail}
 		items = append(items, item)
@@ -123,7 +124,7 @@ func Remediate(ctx context.Context, items []Item, reporter Reporter) error {
 		}
 		remediator, ok := item.Prerequisite.(prerequisites.Remediator)
 		if !ok {
-			return fmt.Errorf("system prerequisite %s is %s and requires manual remediation", item.Prerequisite.Name(), item.State)
+			return fmt.Errorf(messages.ReadinessManualRemediationError, item.Prerequisite.Name(), item.State)
 		}
 		if err := ctx.Err(); err != nil {
 			return err
@@ -132,20 +133,20 @@ func Remediate(ctx context.Context, items []Item, reporter Reporter) error {
 			return err
 		}
 		if err := remediator.RemediateContext(ctx); err != nil {
-			return fmt.Errorf("remediate system prerequisite %s: %w", item.Prerequisite.Name(), err)
+			return fmt.Errorf(messages.ReadinessRemediationError, item.Prerequisite.Name(), err)
 		}
 		if verifier, ok := item.Prerequisite.(prerequisites.Verifier); ok {
 			if err := verifier.VerifyContext(ctx); err != nil {
-				return fmt.Errorf("verify system prerequisite %s: %w", item.Prerequisite.Name(), err)
+				return fmt.Errorf(messages.ReadinessVerificationError, item.Prerequisite.Name(), err)
 			}
 		}
 		state, detail, err := prerequisites.ReadinessStatus(ctx, item.Prerequisite)
 		if err != nil {
-			return fmt.Errorf("verify system prerequisite %s: %w", item.Prerequisite.Name(), err)
+			return fmt.Errorf(messages.ReadinessVerificationError, item.Prerequisite.Name(), err)
 		}
 		verified := Item{Prerequisite: item.Prerequisite, State: state, Detail: detail}
 		if !verified.Ready() {
-			return fmt.Errorf("verify system prerequisite %s: state is %s", item.Prerequisite.Name(), state)
+			return fmt.Errorf(messages.ReadinessVerificationStateError, item.Prerequisite.Name(), state)
 		}
 		if err := reporter.Verified(verified); err != nil {
 			return err

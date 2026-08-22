@@ -2,6 +2,7 @@ package doctor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/ui/confirmation"
@@ -50,22 +51,22 @@ func FixContext(ctx context.Context) error {
 type doctorFixReporter struct{}
 
 func (doctorFixReporter) Checking(name string) error {
-	printer.Info("checking " + name)
+	printer.Info(fmt.Sprintf(messages.DoctorChecking, name))
 	return nil
 }
 func (doctorFixReporter) Checked(item readiness.Item) error {
 	if item.Ready() {
 		printer.Success(item.Prerequisite.Name())
 	} else {
-		printer.Fail(item.Prerequisite.Name() + " " + string(item.State))
+		printer.Fail(fmt.Sprintf(messages.DoctorReadinessState, item.Prerequisite.Name(), item.State))
 	}
 	return nil
 }
 func (doctorFixReporter) Remediating(name, description string) error {
-	printer.Info(description + ": " + name)
+	printer.Info(fmt.Sprintf(messages.DoctorRemediating, description, name))
 	return nil
 }
 func (doctorFixReporter) Verified(item readiness.Item) error {
-	printer.Success(item.Prerequisite.Name() + " verified")
+	printer.Success(fmt.Sprintf(messages.DoctorVerified, item.Prerequisite.Name()))
 	return nil
 }

@@ -3,6 +3,8 @@ package prerequisites
 import (
 	"fmt"
 	"sort"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 var registry []Prerequisite
@@ -40,7 +42,7 @@ func Resolve(selected []Prerequisite) ([]Prerequisite, error) {
 	visit = func(prerequisite Prerequisite) error {
 		name := prerequisite.Name()
 		if active[name] {
-			return fmt.Errorf("prerequisite dependency cycle at %s", name)
+			return fmt.Errorf(messages.ReadinessDependencyCycleError, name)
 		}
 		if visited[name] {
 			return nil
@@ -54,7 +56,7 @@ func Resolve(selected []Prerequisite) ([]Prerequisite, error) {
 		for _, dependencyName := range names {
 			dependency, ok := Get(dependencyName)
 			if !ok {
-				return fmt.Errorf("%s requires unknown prerequisite %s", name, dependencyName)
+				return fmt.Errorf(messages.ReadinessUnknownDependencyError, name, dependencyName)
 			}
 			if err := visit(dependency); err != nil {
 				return err

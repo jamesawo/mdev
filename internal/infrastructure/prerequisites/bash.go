@@ -8,12 +8,14 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 // Bash represents the modern Bash capability required by SDKMAN.
 type Bash struct{}
 
-var errBashOutdated = errors.New("installed bash is older than version 4")
+var errBashOutdated = errors.New(messages.ReadinessBashOutdatedError)
 
 func (Bash) Name() string { return "bash" }
 func (Bash) Check() bool {
@@ -22,7 +24,7 @@ func (Bash) Check() bool {
 }
 func (Bash) Install() error                     { return (Bash{}).RemediateContext(context.Background()) }
 func (Bash) PrerequisiteDependencies() []string { return []string{"brew"} }
-func (Bash) RemediationDescription() string     { return "install Bash 4 or newer with Homebrew" }
+func (Bash) RemediationDescription() string     { return messages.ReadinessInstallModernBash }
 func (Bash) RemediateContext(ctx context.Context) error {
 	return runCommand(ctx, "brew", "install", "bash")
 }
@@ -36,10 +38,10 @@ func (Bash) Readiness(ctx context.Context) (State, string, error) {
 		return StateReady, path, nil
 	}
 	if errors.Is(err, exec.ErrNotFound) {
-		return StateMissing, "Bash 4 or newer is required", nil
+		return StateMissing, messages.ReadinessModernBashRequired, nil
 	}
 	if errors.Is(err, errBashOutdated) {
-		return StateOutdated, "Bash 4 or newer is required", nil
+		return StateOutdated, messages.ReadinessModernBashRequired, nil
 	}
 	return StateBroken, "", err
 }
@@ -74,7 +76,7 @@ func ModernBashPath(ctx context.Context) (string, error) {
 	if found {
 		return "", errBashOutdated
 	}
-	return "", fmt.Errorf("modern bash: %w", exec.ErrNotFound)
+	return "", fmt.Errorf(messages.ReadinessModernBashError, exec.ErrNotFound)
 }
 
 func init() { Register(Bash{}) }

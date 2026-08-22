@@ -159,7 +159,7 @@ func establishReadiness(ctx context.Context, deps dependencies, interactive bool
 	}
 	for _, item := range unready {
 		if !item.Remediable() {
-			return fmt.Errorf("system prerequisite %s is %s and requires manual remediation", item.Prerequisite.Name(), item.State)
+			return fmt.Errorf(messages.ReadinessManualRemediationError, item.Prerequisite.Name(), item.State)
 		}
 	}
 	if !interactive {

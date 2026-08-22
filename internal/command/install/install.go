@@ -117,10 +117,10 @@ func run(ctx context.Context, streams Streams, options Options, deps workflowDep
 	}
 	readinessItems, err := deps.checkReadiness(ctx, tools.SystemPrerequisites(plan))
 	if err != nil {
-		return fmt.Errorf("check system readiness: %w", err)
+		return fmt.Errorf(messages.InstallReadinessError, err)
 	}
 	for _, item := range readiness.Unready(readinessItems) {
-		return fmt.Errorf("system prerequisite %s is %s; rerun mdev setup or use mdev doctor for diagnosis", item.Prerequisite.Name(), item.State)
+		return fmt.Errorf(messages.InstallPrerequisiteMissing, item.Prerequisite.Name(), item.State)
 	}
 	states := make(map[string]bool, len(plan))
 	for _, tool := range plan {

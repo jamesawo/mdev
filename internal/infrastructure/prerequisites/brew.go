@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Brew struct{}
@@ -32,7 +34,7 @@ func (Brew) InstallationStatus() (bool, error) {
 func (Brew) Readiness(ctx context.Context) (State, string, error) {
 	path, err := exec.LookPath("brew")
 	if errors.Is(err, exec.ErrNotFound) {
-		return StateMissing, "Homebrew is required", nil
+		return StateMissing, messages.ReadinessHomebrewRequired, nil
 	}
 	if err != nil {
 		return StateBroken, "", err
@@ -48,7 +50,7 @@ func (Brew) Install() error {
 }
 
 func (Brew) PrerequisiteDependencies() []string { return []string{"curl", "xcode-cli"} }
-func (Brew) RemediationDescription() string     { return "install Homebrew" }
+func (Brew) RemediationDescription() string     { return messages.ReadinessInstallHomebrew }
 func (Brew) RemediateContext(ctx context.Context) error {
 	if err := runInstaller(ctx); err != nil {
 		return err

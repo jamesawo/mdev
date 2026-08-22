@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/jamesawo/mdev/internal/command"
+	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
 type Xcode struct{}
@@ -39,7 +40,7 @@ func (x *Xcode) Install() error {
 	return x.RemediateContext(context.Background())
 }
 
-func (x *Xcode) RemediationDescription() string { return "install Xcode Command Line Tools" }
+func (x *Xcode) RemediationDescription() string { return messages.ReadinessInstallXcodeCLI }
 func (x *Xcode) RemediateContext(ctx context.Context) error {
 	return command.RunContext(ctx, "xcode-select", "--install")
 }
@@ -49,7 +50,7 @@ func (x *Xcode) VerifyContext(context.Context) error {
 		return err
 	}
 	if !installed {
-		return errors.New("Xcode Command Line Tools installation is not complete")
+		return errors.New(messages.ReadinessXcodeVerificationFailed)
 	}
 	return nil
 }
