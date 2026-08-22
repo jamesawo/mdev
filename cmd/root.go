@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 	Use:          "mdev",
 	Short:        messages.RootCmdShortDescription,
 	Long:         messages.RootCmdLongDescription,
-	Version:      version,
+	Version:      versionMetadata.Version,
 	SilenceUsage: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		confirmation.Configure(confirmAll)
@@ -31,6 +31,7 @@ var confirmAll bool
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&confirmAll, "yes", "y", false, messages.RootFlagConfirmAll)
+	rootCmd.SetVersionTemplate(messages.RootVersionTemplate)
 }
 
 // Execute runs the CLI.
