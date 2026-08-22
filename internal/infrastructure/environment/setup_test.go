@@ -215,6 +215,116 @@ func TestPermissionErrorSuggestsAnotherLocationOrSudo(t *testing.T) {
 	}
 }
 
+func TestDefaultLocationUsesMdevDirectoryInUserHome(t *testing.T) {
+	home := givenEnvironmentHome(t)
+
+	location, err := DefaultLocation()
+	if err != nil {
+		t.Fatalf("expected default location to resolve: %v", err)
+	}
+
+	expected := filepath.Join(home, "mdev")
+	if location != expected {
+		t.Fatalf("expected default location %q, got %q", expected, location)
+	}
+}
+
+func TestSetupPreservesExistingContents(t *testing.T) {
+	home := givenEnvironmentHome(t)
+	location := filepath.Join(home, "mdev")
+	existingFile := filepath.Join(location, "existing.txt")
+
+	if err := os.MkdirAll(location, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(existingFile, []byte("keep me"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env, err := Setup(location)
+	if err != nil {
+		t.Fatalf("Setup() error = %v", err)
+	}
+
+	contents, err := os.ReadFile(existingFile)
+	if err != nil {
+		t.Fatalf("existing file was not preserved: %v", err)
+	}
+	if string(contents) != "keep me" {
+		t.Fatalf("existing file contents = %q", contents)
+	}
+	if _, err := os.Stat(env.StoragePath); err != nil {
+		t.Fatalf("storage directory was not created: %v", err)
+	}
+
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatalf("config.Load() error = %v", err)
+	}
+	if cfg.StoragePath != env.StoragePath {
+		t.Fatalf("configured location = %q, want %q", cfg.StoragePath, env.StoragePath)
+	}
+}
+
+func TestSetupWritesStoragePathConfiguration(t *testing.T) {
+	home := givenEnvironmentHome(t)
+	location := filepath.Join(home, "managed-tools")
+
+	if _, err := Setup(location); err != nil {
+		t.Fatalf("Setup() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(home, ".mdev", "config.yaml"))
+	if err != nil {
+		t.Fatalf("read config: %v", err)
+	}
+
+	resolved, err := ValidateStoragePath(location)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "storage_path: " + resolved + "\n"
+	if string(data) != expected {
+		t.Fatalf("config contents = %q, want %q", data, expected)
+	}
+}
+
+func TestValidateStoragePathExpandsHomeDirectory(t *testing.T) {
+	home := givenEnvironmentHome(t)
+
+	got, err := ValidateStoragePath("~/Documents/mdev")
+	if err != nil {
+		t.Fatalf("ValidateStoragePath() error = %v", err)
+	}
+
+	want, err := filepath.EvalSymlinks(home)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = filepath.Join(want, "Documents", "mdev")
+	if got != want {
+		t.Fatalf("ValidateStoragePath() = %q, want %q", got, want)
+	}
+}
+
+func TestValidateStoragePathRejectsBroadLocations(t *testing.T) {
+	home := givenEnvironmentHome(t)
+
+	for _, path := range []string{"", string(filepath.Separator), home} {
+		if _, err := ValidateStoragePath(path); err == nil {
+			t.Fatalf("ValidateStoragePath(%q) unexpectedly succeeded", path)
+		}
+	}
+}
+
+func givenEnvironmentHome(t *testing.T) string {
+	t.Helper()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("SUDO_USER", "")
+	return home
+}
+
 func canonical(t *testing.T, path string) string {
 	t.Helper()
 	ancestor := path

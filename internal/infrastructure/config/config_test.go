@@ -99,6 +99,55 @@ func TestOwnPathReportsOwnershipFailure(t *testing.T) {
 	}
 }
 
+func TestLoadReadsStoragePath(t *testing.T) {
+	home := givenConfigHome(t)
+	configDir := filepath.Join(home, ".mdev")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	location := filepath.Join(home, "mdev")
+	data := []byte("storage_path: " + location + "\n")
+	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.StoragePath != location {
+		t.Fatalf("StoragePath = %q, want %q", cfg.StoragePath, location)
+	}
+}
+
+func TestLoadRejectsLegacyExternalDriveKey(t *testing.T) {
+	home := givenConfigHome(t)
+	configDir := filepath.Join(home, ".mdev")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(
+		filepath.Join(configDir, "config.yaml"),
+		[]byte("external_drive: /legacy/path\n"),
+		0644,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Load(); !errors.Is(err, ErrStoragePathRequired) {
+		t.Fatalf("Load() error = %v, want ErrStoragePathRequired", err)
+	}
+}
+
+func givenConfigHome(t *testing.T) string {
+	t.Helper()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("SUDO_USER", "")
+	return home
+}
+
 func fakeSudo(t *testing.T, account *user.User) {
 	t.Helper()
 	t.Setenv("SUDO_USER", account.Username)
