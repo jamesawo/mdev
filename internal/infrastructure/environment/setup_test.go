@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/jamesawo/mdev/internal/infrastructure/config"
 )
 
@@ -199,12 +198,6 @@ func TestExistingLeavesMalformedConfigurationUntouched(t *testing.T) {
 	}
 	if string(got) != string(original) {
 		t.Fatalf("malformed configuration changed to %q", got)
-	}
-}
-
-func TestInterruptIsCancellation(t *testing.T) {
-	if err := interruptionError(terminal.InterruptErr); !errors.Is(err, ErrSetupCancelled) {
-		t.Fatalf("interruptionError() = %v", err)
 	}
 }
 

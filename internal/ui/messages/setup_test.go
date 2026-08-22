@@ -15,3 +15,15 @@ func TestSetupVolumeOptionIncludesNamePathAndReadOnlyState(t *testing.T) {
 		t.Fatalf("read-only option = %q", readOnly)
 	}
 }
+
+func TestSetupOutputFormatting(t *testing.T) {
+	if got := SetupStorage("~/mdev"); got != "storage: ~/mdev" {
+		t.Fatalf("SetupStorage() = %q", got)
+	}
+	if got := SetupSymlinkResolution("~/linked", "/Volumes/Data/mdev"); got != "~/linked  → /Volumes/Data/mdev" {
+		t.Fatalf("SetupSymlinkResolution() = %q", got)
+	}
+	if SetupListCommand != "mdev list" {
+		t.Fatalf("SetupListCommand = %q", SetupListCommand)
+	}
+}

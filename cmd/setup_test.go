@@ -3,12 +3,10 @@ package cmd
 import (
 	"bytes"
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/jamesawo/mdev/internal/infrastructure/config"
+	commandsetup "github.com/jamesawo/mdev/internal/command/setup"
 )
 
 func TestSetupHelpOmitsYesAndDocumentsStoragePath(t *testing.T) {
@@ -42,46 +40,22 @@ func TestSetupRejectsInheritedYes(t *testing.T) {
 	}
 }
 
-func TestNonInteractiveSetupCreatesCanonicalStorageAndConfig(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("SUDO_USER", "")
-	parent := filepath.Join(t.TempDir(), "parent with spaces")
-	setupStoragePath = parent
+func TestSetupCommandDelegatesOptionsAndError(t *testing.T) {
+	wantErr := errors.New("setup failed")
+	var got commandsetup.Options
+	runSetup = func(options commandsetup.Options) error {
+		got = options
+		return wantErr
+	}
+	t.Cleanup(func() { runSetup = defaultRunSetup })
+	setupStoragePath = "/tmp/example"
 	t.Cleanup(func() { setupStoragePath = "" })
-	if err := runSetup(setupCmd, nil); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err := config.Load()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if filepath.Base(cfg.StoragePath) != "mdev" {
-		t.Fatalf("storage path = %q", cfg.StoragePath)
-	}
-	if info, err := os.Stat(cfg.StoragePath); err != nil || !info.IsDir() {
-		t.Fatalf("storage path was not created: %v", err)
-	}
-}
 
-func TestNonInteractiveSetupRefusesExistingConfiguration(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("SUDO_USER", "")
-	existing := filepath.Join(t.TempDir(), "existing", "mdev")
-	if err := os.MkdirAll(existing, 0755); err != nil {
-		t.Fatal(err)
+	err := setupCmd.RunE(setupCmd, nil)
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("RunE() error = %v, want %v", err, wantErr)
 	}
-	if err := config.Save(config.Config{StoragePath: existing}); err != nil {
-		t.Fatal(err)
-	}
-	setupStoragePath = filepath.Join(t.TempDir(), "replacement")
-	t.Cleanup(func() { setupStoragePath = "" })
-	err := runSetup(setupCmd, nil)
-	if err == nil || !strings.Contains(err.Error(), existing) {
-		t.Fatalf("runSetup() error = %v", err)
-	}
-	if _, statErr := os.Stat(filepath.Join(setupStoragePath, "mdev")); !errors.Is(statErr, os.ErrNotExist) {
-		t.Fatalf("replacement storage was created: %v", statErr)
+	if got.StoragePath != setupStoragePath {
+		t.Fatalf("RunE() options = %#v", got)
 	}
 }

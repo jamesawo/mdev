@@ -21,7 +21,8 @@ mdev setup --storage-path ~/mdev
 Setup never replaces an existing configuration. Paths are stored as canonical
 absolute paths, including resolved symlink destinations. Running through
 `sudo` still writes configuration for the invoking user, and mdev never
-elevates itself automatically.
+elevates itself automatically. Running `mdev setup` again reports the existing
+storage and ends by recommending `mdev list` as the next command.
 
 The selection is saved in `~/.mdev/config.yaml`:
 

@@ -61,6 +61,11 @@ grep -q "mdev is ready" "$TEST_ROOT/interactive.out"
 grep -q "storage_path: $canonical_root/interactive-home/mdev" "$interactive_home/.mdev/config.yaml"
 test -d "$canonical_root/interactive-home/mdev"
 
+env HOME="$interactive_home" SUDO_USER= "$TEST_ROOT/mdev" setup >"$TEST_ROOT/already-configured.out"
+grep -q "setup is complete" "$TEST_ROOT/already-configured.out"
+grep -q "storage: ~/mdev" "$TEST_ROOT/already-configured.out"
+test "$(tail -n 1 "$TEST_ROOT/already-configured.out")" = "  mdev list"
+
 noninteractive_home="$TEST_ROOT/noninteractive-home"
 custom_parent="$TEST_ROOT/custom parent"
 mkdir -p "$noninteractive_home"

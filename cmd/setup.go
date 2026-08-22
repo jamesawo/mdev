@@ -2,82 +2,39 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	commandsetup "github.com/jamesawo/mdev/internal/command/setup"
 	"github.com/jamesawo/mdev/internal/ui/messages"
-	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
 var setupStoragePath string
 
+var defaultRunSetup = commandsetup.Run
+var runSetup = defaultRunSetup
+
 var setupCmd = &cobra.Command{
-	Use:   "setup",
+	Use:   messages.SetupCommandName,
 	Args:  cobra.NoArgs,
 	Short: messages.SetupCmdShortDescription,
 	Long:  messages.SetupCmdLongDescription,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if cmd.Flags().Changed("yes") || cmd.InheritedFlags().Changed("yes") {
-			return fmt.Errorf("setup does not support --yes")
+		if cmd.Flags().Changed(messages.SetupYesFlagName) || cmd.InheritedFlags().Changed(messages.SetupYesFlagName) {
+			return errors.New(messages.SetupYesUnsupported)
 		}
 		return nil
 	},
-	RunE: runSetup,
-}
-
-func runSetup(cmd *cobra.Command, _ []string) error {
-	if setupStoragePath == "" {
-		printer.Section(messages.SetupTitle)
-		env, err := environment.SetupInteractive()
-		if errors.Is(err, environment.ErrSetupCancelled) {
-			printer.Info("setup cancelled.")
-			return nil
-		}
-		if errors.Is(err, environment.ErrAlreadyConfigured) {
-			printer.Info("setup is complete.")
-			printer.Info("storage: " + environment.DisplayPath(env.StoragePath))
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("%s: %w", messages.SetupFailed, err)
-		}
-		printSetupSuccess(env)
-		return nil
-	}
-
-	if existing, configured, err := environment.Existing(); err != nil {
-		return fmt.Errorf("%s: %w", messages.SetupFailed, err)
-	} else if configured {
-		return fmt.Errorf("mdev is already configured at %s; setup will not replace it", existing.StoragePath)
-	}
-
-	resolved, _, err := environment.ResolveStoragePath(setupStoragePath)
-	if err != nil {
-		return fmt.Errorf("%s: %w", messages.SetupFailed, err)
-	}
-	env, err := environment.SetupResolved(resolved)
-	if err != nil {
-		return fmt.Errorf("%s: %w", messages.SetupFailed, err)
-	}
-	printSetupSuccess(env)
-	return nil
-}
-
-func printSetupSuccess(env *environment.Environment) {
-	printer.Section(messages.SetupReady)
-	printer.Info("storage: " + environment.DisplayPath(env.StoragePath))
-	printer.Blank()
-	printer.Info(messages.SetupNextStep)
-	printer.Command("mdev list")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runSetup(commandsetup.Options{StoragePath: setupStoragePath})
+	},
 }
 
 func init() {
 	rootCmd.AddCommand(setupCmd)
-	setupCmd.Flags().StringVar(&setupStoragePath, "storage-path", "", messages.SetupStoragePathFlag)
+	setupCmd.Flags().StringVar(&setupStoragePath, messages.SetupStoragePathFlagName, "", messages.SetupStoragePathFlag)
 	defaultHelp := setupCmd.HelpFunc()
 	setupCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		flag := cmd.InheritedFlags().Lookup("yes")
+		flag := cmd.InheritedFlags().Lookup(messages.SetupYesFlagName)
 		if flag == nil {
 			defaultHelp(cmd, args)
 			return
