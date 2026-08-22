@@ -94,6 +94,31 @@ does not create or repair configuration or storage, install or configure tools,
 show dependency relationships, or diagnose installation health. Use
 `mdev graph` for dependencies and `mdev doctor` for health diagnosis.
 
+## Version information
+
+Run `mdev version` to identify the binary currently running:
+
+```text
+mdev 0.4.2
+commit: unknown
+built: unknown
+```
+
+The version is the product version without a leading `v`. Commit identifies the
+source revision when supplied, and built is the build date or another stable
+build value when supplied. Local development builds use deterministic fallbacks:
+version `0.4.2`, commit `unknown`, and built `unknown`.
+
+For scripts, `mdev version --json` emits the same three values as one JSON-only
+document:
+
+```json
+{"version":"0.4.2","commit":"unknown","built":"unknown"}
+```
+
+The compatibility form `mdev --version` prints only `mdev 0.4.2`. Both forms
+are read-only and work without mdev configuration or storage.
+
 ## Local development
 
 Run the CLI directly:
@@ -187,6 +212,7 @@ The repository provides these scripts:
 ./scripts/vm/run.sh mdev doctor
 ./scripts/vm/test-setup.sh            # run isolated setup journeys in the VM
 ./scripts/vm/test-list.sh             # run the configured list journey in the VM
+./scripts/vm/test-version.sh          # run isolated version journeys in the VM
 ```
 
 The scripts use the `mdev-vm` SSH alias and expect a VM named `macOs-mdev`. A developer with a differently named local
