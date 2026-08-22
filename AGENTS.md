@@ -57,9 +57,17 @@ application, repository, adapter, or dependency-injection layers.
 
 ### Boundary rules
 
-- Keep Cobra-specific parsing and registration in `cmd/`.
-- Put reusable workflow and planning logic under the relevant
-  `internal/command/<name>` package.
+- Keep `cmd/<command>.go` files as thin Cobra wiring layers containing only
+  command metadata, arguments, flags, dependency and writer wiring, and the
+  invocation of the corresponding implementation. Do not put business logic in
+  `cmd/`.
+- Put command business logic under the corresponding
+  `internal/command/<command>/` package. The Cobra `RunE` handler should
+  delegate to that implementation with the required options,
+  `cmd.OutOrStdout()`, and other appropriate dependencies.
+- Keep command wiring lean and consistent. When adding or refactoring commands,
+  follow the structure demonstrated by the list command unless there is a
+  strong architectural reason not to.
 - Keep tool lifecycle behavior behind the existing `tools.Tool` contract.
 - Keep service lifecycle behavior behind the existing `services.Service`
   contract.
