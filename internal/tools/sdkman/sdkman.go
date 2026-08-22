@@ -28,15 +28,27 @@ func (s *SDKMAN) Description() string {
 }
 
 func (s *SDKMAN) IsInstalled(env *environment.Environment) bool {
+	installed, _ := s.InstallationStatus(env)
+	return installed
+}
+
+func (s *SDKMAN) InstallationStatus(_ *environment.Environment) (bool, error) {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	path := filepath.Join(home, ".sdkman")
+	_, err = os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
 
-	return fs.Exists(path)
+	return false, err
 }
 
 func (s *SDKMAN) Install(env *environment.Environment) error {

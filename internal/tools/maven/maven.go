@@ -28,7 +28,12 @@ func (m *Maven) Description() string {
 }
 
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
-	return brew.IsInstalled("maven")
+	installed, _ := m.InstallationStatus(env)
+	return installed
+}
+
+func (m *Maven) InstallationStatus(_ *environment.Environment) (bool, error) {
+	return tools.CommandInstallationStatus("mvn", "-version")
 }
 
 func (m *Maven) Install(env *environment.Environment) error {

@@ -27,7 +27,12 @@ func (p *Podman) Description() string {
 }
 
 func (p *Podman) IsInstalled(env *environment.Environment) bool {
-	return brew.IsInstalled("podman-desktop")
+	installed, _ := p.InstallationStatus(env)
+	return installed
+}
+
+func (p *Podman) InstallationStatus(_ *environment.Environment) (bool, error) {
+	return tools.CommandInstallationStatus("podman", "--version")
 }
 
 func (p *Podman) Install(env *environment.Environment) error {

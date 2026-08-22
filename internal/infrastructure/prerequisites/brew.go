@@ -1,6 +1,7 @@
 package prerequisites
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 )
@@ -12,8 +13,19 @@ func (Brew) Name() string {
 }
 
 func (Brew) Check() bool {
+	installed, _ := (Brew{}).InstallationStatus()
+	return installed
+}
+
+func (Brew) InstallationStatus() (bool, error) {
 	_, err := exec.LookPath("brew")
-	return err == nil
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, exec.ErrNotFound) {
+		return false, nil
+	}
+	return false, err
 }
 
 func (Brew) Install() error {
