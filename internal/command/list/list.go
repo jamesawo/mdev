@@ -1,6 +1,7 @@
 package list
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +23,11 @@ const (
 	statusUnknown   status = "unknown"
 )
 
+// Options controls how list results are encoded.
+type Options struct {
+	JSON bool
+}
+
 type check struct {
 	name   string
 	verify func() (bool, error)
@@ -31,6 +37,17 @@ type result struct {
 	name   string
 	status status
 	err    error
+}
+
+type jsonEntry struct {
+	Name   string `json:"name"`
+	Status status `json:"status"`
+	Error  string `json:"error,omitempty"`
+}
+
+type jsonDocument struct {
+	SystemTools []jsonEntry `json:"system_tools"`
+	Tools       []jsonEntry `json:"tools"`
 }
 
 type dependencies struct {
@@ -56,8 +73,8 @@ func (e *UnknownStatusError) Unwrap() []error {
 
 // Run prints all registered system prerequisites and tools with their current
 // installation status. It observes configuration and machine state only.
-func Run(out io.Writer) error {
-	return run(out, productionDependencies())
+func Run(out io.Writer, options Options) error {
+	return run(out, options, productionDependencies())
 }
 
 func productionDependencies() dependencies {
@@ -95,40 +112,105 @@ func productionDependencies() dependencies {
 	}
 }
 
-func run(out io.Writer, deps dependencies) error {
-	env, configured, err := deps.loadEnvironment()
+func run(out io.Writer, options Options, deps dependencies) error {
+	env, err := loadEnvironment(deps)
 	if err != nil {
 		return err
 	}
+
+	systemChecks := sortedChecks(deps.systemChecks())
+	toolChecks := sortedChecks(deps.toolChecks(env))
+	if options.JSON {
+		return runJSON(out, systemChecks, toolChecks)
+	}
+	return runHuman(out, systemChecks, toolChecks)
+}
+
+func loadEnvironment(deps dependencies) (*environment.Environment, error) {
+	env, configured, err := deps.loadEnvironment()
+	if err != nil {
+		return nil, err
+	}
 	if !configured {
-		return errors.New(messages.ListNotConfigured)
+		return nil, errors.New(messages.ListNotConfigured)
 	}
 
 	info, err := deps.stat(env.StoragePath)
 	if err != nil {
-		return fmt.Errorf(messages.ListStorageUnavailable, env.StoragePath, err)
+		return nil, fmt.Errorf(messages.ListStorageUnavailable, env.StoragePath, err)
 	}
 	if !info.IsDir() {
-		return fmt.Errorf(messages.ListStorageNotDirectory, env.StoragePath)
+		return nil, fmt.Errorf(messages.ListStorageNotDirectory, env.StoragePath)
 	}
-
-	systemResults := performChecks(deps.systemChecks())
-	toolResults := performChecks(deps.toolChecks(env))
-	render(out, systemResults, toolResults)
-
-	var statusErrors []error
-	for _, item := range append(systemResults, toolResults...) {
-		if item.err != nil {
-			statusErrors = append(statusErrors, fmt.Errorf("%s: %w", item.name, item.err))
-		}
-	}
-	if len(statusErrors) > 0 {
-		return &UnknownStatusError{errors: statusErrors}
-	}
-	return nil
+	return env, nil
 }
 
-func performChecks(checks []check) []result {
+func runHuman(out io.Writer, systemChecks, toolChecks []check) error {
+	var allResults []result
+	printedSection := false
+
+	for _, section := range []struct {
+		title  string
+		checks []check
+	}{
+		{title: messages.ListSystemTools, checks: systemChecks},
+		{title: messages.ListTools, checks: toolChecks},
+	} {
+		if len(section.checks) == 0 {
+			continue
+		}
+		if printedSection {
+			if _, err := fmt.Fprintln(out); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintln(out, section.title); err != nil {
+			return err
+		}
+		printedSection = true
+		width := checkNameWidth(section.checks)
+		for _, item := range section.checks {
+			itemResult := performCheck(item)
+			allResults = append(allResults, itemResult)
+			if _, err := fmt.Fprintf(out, "  %s %-*s  %s\n", statusSymbol(itemResult.status), width, itemResult.name, itemResult.status); err != nil {
+				return err
+			}
+		}
+	}
+
+	unknown := unknownResults(allResults)
+	if len(unknown) > 0 && printedSection {
+		if _, err := fmt.Fprintln(out); err != nil {
+			return err
+		}
+	}
+	for _, item := range unknown {
+		if _, err := fmt.Fprintf(out, messages.ListUnknownDetail+"\n", item.name, conciseError(item.err)); err != nil {
+			return err
+		}
+	}
+	return unknownStatusError(unknown)
+}
+
+func runJSON(out io.Writer, systemChecks, toolChecks []check) error {
+	systemResults := performChecks(systemChecks)
+	toolResults := performChecks(toolChecks)
+	document := jsonDocument{
+		SystemTools: jsonEntries(systemResults),
+		Tools:       jsonEntries(toolResults),
+	}
+	encoded, err := json.Marshal(document)
+	if err != nil {
+		return fmt.Errorf("encode list JSON: %w", err)
+	}
+	encoded = append(encoded, '\n')
+	if _, err := out.Write(encoded); err != nil {
+		return err
+	}
+	return unknownStatusError(append(unknownResults(systemResults), unknownResults(toolResults)...))
+}
+
+func sortedChecks(checks []check) []check {
 	sort.Slice(checks, func(i, j int) bool {
 		left := strings.ToLower(checks[i].name)
 		right := strings.ToLower(checks[j].name)
@@ -137,58 +219,49 @@ func performChecks(checks []check) []result {
 		}
 		return left < right
 	})
+	return checks
+}
 
+func performChecks(checks []check) []result {
 	results := make([]result, 0, len(checks))
 	for _, item := range checks {
-		installed, err := item.verify()
-		state := statusMissing
-		if err != nil {
-			state = statusUnknown
-		} else if installed {
-			state = statusInstalled
-		}
-		results = append(results, result{name: item.name, status: state, err: err})
+		results = append(results, performCheck(item))
 	}
 	return results
 }
 
-func render(out io.Writer, systemResults, toolResults []result) {
-	printedSection := false
-	if len(systemResults) > 0 {
-		renderSection(out, messages.ListSystemTools, systemResults)
-		printedSection = true
+func performCheck(item check) result {
+	installed, err := item.verify()
+	state := statusMissing
+	if err != nil {
+		state = statusUnknown
+	} else if installed {
+		state = statusInstalled
 	}
-	if len(toolResults) > 0 {
-		if printedSection {
-			fmt.Fprintln(out)
-		}
-		renderSection(out, messages.ListTools, toolResults)
-		printedSection = true
-	}
-
-	unknown := append(unknownResults(systemResults), unknownResults(toolResults)...)
-	if len(unknown) == 0 {
-		return
-	}
-	if printedSection {
-		fmt.Fprintln(out)
-	}
-	for _, item := range unknown {
-		fmt.Fprintf(out, messages.ListUnknownDetail+"\n", item.name, item.err)
-	}
+	return result{name: item.name, status: state, err: err}
 }
 
-func renderSection(out io.Writer, title string, results []result) {
-	fmt.Fprintln(out, title)
-	width := 0
+func jsonEntries(results []result) []jsonEntry {
+	entries := make([]jsonEntry, 0, len(results))
 	for _, item := range results {
-		if len(item.name) > width {
-			width = len(item.name)
+		entry := jsonEntry{Name: item.name, Status: item.status}
+		if item.err != nil {
+			entry.Error = conciseError(item.err)
 		}
+		entries = append(entries, entry)
 	}
-	for _, item := range results {
-		fmt.Fprintf(out, "  %s %-*s  %s\n", statusSymbol(item.status), width, item.name, item.status)
+	return entries
+}
+
+func unknownStatusError(unknown []result) error {
+	if len(unknown) == 0 {
+		return nil
 	}
+	statusErrors := make([]error, 0, len(unknown))
+	for _, item := range unknown {
+		statusErrors = append(statusErrors, fmt.Errorf("%s: %w", item.name, item.err))
+	}
+	return &UnknownStatusError{errors: statusErrors}
 }
 
 func unknownResults(results []result) []result {
@@ -199,6 +272,28 @@ func unknownResults(results []result) []result {
 		}
 	}
 	return unknown
+}
+
+func checkNameWidth(checks []check) int {
+	width := 0
+	for _, item := range checks {
+		if len(item.name) > width {
+			width = len(item.name)
+		}
+	}
+	return width
+}
+
+func conciseError(err error) string {
+	detail := strings.TrimSpace(err.Error())
+	if newline := strings.IndexByte(detail, '\n'); newline >= 0 {
+		detail = detail[:newline]
+	}
+	const maxLength = 240
+	if len(detail) > maxLength {
+		detail = detail[:maxLength-3] + "..."
+	}
+	return detail
 }
 
 func statusSymbol(state status) string {

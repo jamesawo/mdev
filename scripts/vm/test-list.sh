@@ -38,6 +38,7 @@ storage_path: $storage
 EOF
 
 env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" list >"$TEST_ROOT/list.out"
+env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" list --json >"$TEST_ROOT/list.json"
 
 grep -q '^system tools$' "$TEST_ROOT/list.out"
 grep -q '^tools$' "$TEST_ROOT/list.out"
@@ -57,6 +58,19 @@ tool_names=$(awk '
 ' "$TEST_ROOT/list.out")
 test "$system_names" = "$(printf '%s\n' "$system_names" | LC_ALL=C sort -f)"
 test "$tool_names" = "$(printf '%s\n' "$tool_names" | LC_ALL=C sort -f)"
+
+/usr/bin/jq empty "$TEST_ROOT/list.json"
+grep -q '^{' "$TEST_ROOT/list.json"
+grep -q '"system_tools":\[' "$TEST_ROOT/list.json"
+grep -q '"tools":\[' "$TEST_ROOT/list.json"
+grep -q '"name":"curl","status":"installed"' "$TEST_ROOT/list.json"
+if grep -Eq 'system tools|✓|○|could not determine' "$TEST_ROOT/list.json"; then
+    echo "JSON output contains human-oriented content" >&2
+    exit 1
+fi
+
+env HOME="$test_home" SUDO_USER= "$TEST_ROOT/mdev" list --json >"$TEST_ROOT/list-second.json"
+cmp "$TEST_ROOT/list.json" "$TEST_ROOT/list-second.json"
 
 echo "list e2e passed"
 REMOTE

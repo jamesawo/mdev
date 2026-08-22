@@ -2,6 +2,7 @@ package list
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -62,7 +63,7 @@ func TestRunGroupsSortsAndReportsEveryStatus(t *testing.T) {
 	}
 
 	var output bytes.Buffer
-	err := run(&output, deps)
+	err := run(&output, Options{}, deps)
 	var unknownErr *UnknownStatusError
 	if !errors.As(err, &unknownErr) {
 		t.Fatalf("run() error = %v, want UnknownStatusError", err)
@@ -88,6 +89,106 @@ func TestRunGroupsSortsAndReportsEveryStatus(t *testing.T) {
 	}
 }
 
+func TestRunWritesHumanResultsProgressivelyInDisplayOrder(t *testing.T) {
+	deps := validDependencies(t.TempDir())
+	writer := &observingWriter{}
+	deps.systemChecks = func() []check {
+		return []check{
+			{name: "beta", verify: func() (bool, error) {
+				if !writer.sawAlpha {
+					t.Fatal("alpha result was not written before beta verification started")
+				}
+				return false, nil
+			}},
+			{name: "alpha", verify: func() (bool, error) { return true, nil }},
+		}
+	}
+
+	if err := run(writer, Options{}, deps); err != nil {
+		t.Fatal(err)
+	}
+	if !writer.sawAlpha {
+		t.Fatalf("progressive output omitted alpha: %q", writer.String())
+	}
+	if strings.Index(writer.String(), "alpha") > strings.Index(writer.String(), "beta") {
+		t.Fatalf("output is not alphabetical: %q", writer.String())
+	}
+}
+
+func TestRunJSONEmitsCompleteDeterministicDocumentBeforeUnknownFailure(t *testing.T) {
+	deps := validDependencies(t.TempDir())
+	verificationErr := errors.New("permission denied\nadditional detail")
+	deps.systemChecks = func() []check {
+		return []check{
+			{name: "git", verify: func() (bool, error) { return true, nil }},
+			{name: "brew", verify: func() (bool, error) { return false, nil }},
+		}
+	}
+	deps.toolChecks = func(*environment.Environment) []check {
+		return []check{
+			{name: "zeta", verify: func() (bool, error) { return false, verificationErr }},
+			{name: "alpha", verify: func() (bool, error) { return true, nil }},
+		}
+	}
+
+	var output bytes.Buffer
+	err := run(&output, Options{JSON: true}, deps)
+	var unknownErr *UnknownStatusError
+	if !errors.As(err, &unknownErr) {
+		t.Fatalf("run() error = %v, want UnknownStatusError", err)
+	}
+	var document jsonDocument
+	if decodeErr := json.Unmarshal(output.Bytes(), &document); decodeErr != nil {
+		t.Fatalf("JSON output is invalid: %v\n%s", decodeErr, output.String())
+	}
+	want := jsonDocument{
+		SystemTools: []jsonEntry{
+			{Name: "brew", Status: statusMissing},
+			{Name: "git", Status: statusInstalled},
+		},
+		Tools: []jsonEntry{
+			{Name: "alpha", Status: statusInstalled},
+			{Name: "zeta", Status: statusUnknown, Error: "permission denied"},
+		},
+	}
+	if !reflect.DeepEqual(document, want) {
+		t.Fatalf("document = %#v, want %#v", document, want)
+	}
+	for _, forbidden := range []string{"system tools", "✓", "○", "could not determine"} {
+		if strings.Contains(output.String(), forbidden) {
+			t.Fatalf("JSON contains human output %q: %s", forbidden, output.String())
+		}
+	}
+}
+
+func TestRunJSONWritesNothingWhenPreflightFails(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		deps dependencies
+	}{
+		{
+			name: "not configured",
+			deps: dependencies{
+				loadEnvironment: func() (*environment.Environment, bool, error) { return nil, false, nil },
+			},
+		},
+		{
+			name: "storage unavailable",
+			deps: validDependencies(filepath.Join(t.TempDir(), "missing")),
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var output bytes.Buffer
+			if err := run(&output, Options{JSON: true}, test.deps); err == nil {
+				t.Fatal("run() unexpectedly succeeded")
+			}
+			if output.Len() != 0 {
+				t.Fatalf("partial JSON output = %q", output.String())
+			}
+		})
+	}
+}
+
 func TestRunOmitsEmptySections(t *testing.T) {
 	deps := validDependencies(t.TempDir())
 	deps.systemChecks = func() []check { return nil }
@@ -96,7 +197,7 @@ func TestRunOmitsEmptySections(t *testing.T) {
 	}
 
 	var output bytes.Buffer
-	if err := run(&output, deps); err != nil {
+	if err := run(&output, Options{}, deps); err != nil {
 		t.Fatal(err)
 	}
 	if output.String() != "tools\n  ✓ go  installed\n" {
@@ -119,7 +220,7 @@ func TestRunRequiresConfigurationWithoutChangingHome(t *testing.T) {
 	}
 
 	var output bytes.Buffer
-	err := run(&output, deps)
+	err := run(&output, Options{}, deps)
 	if err == nil || !strings.Contains(err.Error(), "mdev setup") {
 		t.Fatalf("run() error = %v", err)
 	}
@@ -140,7 +241,7 @@ func TestRunPreservesConfigurationError(t *testing.T) {
 	deps := dependencies{
 		loadEnvironment: func() (*environment.Environment, bool, error) { return nil, false, configErr },
 	}
-	if err := run(&bytes.Buffer{}, deps); !errors.Is(err, configErr) {
+	if err := run(&bytes.Buffer{}, Options{}, deps); !errors.Is(err, configErr) {
 		t.Fatalf("run() error = %v, want %v", err, configErr)
 	}
 }
@@ -162,7 +263,7 @@ func TestRunLeavesMalformedConfigurationUntouched(t *testing.T) {
 	deps.systemChecks = func() []check { return nil }
 	deps.toolChecks = func(*environment.Environment) []check { return nil }
 
-	err := run(&bytes.Buffer{}, deps)
+	err := run(&bytes.Buffer{}, Options{}, deps)
 	if err == nil || !strings.Contains(err.Error(), "configuration cannot be read") {
 		t.Fatalf("run() error = %v", err)
 	}
@@ -197,7 +298,7 @@ func TestRunLeavesValidConfigurationAndStorageUntouched(t *testing.T) {
 	deps.systemChecks = func() []check { return nil }
 	deps.toolChecks = func(*environment.Environment) []check { return nil }
 
-	if err := run(&bytes.Buffer{}, deps); err != nil {
+	if err := run(&bytes.Buffer{}, Options{}, deps); err != nil {
 		t.Fatal(err)
 	}
 	gotConfig, err := os.ReadFile(configPath)
@@ -219,7 +320,7 @@ func TestRunRejectsUnavailableStorageBeforeChecks(t *testing.T) {
 		return nil
 	}
 
-	err := run(&bytes.Buffer{}, deps)
+	err := run(&bytes.Buffer{}, Options{}, deps)
 	if err == nil || !strings.Contains(err.Error(), storage) || !strings.Contains(err.Error(), "unavailable") {
 		t.Fatalf("run() error = %v", err)
 	}
@@ -237,7 +338,7 @@ func TestRunRejectsStorageFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	deps := validDependencies(storage)
-	err := run(&bytes.Buffer{}, deps)
+	err := run(&bytes.Buffer{}, Options{}, deps)
 	if err == nil || !strings.Contains(err.Error(), "expected a directory") {
 		t.Fatalf("run() error = %v", err)
 	}
@@ -279,4 +380,16 @@ func registeredToolNames(registered []tools.Tool) []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+type observingWriter struct {
+	bytes.Buffer
+	sawAlpha bool
+}
+
+func (w *observingWriter) Write(data []byte) (int, error) {
+	if strings.Contains(string(data), "alpha") {
+		w.sawAlpha = true
+	}
+	return w.Buffer.Write(data)
 }

@@ -6,11 +6,13 @@ import (
 	"io"
 	"strings"
 	"testing"
+
+	commandlist "github.com/jamesawo/mdev/internal/command/list"
 )
 
 func TestListCommandReturnsWorkflowErrorAfterWritingOutput(t *testing.T) {
 	wantErr := errors.New("unknown status")
-	runList = func(out io.Writer) error {
+	runList = func(out io.Writer, _ commandlist.Options) error {
 		_, _ = io.WriteString(out, "tools\n  ? example  unknown\n")
 		return wantErr
 	}
@@ -28,6 +30,24 @@ func TestListCommandReturnsWorkflowErrorAfterWritingOutput(t *testing.T) {
 	}
 }
 
+func TestListCommandPassesJSONOption(t *testing.T) {
+	listJSON = true
+	t.Cleanup(func() { listJSON = false })
+	var got commandlist.Options
+	runList = func(_ io.Writer, options commandlist.Options) error {
+		got = options
+		return nil
+	}
+	t.Cleanup(func() { runList = defaultRunList })
+
+	if err := listCmd.RunE(listCmd, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !got.JSON {
+		t.Fatalf("RunE() options = %#v, want JSON", got)
+	}
+}
+
 func TestListCommandHelpIsConciseAndReadOnly(t *testing.T) {
 	var output bytes.Buffer
 	listCmd.SetOut(&output)
@@ -41,8 +61,8 @@ func TestListCommandHelpIsConciseAndReadOnly(t *testing.T) {
 			t.Fatalf("help omits %q:\n%s", text, help)
 		}
 	}
-	if listCmd.HasAvailableLocalFlags() {
-		t.Fatalf("list unexpectedly has local flags:\n%s", help)
+	if !strings.Contains(help, "--json") {
+		t.Fatalf("list help omits --json:\n%s", help)
 	}
 }
 
@@ -54,7 +74,7 @@ func TestListCommandRejectsArguments(t *testing.T) {
 
 func TestListCommandDoesNotDependOnYes(t *testing.T) {
 	called := false
-	runList = func(io.Writer) error {
+	runList = func(io.Writer, commandlist.Options) error {
 		called = true
 		return nil
 	}

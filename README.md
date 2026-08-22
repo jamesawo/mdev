@@ -64,7 +64,29 @@ System prerequisites and other tools are shown separately and sorted
 alphabetically. `✓`, `○`, and `?` mean installed, missing, and unknown. An
 unknown status indicates that verification failed unexpectedly; mdev continues
 checking the remaining tools, reports the failure details, and exits with a
-failure status.
+failure status. Normal terminal output is written progressively in alphabetical
+display order, so results remain visible while later tools are still being
+checked.
+
+For automation, use `mdev list --json`. It reports the same checks as one
+complete, deterministically ordered JSON document:
+
+```json
+{
+  "system_tools": [
+    {"name": "brew", "status": "missing"},
+    {"name": "curl", "status": "installed"}
+  ],
+  "tools": [
+    {"name": "gradle", "status": "missing"},
+    {"name": "java", "status": "unknown", "error": "verification failed"}
+  ]
+}
+```
+
+JSON standard output contains JSON only and is written after all checks finish.
+Unknown statuses are included in the complete document before the command exits
+with a failure status.
 
 List requires valid mdev configuration and available configured storage. It
 does not create or repair configuration or storage, install or configure tools,

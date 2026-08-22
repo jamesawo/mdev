@@ -150,6 +150,37 @@ list.
 
 The purpose of the default output is a quick overview, not detailed tool inspection.
 
+For normal human-oriented output, render each section and tool result progressively as verification proceeds so the user
+receives immediate and continuing feedback during potentially slow checks. Process entries sequentially in deterministic
+alphabetical display order within each section, rather than printing in completion order.
+
+Progressive output must not introduce concurrency, artificial delays, spinners, animation, or unnecessary progress
+messages. Unknown verification errors are still summarized after the completed overview.
+
+## json output
+
+`mdev list --json` produces machine-readable JSON while `mdev list` remains the human-oriented default.
+
+JSON output must use the same underlying status checks and results as normal output. Do not implement a separate
+status-detection path.
+
+The JSON document preserves the `system_tools` and `tools` groups. Each entry contains at least:
+
+- `name`;
+- `status`, with one of `installed`, `missing`, or `unknown`.
+
+An entry with an `unknown` status also contains a concise `error` field explaining its failed status check.
+
+JSON standard output must contain valid JSON only. Do not include headings, status symbols, colors, progress messages,
+explanatory text, or any other human-oriented output.
+
+Unlike normal output, JSON is emitted as one complete document after every verification finishes. Ordering remains
+deterministic within both groups.
+
+If one or more statuses are unknown, emit the complete JSON document with all results and then return a non-zero exit
+status. A configuration or storage failure that prevents listing also returns non-zero and must not write malformed or
+partial JSON.
+
 ## configuration
 
 `mdev list` requires a valid mdev configuration.
@@ -284,6 +315,11 @@ Cover smaller behavior such as:
 - unavailable configured storage;
 - read-only behavior where relevant;
 - output formatting and status representation.
+- progressive human output before later verification completes;
+- JSON grouping, fields, statuses, unknown error details, and deterministic ordering;
+- complete valid JSON before an unknown-status failure;
+- no partial JSON for configuration or storage failures;
+- the normal and JSON modes using the same status-detection path.
 
 Tests should use the registered tool abstractions rather than depending on the developer's actual installed tools.
 
@@ -313,6 +349,9 @@ List is done when:
 - missing tools are reported as missing;
 - verification failures are reported as unknown rather than incorrectly as missing;
 - one failed verification does not hide useful results for other tools;
+- normal output is rendered progressively in deterministic display order;
+- `--json` emits one complete valid, deterministically ordered document from the same underlying tool states;
+- unknown JSON entries include errors and still produce a complete document before the command fails;
 - the command remains completely read-only;
 - configuration and unavailable-storage behavior are consistent with setup;
 - dependencies are left to graph and health diagnosis is left to doctor;

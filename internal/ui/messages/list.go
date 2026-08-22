@@ -11,7 +11,9 @@ repair, or otherwise modify tools.
 typical usage:
 
   mdev list
+  mdev list --json
 `
+	ListJSONFlag            = "output one machine-readable JSON document"
 	ListSystemTools         = "system tools"
 	ListTools               = "tools"
 	ListNotConfigured       = "mdev is not configured; run mdev setup"

@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var defaultRunList = func(out io.Writer) error {
-	return list.Run(out)
+var defaultRunList = func(out io.Writer, options list.Options) error {
+	return list.Run(out, options)
 }
 
 var runList = defaultRunList
@@ -20,10 +20,13 @@ var listCmd = &cobra.Command{
 	Short: messages.ListCmdShortDescription,
 	Long:  messages.ListCmdLongDescription,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runList(cmd.OutOrStdout())
+		return runList(cmd.OutOrStdout(), list.Options{JSON: listJSON})
 	},
 }
 
+var listJSON bool
+
 func init() {
 	rootCmd.AddCommand(listCmd)
+	listCmd.Flags().BoolVar(&listJSON, "json", false, messages.ListJSONFlag)
 }
