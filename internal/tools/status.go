@@ -3,12 +3,11 @@ package tools
 import (
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 )
 
@@ -20,28 +19,7 @@ type StatusChecker interface {
 
 // ManagedSymlinkStatus reports whether source is a symlink resolving to target.
 func ManagedSymlinkStatus(source, target string) (bool, error) {
-	info, err := os.Lstat(source)
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	if info.Mode()&os.ModeSymlink == 0 {
-		return false, nil
-	}
-	destination, err := filepath.EvalSymlinks(source)
-	if err != nil {
-		return false, err
-	}
-	expected, err := filepath.EvalSymlinks(target)
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return filepath.Clean(destination) == filepath.Clean(expected), nil
+	return storage.ManagedSymlinkStatus(source, target)
 }
 
 // InstallationStatus preserves compatibility with existing Tool

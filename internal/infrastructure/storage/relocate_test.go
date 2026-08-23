@@ -95,3 +95,28 @@ func TestRelocateCreatesMissingSourceParents(t *testing.T) {
 		t.Fatalf("source resolves to %q, want %q", resolved, want)
 	}
 }
+
+func TestRelocateRepairsExpectedDanglingSymlink(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "home", "machine")
+	target := filepath.Join(root, "managed", "podman")
+	if err := os.MkdirAll(filepath.Dir(source), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, source); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Relocate(source, target); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(target)
+	if err != nil || !info.IsDir() {
+		t.Fatalf("managed target was not recreated: %v", err)
+	}
+	resolved, err := filepath.EvalSymlinks(source)
+	want, wantErr := filepath.EvalSymlinks(target)
+	if err != nil || wantErr != nil || resolved != want {
+		t.Fatalf("source resolves to %q, want %q, errors = %v, %v", resolved, want, err, wantErr)
+	}
+}

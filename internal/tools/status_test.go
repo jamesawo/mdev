@@ -69,6 +69,22 @@ func TestManagedSymlinkStatusRequiresExpectedTarget(t *testing.T) {
 	}
 }
 
+func TestManagedSymlinkStatusTreatsExpectedDanglingLinkAsIncomplete(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "missing-target")
+	source := filepath.Join(root, "source")
+	if err := os.Symlink(target, source); err != nil {
+		t.Fatal(err)
+	}
+	installed, err := ManagedSymlinkStatus(source, target)
+	if err != nil {
+		t.Fatalf("status returned an error for recoverable state: %v", err)
+	}
+	if installed {
+		t.Fatal("dangling managed symlink was reported installed")
+	}
+}
+
 type fallbackStatusTool struct {
 	installed bool
 }
