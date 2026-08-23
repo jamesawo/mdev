@@ -26,4 +26,7 @@ func TestSetupOutputFormatting(t *testing.T) {
 	if SetupListCommand != "mdev list" {
 		t.Fatalf("SetupListCommand = %q", SetupListCommand)
 	}
+	if SetupReadinessApply != "allow mdev to install these requirements?" {
+		t.Fatalf("SetupReadinessApply = %q", SetupReadinessApply)
+	}
 }

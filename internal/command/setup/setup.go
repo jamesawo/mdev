@@ -53,6 +53,13 @@ func (terminalOutput) Info(text string)    { printer.Info(text) }
 func (terminalOutput) Blank()              { printer.Blank() }
 func (terminalOutput) Command(text string) { printer.Command(text) }
 
+// ErrReadinessDeclined marks an expected user cancellation before remediation begins.
+var ErrReadinessDeclined = errors.New(messages.SetupReadinessDeclined)
+
+type readinessSummarizer interface {
+	Summary([]readiness.Item) error
+}
+
 // Run configures setup using process streams for compatibility with existing callers.
 func Run(options Options) error {
 	return RunContext(context.Background(), Streams{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}, options)
@@ -99,6 +106,14 @@ func runInteractive(ctx context.Context, deps dependencies, out output) error {
 	}
 	if errors.Is(err, environment.ErrAlreadyConfigured) {
 		if err := establishReadiness(ctx, deps, true); err != nil {
+			if errors.Is(err, ErrReadinessDeclined) {
+				printReadinessCancellation(out)
+				return err
+			}
+			var pending *readiness.PendingRemediationError
+			if errors.As(err, &pending) {
+				return err
+			}
 			return setupError(err)
 		}
 		printAlreadyConfigured(out, env, deps.displayStoragePath)
@@ -111,6 +126,14 @@ func runInteractive(ctx context.Context, deps dependencies, out output) error {
 		return setupError(err)
 	}
 	if err := establishReadiness(ctx, deps, true); err != nil {
+		if errors.Is(err, ErrReadinessDeclined) {
+			printReadinessCancellation(out)
+			return err
+		}
+		var pending *readiness.PendingRemediationError
+		if errors.As(err, &pending) {
+			return err
+		}
 		return setupError(err)
 	}
 	env, err = deps.setupResolved(env.StoragePath)
@@ -153,6 +176,11 @@ func establishReadiness(ctx context.Context, deps dependencies, interactive bool
 	if err != nil {
 		return err
 	}
+	if summarizer, ok := deps.reporter.(readinessSummarizer); ok {
+		if err := summarizer.Summary(items); err != nil {
+			return err
+		}
+	}
 	unready := readiness.Unready(items)
 	if len(unready) == 0 {
 		return nil
@@ -166,9 +194,15 @@ func establishReadiness(ctx context.Context, deps dependencies, interactive bool
 		return errors.New(messages.SetupReadinessNonInteractive)
 	}
 	if deps.confirm == nil || !deps.confirm(messages.SetupReadinessApply) {
-		return errors.New(messages.SetupReadinessDeclined)
+		return ErrReadinessDeclined
 	}
 	return deps.remediate(ctx, items, deps.reporter)
+}
+
+func printReadinessCancellation(out output) {
+	out.Info(messages.SetupCancelled)
+	out.Info(messages.SetupReadinessNoChanges)
+	out.Info(messages.SetupReadinessResume)
 }
 
 func printAlreadyConfigured(out output, env *environment.Environment, displayPath func(string) string) {

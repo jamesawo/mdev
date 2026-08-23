@@ -2,8 +2,10 @@ package podman
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
@@ -31,8 +33,13 @@ func (p *Podman) InstallationStatus(env *environment.Environment) (bool, error) 
 	if err != nil || !installed {
 		return installed, err
 	}
-	if info, err := os.Stat(p.StorageDir(env)); err != nil || !info.IsDir() {
-		return false, nil
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+	managed, err := tools.ManagedSymlinkStatus(podmanMachineDir(home), p.StorageDir(env))
+	if err != nil || !managed {
+		return managed, err
 	}
 	if err := exec.Command("podman", "machine", "inspect").Run(); err != nil {
 		return false, nil
@@ -43,17 +50,30 @@ func (p *Podman) Install(env *environment.Environment) error {
 	return p.InstallContext(context.Background(), env)
 }
 func (*Podman) InstallContext(ctx context.Context, _ *environment.Environment) error {
+	if err := brew.InstallContext(ctx, "podman"); err != nil {
+		return err
+	}
 	return brew.InstallCaskContext(ctx, "podman-desktop")
 }
 func (p *Podman) Configure(env *environment.Environment) error {
 	return p.ConfigureContext(context.Background(), env)
 }
 func (p *Podman) ConfigureContext(ctx context.Context, env *environment.Environment) error {
-	target := p.StorageDir(env)
-	if err := os.MkdirAll(target, 0755); err != nil {
+	if err := ctx.Err(); err != nil {
 		return err
 	}
-	return command.RunContext(ctx, "podman", "machine", "init", "--image-path", target)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	if err := storage.Relocate(podmanMachineDir(home), p.StorageDir(env)); err != nil {
+		return err
+	}
+	return command.RunContext(ctx, "podman", "machine", "init")
+}
+
+func podmanMachineDir(home string) string {
+	return filepath.Join(home, ".local", "share", "containers", "podman", "machine")
 }
 func (p *Podman) Verify(env *environment.Environment) error {
 	return p.VerifyContext(context.Background(), env)
@@ -65,7 +85,10 @@ func (*Podman) VerifyContext(ctx context.Context, _ *environment.Environment) er
 	return exec.CommandContext(ctx, "podman", "machine", "inspect").Run()
 }
 func (*Podman) Uninstall(_ *environment.Environment) error {
-	return brew.UninstallCask("podman-desktop")
+	return errors.Join(
+		brew.UninstallCask("podman-desktop"),
+		brew.Uninstall("podman"),
+	)
 }
 
 func init() { tools.Register(&Podman{}) }

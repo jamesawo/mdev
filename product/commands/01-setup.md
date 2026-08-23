@@ -53,6 +53,12 @@ written progressively through an injected writer/reporting boundary. redirected
 and non-interactive output remains stable plain text; setup does not fabricate
 stages or require terminal animation.
 
+when a platform remediation starts an external or asynchronous system flow,
+setup must not verify it as though it completed synchronously. setup explains
+the pending system interaction, stops before dependent remediation, and exits
+incomplete with a safe rerun instruction. rerunning setup rechecks actual state
+and continues only after the external installation is ready.
+
 if required readiness is declined, fails, remains unverified, or is cancelled,
 setup is incomplete and must not report `mdev is ready`. completed system
 changes remain in place; setup performs no broad rollback. rerunning setup

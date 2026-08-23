@@ -75,3 +75,23 @@ func TestRelocateRefusesUnexpectedSymlink(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestRelocateCreatesMissingSourceParents(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "home", ".local", "share", "tool", "state")
+	target := filepath.Join(root, "managed", "tool")
+	if err := Relocate(source, target); err != nil {
+		t.Fatal(err)
+	}
+	resolved, err := filepath.EvalSymlinks(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resolved != want {
+		t.Fatalf("source resolves to %q, want %q", resolved, want)
+	}
+}

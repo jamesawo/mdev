@@ -46,6 +46,12 @@ type Remediator interface {
 	RemediateContext(context.Context) error
 }
 
+// DeferredRemediator requires external completion after remediation is started.
+type DeferredRemediator interface {
+	RemediationStartedMessage() string
+	RemediationContinuationMessage() string
+}
+
 // Verifier verifies a prerequisite after remediation.
 type Verifier interface {
 	VerifyContext(context.Context) error

@@ -45,7 +45,7 @@ cat >"$fake_bin/podman" <<'EOF'
 #!/bin/sh
 case "$*" in
     "--version") exit 0 ;;
-    "machine init --image-path "*) touch "$HOME/.podman-machine-initialized" ;;
+    "machine init") touch "$HOME/.podman-machine-initialized" ;;
     "machine inspect") test -f "$HOME/.podman-machine-initialized" ;;
     *) exit 2 ;;
 esac
@@ -55,16 +55,16 @@ PATH="$fake_bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH
 
 HOME="$home" "$TEST_ROOT/mdev" install podman --yes >"$TEST_ROOT/first.out"
-grep -q '^Install plan$' "$TEST_ROOT/first.out"
-grep -q '^Installing podman\.\.\.$' "$TEST_ROOT/first.out"
-grep -q '^Configuring podman\.\.\.$' "$TEST_ROOT/first.out"
-grep -q '^Verifying podman\.\.\.$' "$TEST_ROOT/first.out"
+grep -q '^install plan$' "$TEST_ROOT/first.out"
+grep -q '^installing podman\.\.\.$' "$TEST_ROOT/first.out"
+grep -q '^configuring podman\.\.\.$' "$TEST_ROOT/first.out"
+grep -q '^verifying podman\.\.\.$' "$TEST_ROOT/first.out"
 grep -q 'podman installed$' "$TEST_ROOT/first.out"
 
 HOME="$home" "$TEST_ROOT/mdev" install podman --yes >"$TEST_ROOT/retry.out"
 grep -q '^podman is already installed\.$' "$TEST_ROOT/retry.out"
-grep -q '^Uninstall: mdev uninstall podman$' "$TEST_ROOT/retry.out"
-if grep -q '^Installing podman' "$TEST_ROOT/retry.out"; then
+grep -q '^uninstall: mdev uninstall podman$' "$TEST_ROOT/retry.out"
+if grep -q '^installing podman' "$TEST_ROOT/retry.out"; then
     echo "retry reinstalled completed tool" >&2
     exit 1
 fi
@@ -73,7 +73,7 @@ if HOME="$home" "$TEST_ROOT/mdev" install missing --yes >"$TEST_ROOT/unknown.out
     echo "unknown tool unexpectedly succeeded" >&2
     exit 1
 fi
-grep -q 'Run `mdev list`' "$TEST_ROOT/unknown.out"
+grep -q 'run `mdev list`' "$TEST_ROOT/unknown.out"
 
 if HOME="$home" "$TEST_ROOT/mdev" install podman --all --yes >"$TEST_ROOT/conflict.out" 2>&1; then
     echo "conflicting invocation unexpectedly succeeded" >&2

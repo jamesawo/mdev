@@ -41,6 +41,12 @@ func (x *Xcode) Install() error {
 }
 
 func (x *Xcode) RemediationDescription() string { return messages.ReadinessInstallXcodeCLI }
+func (x *Xcode) RemediationStartedMessage() string {
+	return messages.ReadinessXcodeInstallationStarted
+}
+func (x *Xcode) RemediationContinuationMessage() string {
+	return messages.ReadinessXcodeInstallationContinuation
+}
 func (x *Xcode) RemediateContext(ctx context.Context) error {
 	return command.RunContext(ctx, "xcode-select", "--install")
 }
