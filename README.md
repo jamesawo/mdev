@@ -71,15 +71,21 @@ mdev install
 mdev install --all
 ```
 
-mdev displays a deterministic dependency-first plan and asks for confirmation.
-Use the global `--yes` flag for unattended installation. Progress is written as
-plain text while each tool is installed, configured, and verified.
+mdev resolves dependencies deterministically, then displays only pending
+lifecycle work and asks for confirmation. Already-complete dependencies remain
+part of validation but are not presented as tools mdev will install. Use the
+global `--yes` flag for unattended installation. Progress is written as plain
+text while each tool is installed, configured, and verified.
 
 Re-running install is retry-safe: valid installations and completed
 dependencies are skipped, while partial work resumes through the owning tool's
 lifecycle. Install does not update valid tools or start their normal runtime
 state. If configured storage is missing or unavailable, install fails instead
 of creating or selecting a replacement location.
+
+Java, Gradle, and Maven are installed through mdev's managed SDKMAN
+installation. Existing Homebrew or other unmanaged JVM-tool installations are
+left untouched and do not count as mdev-managed completion.
 
 Install defensively checks only the system prerequisites required by the
 resolved tool plan. If the machine has drifted since setup, it fails before tool

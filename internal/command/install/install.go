@@ -123,6 +123,7 @@ func run(ctx context.Context, streams Streams, options Options, deps workflowDep
 		return fmt.Errorf(messages.InstallPrerequisiteMissing, item.Prerequisite.Name(), item.State)
 	}
 	states := make(map[string]bool, len(plan))
+	pending := make([]tools.Tool, 0, len(plan))
 	for _, tool := range plan {
 		if cancelled(ctx) {
 			return reporter.Cancelled()
@@ -132,13 +133,18 @@ func run(ctx context.Context, streams Streams, options Options, deps workflowDep
 			return fmt.Errorf(messages.InstallStatusError, tool.Name(), err)
 		}
 		states[tool.Name()] = installed
+		if !installed {
+			pending = append(pending, tool)
+		}
 	}
-	if err := reporter.Plan(plan); err != nil {
-		return err
-	}
-	confirmer := confirmation.New(streams.In, streams.Out, options.AssumeYes)
-	if !confirmer.Ask(messages.InstallContinueQuestion) {
-		return reporter.Cancelled()
+	if len(pending) > 0 {
+		if err := reporter.Plan(pending); err != nil {
+			return err
+		}
+		confirmer := confirmation.New(streams.In, streams.Out, options.AssumeYes)
+		if !confirmer.AskDefaultNo(messages.InstallContinueQuestion) {
+			return reporter.Cancelled()
+		}
 	}
 
 	requested := make(map[string]bool, len(selected))
@@ -199,8 +205,10 @@ func execute(ctx context.Context, env *environment.Environment, plan []tools.Too
 			return reporter.Cancelled()
 		}
 		if states[tool.Name()] {
-			if err := reporter.AlreadyInstalled(tool.Name(), requested[tool.Name()]); err != nil {
-				return err
+			if requested[tool.Name()] {
+				if err := reporter.AlreadyInstalled(tool.Name(), true); err != nil {
+					return err
+				}
 			}
 			continue
 		}

@@ -1,6 +1,7 @@
 package uninstall
 
 import (
+	"errors"
 	"os"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
@@ -20,7 +21,11 @@ func execute(env *environment.Environment, names []string) error {
 			continue
 		}
 
-		if !tool.IsInstalled(env) {
+		installed, err := tools.InstallationStatus(tool, env)
+		if err != nil {
+			return err
+		}
+		if !installed {
 			printer.Info(messages.UninstallNotInstalled(name))
 			continue
 		}
@@ -28,7 +33,7 @@ func execute(env *environment.Environment, names []string) error {
 		printer.Info(messages.UninstallRemoving(name))
 
 		// uninstall tool
-		err := tool.Uninstall(env)
+		err = tool.Uninstall(env)
 		if err != nil {
 			return err
 		}
@@ -36,11 +41,13 @@ func execute(env *environment.Environment, names []string) error {
 		// cleanup mdev storage directory
 		storagePath := tool.StorageDir(env)
 
-		if _, err := os.Stat(storagePath); err == nil {
-			printer.Info(messages.UninstallCleaningStorage(storagePath))
-
-			err := os.RemoveAll(storagePath)
-			if err != nil {
+		if storagePath != "" {
+			if _, err := os.Stat(storagePath); err == nil {
+				printer.Info(messages.UninstallCleaningStorage(storagePath))
+				if err := os.RemoveAll(storagePath); err != nil {
+					return err
+				}
+			} else if !errors.Is(err, os.ErrNotExist) {
 				return err
 			}
 		}

@@ -10,33 +10,21 @@ func BuildPlan(target string) ([]string, error) {
 		return nil, err
 	}
 
-	var affected []string
-
-	// collect target and dependents
-	for _, t := range tools.List() {
-
-		if t.Name() == target {
-			affected = append(affected, t.Name())
-			continue
-		}
-
-		for _, dep := range t.Dependencies() {
-			if dep == target {
-				affected = append(affected, t.Name())
+	affected := map[string]bool{target: true}
+	for changed := true; changed; {
+		changed = false
+		for _, tool := range tools.List() {
+			if affected[tool.Name()] {
+				continue
+			}
+			for _, dependency := range tool.Dependencies() {
+				if affected[dependency] {
+					affected[tool.Name()] = true
+					changed = true
+					break
+				}
 			}
 		}
-	}
-
-	// ensure target included
-	found := false
-	for _, n := range affected {
-		if n == target {
-			found = true
-		}
-	}
-
-	if !found {
-		affected = append(affected, target)
 	}
 
 	// build reverse-safe uninstall order
@@ -44,10 +32,9 @@ func BuildPlan(target string) ([]string, error) {
 
 	for i := len(ordered) - 1; i >= 0; i-- {
 
-		for _, a := range affected {
-			if ordered[i].Name() == a {
-				plan = append(plan, a)
-			}
+		name := ordered[i].Name()
+		if affected[name] {
+			plan = append(plan, name)
 		}
 	}
 

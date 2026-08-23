@@ -70,13 +70,34 @@ func TestRunExecutesDependencyFirstWithStableProgress(t *testing.T) {
 	if strings.Join(calls, ",") != strings.Join(want, ",") {
 		t.Fatalf("calls = %v, want %v", calls, want)
 	}
-	for _, text := range []string{"Install plan", "dependency", "requested", "installed"} {
+	for _, text := range []string{"install plan", "dependency", "requested", "installed"} {
 		if !strings.Contains(output.String(), text) {
 			t.Fatalf("output omits %q:\n%s", text, output.String())
 		}
 	}
 	if strings.Contains(output.String(), "\x1b[") {
 		t.Fatalf("output contains terminal control sequences: %q", output.String())
+	}
+}
+
+func TestRunPlanContainsOnlyPendingWorkAndSkipsInstalledDependencies(t *testing.T) {
+	var calls []string
+	sdkman := &fakeTool{name: "sdkman", calls: &calls}
+	java := &fakeTool{name: "java", deps: []string{"sdkman"}, calls: &calls}
+	gradle := &fakeTool{name: "gradle", deps: []string{"java"}, calls: &calls}
+	plan := []tools.Tool{sdkman, java, gradle}
+	deps := testDependencies(plan, plan, map[string]bool{"sdkman": true, "java": true})
+	var output bytes.Buffer
+	if err := run(context.Background(), Streams{In: strings.NewReader("yes\n"), Out: &output}, Options{Tool: "gradle"}, deps); err != nil {
+		t.Fatal(err)
+	}
+	wantCalls := []string{"install:gradle", "configure:gradle", "verify:gradle"}
+	if strings.Join(calls, ",") != strings.Join(wantCalls, ",") {
+		t.Fatalf("calls = %v, want %v", calls, wantCalls)
+	}
+	wantOutput := "install plan\n  gradle\ncontinue installation? (y/N): installing gradle...\nconfiguring gradle...\nverifying gradle...\n✓ gradle installed\n"
+	if output.String() != wantOutput {
+		t.Fatalf("output = %q, want %q", output.String(), wantOutput)
 	}
 }
 
@@ -113,6 +134,9 @@ func TestRunReportsAlreadyInstalledWithoutVersion(t *testing.T) {
 	}
 	if strings.Contains(output.String(), "0.0") {
 		t.Fatalf("output includes a version: %q", output.String())
+	}
+	if strings.Contains(output.String(), "install plan") || strings.Contains(output.String(), "continue installation") {
+		t.Fatalf("completed request displayed pending work: %q", output.String())
 	}
 }
 

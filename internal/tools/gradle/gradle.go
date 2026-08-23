@@ -3,11 +3,10 @@ package gradle
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
-	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
+	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
@@ -20,14 +19,14 @@ type Gradle struct{}
 func (*Gradle) Name() string                                   { return "gradle" }
 func (*Gradle) Description() string                            { return messages.ToolsGradleDescription }
 func (*Gradle) Dependencies() []string                         { return []string{"java"} }
-func (*Gradle) SystemPrerequisites() []string                  { return []string{"brew"} }
+func (*Gradle) SystemPrerequisites() []string                  { return nil }
 func (*Gradle) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "gradle") }
 func (g *Gradle) IsInstalled(env *environment.Environment) bool {
 	installed, _ := g.InstallationStatus(env)
 	return installed
 }
 func (g *Gradle) InstallationStatus(env *environment.Environment) (bool, error) {
-	installed, err := tools.CommandInstallationStatus("gradle", "-version")
+	installed, err := shell.SDKMANCandidateInstallationStatus(context.Background(), "gradle", "gradle", "--version")
 	if err != nil || !installed {
 		return installed, err
 	}
@@ -41,7 +40,7 @@ func (g *Gradle) Install(env *environment.Environment) error {
 	return g.InstallContext(context.Background(), env)
 }
 func (*Gradle) InstallContext(ctx context.Context, _ *environment.Environment) error {
-	return brew.InstallContext(ctx, "gradle")
+	return shell.InstallSDKMANCandidateContext(ctx, "gradle")
 }
 func (g *Gradle) Configure(env *environment.Environment) error {
 	return g.ConfigureContext(context.Background(), env)
@@ -60,10 +59,10 @@ func (g *Gradle) Verify(env *environment.Environment) error {
 	return g.VerifyContext(context.Background(), env)
 }
 func (*Gradle) VerifyContext(ctx context.Context, _ *environment.Environment) error {
-	return exec.CommandContext(ctx, "gradle", "-version").Run()
+	return shell.RunSDKMANCandidateContext(ctx, "gradle", "gradle", "--version")
 }
 func (g *Gradle) Uninstall(env *environment.Environment) error {
-	if err := brew.Uninstall("gradle"); err != nil {
+	if err := shell.UninstallSDKMANCandidate("gradle"); err != nil {
 		return err
 	}
 	home, err := os.UserHomeDir()

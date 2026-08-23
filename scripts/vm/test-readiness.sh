@@ -55,7 +55,17 @@ cat <<'INSTALLER'
 mkdir -p "$HOME/.sdkman/bin"
 cat >"$HOME/.sdkman/bin/sdkman-init.sh" <<'INIT'
 export JAVA_HOME="$HOME/.sdkman/candidates/java/current"
-sdk() { return 0; }
+sdk() {
+    [ "$1" = install ] || return 0
+    case "$2" in
+        java) executable=java ;;
+        gradle) executable=gradle ;;
+        *) return 0 ;;
+    esac
+    target="$HOME/.sdkman/candidates/$2/current/bin"
+    mkdir -p "$target"
+    ln -sf "$MDEV_FAKE_BIN/$executable" "$target/$executable"
+}
 INIT
 cat >"$MDEV_FAKE_BIN/java" <<'JAVA'
 #!/bin/sh
@@ -88,14 +98,14 @@ grep -q '^system tools$' "$TEST_ROOT/list.out"
 grep -q '^tools$' "$TEST_ROOT/list.out"
 
 HOME="$home" SUDO_USER= "$TEST_ROOT/mdev" install gradle --yes >"$TEST_ROOT/install.out"
-grep -q '^Installing sdkman\.\.\.$' "$TEST_ROOT/install.out"
-grep -q '^Installing java\.\.\.$' "$TEST_ROOT/install.out"
-grep -q '^Installing gradle\.\.\.$' "$TEST_ROOT/install.out"
+grep -q '^installing sdkman\.\.\.$' "$TEST_ROOT/install.out"
+grep -q '^installing java\.\.\.$' "$TEST_ROOT/install.out"
+grep -q '^installing gradle\.\.\.$' "$TEST_ROOT/install.out"
 grep -q 'gradle installed$' "$TEST_ROOT/install.out"
 
 HOME="$home" SUDO_USER= "$TEST_ROOT/mdev" install gradle --yes >"$TEST_ROOT/retry.out"
 grep -q '^gradle is already installed\.$' "$TEST_ROOT/retry.out"
-if grep -q '^Installing gradle' "$TEST_ROOT/retry.out"; then
+if grep -q '^installing gradle' "$TEST_ROOT/retry.out"; then
     echo "retry reinstalled completed tool" >&2
     exit 1
 fi

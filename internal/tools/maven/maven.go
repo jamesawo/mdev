@@ -3,11 +3,10 @@ package maven
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
-	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
+	"github.com/jamesawo/mdev/internal/infrastructure/shell"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
@@ -20,14 +19,14 @@ type Maven struct{}
 func (*Maven) Name() string                                   { return "maven" }
 func (*Maven) Description() string                            { return messages.ToolsMavenDescription }
 func (*Maven) Dependencies() []string                         { return []string{"java"} }
-func (*Maven) SystemPrerequisites() []string                  { return []string{"brew"} }
+func (*Maven) SystemPrerequisites() []string                  { return nil }
 func (*Maven) StorageDir(env *environment.Environment) string { return storage.ToolDir(env, "maven") }
 func (m *Maven) IsInstalled(env *environment.Environment) bool {
 	installed, _ := m.InstallationStatus(env)
 	return installed
 }
 func (m *Maven) InstallationStatus(env *environment.Environment) (bool, error) {
-	installed, err := tools.CommandInstallationStatus("mvn", "-version")
+	installed, err := shell.SDKMANCandidateInstallationStatus(context.Background(), "maven", "mvn", "--version")
 	if err != nil || !installed {
 		return installed, err
 	}
@@ -41,7 +40,7 @@ func (m *Maven) Install(env *environment.Environment) error {
 	return m.InstallContext(context.Background(), env)
 }
 func (*Maven) InstallContext(ctx context.Context, _ *environment.Environment) error {
-	return brew.InstallContext(ctx, "maven")
+	return shell.InstallSDKMANCandidateContext(ctx, "maven")
 }
 func (m *Maven) Configure(env *environment.Environment) error {
 	return m.ConfigureContext(context.Background(), env)
@@ -60,10 +59,10 @@ func (m *Maven) Verify(env *environment.Environment) error {
 	return m.VerifyContext(context.Background(), env)
 }
 func (*Maven) VerifyContext(ctx context.Context, _ *environment.Environment) error {
-	return exec.CommandContext(ctx, "mvn", "-version").Run()
+	return shell.RunSDKMANCandidateContext(ctx, "maven", "mvn", "--version")
 }
 func (m *Maven) Uninstall(env *environment.Environment) error {
-	if err := brew.Uninstall("maven"); err != nil {
+	if err := shell.UninstallSDKMANCandidate("maven"); err != nil {
 		return err
 	}
 	home, err := os.UserHomeDir()

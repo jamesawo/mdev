@@ -59,8 +59,13 @@ deduplicated, dependency-first plan. A missing dependency or cycle fails before
 mutation. Invalid unrelated registry entries must not prevent a single-tool
 plan.
 
-The plan is shown before mutation and requires confirmation unless `--yes` is
-active. Declining confirmation is a successful no-op.
+Authoritative installed state is evaluated for the complete resolved closure
+before presentation. The install plan contains only tools whose lifecycle work
+is still pending; already-complete dependencies remain in resolution and
+execution state but are not presented as work mdev will perform. A non-empty
+pending plan requires confirmation unless `--yes` is active. Declining
+confirmation is a successful no-op. If the explicitly requested tool is already
+complete, install reports that state without presenting an empty plan or prompt.
 
 ## lifecycle
 
@@ -105,6 +110,9 @@ dependency, or introduce a broad event/streaming framework.
 
 All mdev-owned output uses Cobra's configured streams. Tool-native subprocess
 output may continue to stream through the tool's infrastructure.
+
+All mdev-owned install copy uses lowercase product language. Native output from
+Homebrew, SDKMAN, macOS, and other external programs is preserved as emitted.
 
 ## cancellation and failure recovery
 
