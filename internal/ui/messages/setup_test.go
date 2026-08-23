@@ -23,8 +23,8 @@ func TestSetupOutputFormatting(t *testing.T) {
 	if got := SetupSymlinkResolution("~/linked", "/Volumes/Data/mdev"); got != "~/linked  → /Volumes/Data/mdev" {
 		t.Fatalf("SetupSymlinkResolution() = %q", got)
 	}
-	if SetupListCommand != "mdev list" {
-		t.Fatalf("SetupListCommand = %q", SetupListCommand)
+	if SetupListHint != "run mdev list to see available tools." {
+		t.Fatalf("SetupListHint = %q", SetupListHint)
 	}
 	if SetupReadinessApply != "allow mdev to install these requirements?" {
 		t.Fatalf("SetupReadinessApply = %q", SetupReadinessApply)

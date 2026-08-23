@@ -43,15 +43,15 @@ type output interface {
 	Section(string)
 	Info(string)
 	Blank()
-	Command(string)
+	Plain(string)
 }
 
-type terminalOutput struct{}
+type terminalOutput struct{ out io.Writer }
 
 func (terminalOutput) Section(text string) { printer.Section(text) }
 func (terminalOutput) Info(text string)    { printer.Info(text) }
 func (terminalOutput) Blank()              { printer.Blank() }
-func (terminalOutput) Command(text string) { printer.Command(text) }
+func (o terminalOutput) Plain(text string) { fmt.Fprintln(o.out, text) }
 
 // ErrReadinessDeclined marks an expected user cancellation before remediation begins.
 var ErrReadinessDeclined = errors.New(messages.SetupReadinessDeclined)
@@ -70,7 +70,7 @@ func RunContext(ctx context.Context, streams Streams, options Options) error {
 	deps := productionDependencies()
 	deps.confirm = confirmation.New(streams.In, streams.Out, false).AskDefaultNo
 	deps.reporter = newReadinessReporter(streams.Out)
-	return runContext(ctx, options, deps, terminalOutput{})
+	return runContext(ctx, options, deps, terminalOutput{out: streams.Out})
 }
 
 func productionDependencies() dependencies {
@@ -206,21 +206,18 @@ func printReadinessCancellation(out output) {
 }
 
 func printAlreadyConfigured(out output, env *environment.Environment, displayPath func(string) string) {
-	out.Info(messages.SetupComplete)
-	out.Info(messages.SetupStorage(displayPath(env.StoragePath)))
-	printNextStep(out)
+	printCompletion(out, env, displayPath)
 }
 
 func printSuccess(out output, env *environment.Environment, displayPath func(string) string) {
-	out.Section(messages.SetupReady)
-	out.Info(messages.SetupStorage(displayPath(env.StoragePath)))
-	printNextStep(out)
+	printCompletion(out, env, displayPath)
 }
 
-func printNextStep(out output) {
+func printCompletion(out output, env *environment.Environment, displayPath func(string) string) {
 	out.Blank()
-	out.Info(messages.SetupNextStep)
-	out.Command(messages.SetupListCommand)
+	out.Plain(messages.SetupComplete)
+	out.Plain(messages.SetupStorage(displayPath(env.StoragePath)))
+	out.Plain(messages.SetupListHint)
 }
 
 func setupError(err error) error {

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 
@@ -27,6 +28,7 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		confirmation.Configure(confirmAll)
 	},
+	PersistentPostRunE: appendTrailingBlank,
 }
 
 var confirmAll bool
@@ -34,6 +36,14 @@ var confirmAll bool
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&confirmAll, "yes", "y", false, messages.RootFlagConfirmAll)
 	rootCmd.SetVersionTemplate(messages.RootVersionTemplate)
+}
+
+func appendTrailingBlank(cmd *cobra.Command, _ []string) error {
+	if flag := cmd.Flags().Lookup(messages.CommonJSONFlagName); flag != nil && flag.Value.String() == "true" {
+		return nil
+	}
+	_, err := fmt.Fprintln(cmd.OutOrStdout())
+	return err
 }
 
 // Execute runs the CLI.

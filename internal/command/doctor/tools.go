@@ -12,13 +12,22 @@ func checkTools(reporter Reporter) []ToolCheck {
 
 	env, _ := environment.FromConfig()
 
-	for _, t := range tools.List() {
+	registered := tools.List()
+	nameWidth := 0
+	for _, tool := range registered {
+		if len(tool.Name()) > nameWidth {
+			nameWidth = len(tool.Name())
+		}
+	}
+
+	for _, t := range registered {
 		reporter.StartCheck(t.Name())
 
 		result := ToolCheck{
 			Name:         t.Name(),
 			Installed:    t.IsInstalled(env),
 			Dependencies: t.Dependencies(),
+			NameWidth:    nameWidth,
 		}
 		results = append(results, result)
 		reporter.ToolCheck(result)

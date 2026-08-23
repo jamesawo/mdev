@@ -19,6 +19,7 @@ type ToolCheck struct {
 	Name         string
 	Installed    bool
 	Dependencies []string
+	NameWidth    int
 }
 
 // Reporter streams progress updates while doctor checks are running.

@@ -22,7 +22,7 @@ func (r *progressReporter) StartSection(title string) {
 }
 
 func (r *progressReporter) StartCheck(name string) {
-	printer.Info(fmt.Sprintf(messages.DoctorCheckingProgress, name))
+	// Fast checks report only their result; slow checks can add transient progress separately.
 }
 
 func (r *progressReporter) SystemCheck(result Check) {
@@ -50,11 +50,11 @@ func (r *progressReporter) EnvironmentCheck(result Check) {
 
 func (r *progressReporter) ToolCheck(result ToolCheck) {
 	if result.Installed {
-		printer.Success(result.Name)
+		printer.Info(fmt.Sprintf(messages.DoctorInstalledTool, result.NameWidth, result.Name))
 		return
 	}
 
-	printer.Fail(result.Name)
+	printer.Info(fmt.Sprintf(messages.DoctorMissingTool, result.NameWidth, result.Name))
 }
 
 // renderSummary renders the final doctor summary after streaming progress.
@@ -76,5 +76,4 @@ func renderSummary(report *Report) {
 	printer.Blank()
 	printer.Info(messages.DoctorFixHint)
 	printer.Indent(2, messages.DoctorFixCommand)
-	printer.Blank()
 }

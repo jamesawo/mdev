@@ -31,8 +31,8 @@ func TestReadinessReporterPresentsOneProgressLineAndReadableSummary(t *testing.T
 		t.Fatal(err)
 	}
 	want := "checking system requirements...\n" +
-		"✓ curl\n" +
-		"✓ git\n" +
+		"  ✓ curl\n" +
+		"  ✓ git\n" +
 		"\nsystem changes required\n\n" +
 		"  xcode-cli\n" +
 		"    install Xcode Command Line Tools\n\n" +

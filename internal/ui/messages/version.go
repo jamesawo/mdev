@@ -12,6 +12,6 @@ This command is read-only and does not require mdev configuration or storage.`
 	VersionProductLineFormat = "mdev %s\n"
 	VersionCommitLineFormat  = "commit: %s\n"
 	VersionBuiltLineFormat   = "built: %s\n"
-	RootVersionTemplate      = "{{printf \"mdev %s\\n\" .Version}}"
+	RootVersionTemplate      = "{{printf \"mdev %s\\n\\n\" .Version}}"
 	VersionWriteFailed       = "write version output: %w"
 )

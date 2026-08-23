@@ -100,7 +100,7 @@ func TestRootVersionFlagUsesSharedConciseVersion(t *testing.T) {
 	if _, err := rootCmd.ExecuteC(); err != nil {
 		t.Fatal(err)
 	}
-	want := "mdev " + versionMetadata.Version + "\n"
+	want := "mdev " + versionMetadata.Version + "\n\n"
 	if output.String() != want {
 		t.Fatalf("output = %q, want %q", output.String(), want)
 	}
