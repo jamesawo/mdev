@@ -15,7 +15,7 @@ func Relocate(source, target string) error {
 		return err
 	}
 	if symlink {
-		return validateSymlink(source, target)
+		return reconcileSymlink(source, target)
 	}
 
 	sourceInfo, sourceErr := os.Stat(source)
@@ -71,20 +71,79 @@ func Relocate(source, target string) error {
 	return nil
 }
 
-// validateSymlink accepts an existing source link only when it reaches target.
-func validateSymlink(source, target string) error {
-	destination, err := filepath.EvalSymlinks(source)
+// ManagedSymlinkStatus reports whether source points to an existing managed target.
+// A correctly targeted dangling link is incomplete state, not an inspection error.
+func ManagedSymlinkStatus(source, target string) (bool, error) {
+	symlink, err := isSymlink(source)
 	if err != nil {
-		return fmt.Errorf("inspect tool state symlink %s: %w", source, err)
+		return false, err
 	}
-	expected, err := filepath.EvalSymlinks(target)
+	if !symlink {
+		return false, nil
+	}
+	matches, err := symlinkPointsTo(source, target)
+	if err != nil {
+		return false, err
+	}
+	if !matches {
+		return false, nil
+	}
+	info, err := os.Stat(target)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("inspect managed tool target %s: %w", target, err)
+	}
+	return info.IsDir(), nil
+}
+
+// reconcileSymlink accepts only the intended link and recreates its missing target.
+func reconcileSymlink(source, target string) error {
+	matches, err := symlinkPointsTo(source, target)
+	if err != nil {
+		return err
+	}
+	if !matches {
+		destination, readErr := os.Readlink(source)
+		if readErr != nil {
+			return fmt.Errorf("inspect tool state symlink %s: %w", source, readErr)
+		}
+		return fmt.Errorf("tool state symlink %s points to %s, expected %s", source, destination, target)
+	}
+	info, err := os.Stat(target)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(target, 0755); err != nil {
+			return fmt.Errorf("prepare managed tool target %s: %w", target, err)
+		}
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("inspect managed tool target %s: %w", target, err)
 	}
-	if filepath.Clean(destination) != filepath.Clean(expected) {
-		return fmt.Errorf("tool state symlink %s points to %s, expected %s", source, destination, expected)
+	if !info.IsDir() {
+		return fmt.Errorf("managed tool target is not a directory: %s", target)
 	}
 	return nil
+}
+
+func symlinkPointsTo(source, target string) (bool, error) {
+	destination, err := os.Readlink(source)
+	if err != nil {
+		return false, fmt.Errorf("inspect tool state symlink %s: %w", source, err)
+	}
+	if !filepath.IsAbs(destination) {
+		destination = filepath.Join(filepath.Dir(source), destination)
+	}
+	destination, err = filepath.Abs(destination)
+	if err != nil {
+		return false, err
+	}
+	expected, err := filepath.Abs(target)
+	if err != nil {
+		return false, err
+	}
+	return filepath.Clean(destination) == filepath.Clean(expected), nil
 }
 
 // isSymlink distinguishes missing paths from existing symbolic links.
