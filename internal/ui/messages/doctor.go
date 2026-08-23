@@ -14,29 +14,38 @@ Use --fix to attempt automatic remediation.`
 )
 
 const (
-	DoctorSystem                   = "System"
-	DoctorEnvironment              = "Environment"
-	DoctorEnvironmentConfiguration = "Environment configuration"
+	DoctorSystem                   = "system requirements"
+	DoctorEnvironment              = "environment"
+	DoctorEnvironmentConfiguration = "configuration"
 	DoctorStorageLocation          = "storage path"
 	DoctorStorageDirectory         = "storage directory"
-	DoctorTools                    = "Tools"
-	DoctorNextSteps                = "Next steps"
-	DoctorFixingPrerequisites      = "Fixing system prerequisites"
-	DoctorFixingSystem             = "Fixing system"
+	DoctorTools                    = "tools"
+	DoctorNextSteps                = "next steps"
+	DoctorFixingSystem             = "fixing system requirements..."
 	DoctorFixSummary               = "Summary"
 )
 
 const (
 	DoctorFailed                        = "doctor failed"
-	DoctorEnvironmentNotConfiguredShort = "Not configured"
-	DoctorEnvironmentNotSetUp           = "Development environment is not set up"
-	DoctorInstallMissingPrerequisites   = "Install missing prerequisites?"
+	DoctorEnvironmentNotConfiguredShort = "not configured"
+	DoctorEnvironmentNotSetUp           = "development environment is not set up"
+	DoctorInstallMissingPrerequisites   = "allow mdev to apply these changes?"
 	DoctorMissing                       = "missing"
-	DoctorNothingToFix                  = "Nothing to fix"
-	DoctorInstallIndividual             = "Install individual tools:"
-	DoctorInstallEverything             = "Install everything:"
-	DoctorFixHint                       = "To fix system issues automatically:"
+	DoctorNothingToFix                  = "nothing to fix."
+	DoctorSystemReady                   = "system requirements are ready."
+	DoctorInstallIndividual             = "install individual tools:"
+	DoctorInstallEverything             = "install everything:"
+	DoctorFixHint                       = "to fix system issues automatically:"
 	DoctorChecking                      = "checking %s"
+	DoctorCheckingSystem                = "checking system requirements..."
+	DoctorNeedsAttention                = "needs attention"
+	DoctorSystemChangesOne              = "1 system change can be fixed by mdev."
+	DoctorSystemChangesMany             = "%d system changes can be fixed by mdev."
+	DoctorReadyResult                   = "✓ %s\n"
+	DoctorAttentionItem                 = "  %s\n    %s\n"
+	DoctorFixingItem                    = "fixing %s...\n"
+	DoctorInstalledTool                 = "✓ %-*s  installed"
+	DoctorMissingTool                   = "○ %-*s  missing"
 	DoctorCheckingProgress              = "checking %s..."
 	DoctorMissingCheck                  = "%s %s"
 	DoctorReadinessState                = "%s %s"
@@ -46,6 +55,13 @@ const (
 	DoctorInstallAllCommand             = "mdev install --all"
 	DoctorFixCommand                    = "mdev doctor --fix"
 )
+
+func DoctorSystemChanges(count int) string {
+	if count == 1 {
+		return DoctorSystemChangesOne
+	}
+	return fmt.Sprintf(DoctorSystemChangesMany, count)
+}
 
 func DoctorInstallationFailed(name string) string {
 	return fmt.Sprintf("%s installation failed", name)

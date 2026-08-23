@@ -13,7 +13,7 @@ var doctorCmd = &cobra.Command{
 	Short: messages.DoctorShortDescription,
 	Long:  messages.DoctorLongDescription,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return doctor.ExecuteContext(cmd.Context(), doctorFix)
+		return doctor.ExecuteWithStreams(cmd.Context(), doctorFix, cmd.InOrStdin(), cmd.OutOrStdout())
 	},
 }
 

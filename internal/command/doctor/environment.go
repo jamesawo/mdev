@@ -30,6 +30,9 @@ func checkEnvironment(reporter Reporter) []Check {
 	}
 
 	env := environment.New(cfg.StoragePath)
+	configuration := Check{Name: messages.DoctorEnvironmentConfiguration, Status: true}
+	results = append(results, configuration)
+	reporter.EnvironmentCheck(configuration)
 
 	reporter.StartCheck(messages.DoctorStorageLocation)
 	storageLocation := Check{

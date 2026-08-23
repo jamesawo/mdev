@@ -1,6 +1,7 @@
 package messages
 
 const (
+	CommonJSONFlagName       = "json"
 	CommonRun                = "run"
 	CommonAborted            = "aborted"
 	CommonInstalled          = "installed"

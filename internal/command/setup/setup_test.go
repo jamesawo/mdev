@@ -36,16 +36,15 @@ func TestInteractiveAlreadyConfiguredEndsWithListRecommendation(t *testing.T) {
 	}
 	want := []string{
 		"section:" + messages.SetupTitle,
-		"info:" + messages.SetupComplete,
-		"info:" + messages.SetupStorage("display:/storage/mdev"),
 		"blank",
-		"info:" + messages.SetupNextStep,
-		"command:" + messages.SetupListCommand,
+		"plain:" + messages.SetupComplete,
+		"plain:" + messages.SetupStorage("display:/storage/mdev"),
+		"plain:" + messages.SetupListHint,
 	}
 	if !reflect.DeepEqual(out.calls, want) {
 		t.Fatalf("output calls = %#v, want %#v", out.calls, want)
 	}
-	if got := out.calls[len(out.calls)-1]; got != "command:mdev list" {
+	if got := out.calls[len(out.calls)-1]; got != "plain:"+messages.SetupListHint {
 		t.Fatalf("last output = %q", got)
 	}
 }
@@ -93,7 +92,7 @@ func TestNonInteractiveSetupCreatesCanonicalStorageAndConfig(t *testing.T) {
 	if info, err := os.Stat(cfg.StoragePath); err != nil || !info.IsDir() {
 		t.Fatalf("storage path was not created: %v", err)
 	}
-	if got := out.calls[len(out.calls)-1]; got != "command:mdev list" {
+	if got := out.calls[len(out.calls)-1]; got != "plain:"+messages.SetupListHint {
 		t.Fatalf("last output = %q", got)
 	}
 }
@@ -217,4 +216,4 @@ type recordingOutput struct {
 func (o *recordingOutput) Section(text string) { o.calls = append(o.calls, "section:"+text) }
 func (o *recordingOutput) Info(text string)    { o.calls = append(o.calls, "info:"+text) }
 func (o *recordingOutput) Blank()              { o.calls = append(o.calls, "blank") }
-func (o *recordingOutput) Command(text string) { o.calls = append(o.calls, "command:"+text) }
+func (o *recordingOutput) Plain(text string)   { o.calls = append(o.calls, "plain:"+text) }
