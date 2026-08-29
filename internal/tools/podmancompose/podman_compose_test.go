@@ -24,14 +24,16 @@ func TestInstallationStatusRequiresHomebrewOwnershipAndWorkingProvider(t *testin
 	bin, logPath := fakeCommands(t, true)
 	t.Setenv("PATH", bin)
 	t.Setenv("MDEV_TEST_BREW_LOG", logPath)
-	if !(&PodmanCompose{}).InstallationStatus(environment.New(t.TempDir())) {
+	installed, err := (&PodmanCompose{}).InstallationStatus(environment.New(t.TempDir()))
+	if err != nil || !installed {
 		t.Fatal("Homebrew-managed working provider was not detected")
 	}
 
 	bin, logPath = fakeCommands(t, false)
 	t.Setenv("PATH", bin)
 	t.Setenv("MDEV_TEST_BREW_LOG", logPath)
-	if (&PodmanCompose{}).InstallationStatus(environment.New(t.TempDir())) {
+	installed, err = (&PodmanCompose{}).InstallationStatus(environment.New(t.TempDir()))
+	if err != nil || installed {
 		t.Fatal("unmanaged provider counted as mdev-managed completion")
 	}
 }

@@ -28,7 +28,8 @@ func TestInstallationStatusDetectsExistingUserApplication(t *testing.T) {
 	}
 	t.Setenv("HOME", home)
 	t.Setenv("PATH", t.TempDir())
-	if !(&PodmanDesktop{}).InstallationStatus(environment.New(t.TempDir())) {
+	installed, err := (&PodmanDesktop{}).InstallationStatus(environment.New(t.TempDir()))
+	if err != nil || !installed {
 		t.Fatal("existing Desktop application was not detected")
 	}
 }

@@ -24,22 +24,27 @@ func (*PodmanDesktop) Dependencies() []string                     { return []str
 func (*PodmanDesktop) SystemPrerequisites() []string              { return []string{"brew"} }
 func (*PodmanDesktop) StorageDir(*environment.Environment) string { return "" }
 func (p *PodmanDesktop) IsInstalled(env *environment.Environment) bool {
-	return p.InstallationStatus(env)
+	installed, _ := p.InstallationStatus(env)
+	return installed
 }
 
 // InstallationStatus recognizes both a Homebrew-owned cask and an existing
 // user-managed application so install never overwrites an application it does
 // not own.
-func (*PodmanDesktop) InstallationStatus(*environment.Environment) bool {
+func (*PodmanDesktop) InstallationStatus(*environment.Environment) (bool, error) {
 	if brew.IsCaskInstalled(caskName) {
-		return true
+		return true, nil
 	}
 	for _, path := range desktopApplicationPaths() {
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
-			return true
+		info, err := os.Stat(path)
+		if err == nil && info.IsDir() {
+			return true, nil
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return false, err
 		}
 	}
-	return false
+	return false, nil
 }
 
 func (p *PodmanDesktop) Install(env *environment.Environment) error {
@@ -64,7 +69,11 @@ func (p *PodmanDesktop) VerifyContext(ctx context.Context, env *environment.Envi
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if !p.InstallationStatus(env) {
+	installed, err := p.InstallationStatus(env)
+	if err != nil {
+		return err
+	}
+	if !installed {
 		return errors.New(messages.ToolsPodmanDesktopNotInstalled)
 	}
 	return nil

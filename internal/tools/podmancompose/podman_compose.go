@@ -23,16 +23,17 @@ func (*PodmanCompose) Dependencies() []string                     { return []str
 func (*PodmanCompose) SystemPrerequisites() []string              { return []string{"brew"} }
 func (*PodmanCompose) StorageDir(*environment.Environment) string { return "" }
 func (p *PodmanCompose) IsInstalled(env *environment.Environment) bool {
-	return p.InstallationStatus(env)
+	installed, _ := p.InstallationStatus(env)
+	return installed
 }
 
 // InstallationStatus requires both Homebrew ownership and a working provider,
 // so an unrelated executable does not count as mdev-managed completion.
-func (*PodmanCompose) InstallationStatus(*environment.Environment) bool {
+func (*PodmanCompose) InstallationStatus(*environment.Environment) (bool, error) {
 	if !brew.IsInstalled(formulaName) {
-		return false
+		return false, nil
 	}
-	return exec.Command(formulaName, "--version").Run() == nil
+	return tools.CommandInstallationStatus(formulaName, "--version")
 }
 
 func (p *PodmanCompose) Install(env *environment.Environment) error {
