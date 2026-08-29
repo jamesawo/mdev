@@ -66,11 +66,14 @@ func (p *PodmanCompose) VerifyContext(ctx context.Context, env *environment.Envi
 
 // Uninstall removes only the Homebrew formula owned by this tool and leaves
 // the Podman machine and other Compose providers untouched.
-func (*PodmanCompose) Uninstall(*environment.Environment) error {
+func (p *PodmanCompose) Uninstall(env *environment.Environment) error {
+	return p.UninstallContext(context.Background(), env)
+}
+func (*PodmanCompose) UninstallContext(ctx context.Context, _ *environment.Environment) error {
 	if !brew.IsInstalled(formulaName) {
 		return nil
 	}
-	return brew.Uninstall(formulaName)
+	return brew.UninstallContext(ctx, formulaName)
 }
 
 func init() { tools.Register(&PodmanCompose{}) }

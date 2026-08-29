@@ -62,7 +62,13 @@ func (*Gradle) VerifyContext(ctx context.Context, _ *environment.Environment) er
 	return shell.RunSDKMANCandidateContext(ctx, "gradle", "gradle", "--version")
 }
 func (g *Gradle) Uninstall(env *environment.Environment) error {
-	if err := shell.UninstallSDKMANCandidate("gradle"); err != nil {
+	return g.UninstallContext(context.Background(), env)
+}
+func (g *Gradle) UninstallContext(ctx context.Context, env *environment.Environment) error {
+	if err := shell.UninstallSDKMANCandidateContext(ctx, "gradle"); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
 		return err
 	}
 	home, err := os.UserHomeDir()

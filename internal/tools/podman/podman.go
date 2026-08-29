@@ -207,12 +207,15 @@ func (*Podman) VerifyContext(ctx context.Context, env *environment.Environment) 
 
 // Uninstall deregisters only a machine whose artifacts are verified beneath
 // mdev-managed storage, then removes the Podman CLI without touching add-ons.
-func (*Podman) Uninstall(_ *environment.Environment) error {
+func (p *Podman) Uninstall(env *environment.Environment) error {
+	return p.UninstallContext(context.Background(), env)
+}
+func (*Podman) UninstallContext(ctx context.Context, _ *environment.Environment) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
-	state, err := inspectMachineState(context.Background(), podmanMachineDir(home))
+	state, err := inspectMachineState(ctx, podmanMachineDir(home))
 	if err != nil {
 		return err
 	}
@@ -220,11 +223,11 @@ func (*Podman) Uninstall(_ *environment.Environment) error {
 		if !state.managed {
 			return fmt.Errorf(messages.ToolsPodmanUnmanagedMachine, state.name)
 		}
-		if err := command.Run("podman", "machine", "rm", "--force", state.name); err != nil {
+		if err := command.RunContext(ctx, "podman", "machine", "rm", "--force", state.name); err != nil {
 			return err
 		}
 	}
-	return brew.Uninstall("podman")
+	return brew.UninstallContext(ctx, "podman")
 }
 
 func init() { tools.Register(&Podman{}) }

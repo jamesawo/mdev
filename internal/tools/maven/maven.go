@@ -62,7 +62,13 @@ func (*Maven) VerifyContext(ctx context.Context, _ *environment.Environment) err
 	return shell.RunSDKMANCandidateContext(ctx, "maven", "mvn", "--version")
 }
 func (m *Maven) Uninstall(env *environment.Environment) error {
-	if err := shell.UninstallSDKMANCandidate("maven"); err != nil {
+	return m.UninstallContext(context.Background(), env)
+}
+func (m *Maven) UninstallContext(ctx context.Context, env *environment.Environment) error {
+	if err := shell.UninstallSDKMANCandidateContext(ctx, "maven"); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
 		return err
 	}
 	home, err := os.UserHomeDir()

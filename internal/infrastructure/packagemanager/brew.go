@@ -19,10 +19,13 @@ func InstallContext(ctx context.Context, pkg string) error {
 }
 
 func Uninstall(pkg string) error {
+	return UninstallContext(context.Background(), pkg)
+}
 
+// UninstallContext removes a Homebrew formula with caller cancellation.
+func UninstallContext(ctx context.Context, pkg string) error {
 	r := &CommandRunner{}
-
-	return r.Run("brew", "uninstall", pkg)
+	return r.RunContext(ctx, "brew", "uninstall", pkg)
 }
 
 // InstallCask installs a Homebrew cask.
@@ -39,10 +42,13 @@ func InstallCaskContext(ctx context.Context, pkg string) error {
 }
 
 func UninstallCask(pkg string) error {
+	return UninstallCaskContext(context.Background(), pkg)
+}
 
+// UninstallCaskContext removes a Homebrew cask with caller cancellation.
+func UninstallCaskContext(ctx context.Context, pkg string) error {
 	r := &CommandRunner{}
-
-	return r.Run("brew", "uninstall", "--cask", pkg)
+	return r.RunContext(ctx, "brew", "uninstall", "--cask", pkg)
 }
 
 // IsCaskInstalled reports whether Homebrew owns the named installed cask.

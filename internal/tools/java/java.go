@@ -43,7 +43,10 @@ func (*Java) VerifyContext(ctx context.Context, _ *environment.Environment) erro
 	return shell.RunSDKMANCandidateContext(ctx, "java", "java", "-version")
 }
 func (*Java) Uninstall(_ *environment.Environment) error {
-	return shell.UninstallSDKMANCandidate("java")
+	return shell.UninstallSDKMANCandidateContext(context.Background(), "java")
+}
+func (*Java) UninstallContext(ctx context.Context, _ *environment.Environment) error {
+	return shell.UninstallSDKMANCandidateContext(ctx, "java")
 }
 
 func init() { tools.Register(&Java{}) }
