@@ -13,6 +13,8 @@ import (
 type progressReporter interface {
 	Plan([]tools.Tool) error
 	Started(string, string) error
+	Succeeded(string, string) error
+	Failed(string, string) error
 	Completed(string) error
 	AlreadyInstalled(string, bool) error
 	Cancelled() error
@@ -20,7 +22,10 @@ type progressReporter interface {
 }
 
 // textProgressReporter renders lifecycle events as stable plain text.
-type textProgressReporter struct{ out io.Writer }
+type textProgressReporter struct {
+	out       io.Writer
+	phaseOpen bool
+}
 
 // newTextProgressReporter creates the default writer-backed progress reporter.
 func newTextProgressReporter(out io.Writer) *textProgressReporter {
@@ -43,6 +48,23 @@ func (r *textProgressReporter) Plan(plan []tools.Tool) error {
 // Started writes a lifecycle boundary immediately before work begins.
 func (r *textProgressReporter) Started(name, phase string) error {
 	_, err := fmt.Fprintf(r.out, messages.InstallProgress, phase, name)
+	if err == nil {
+		r.phaseOpen = true
+	}
+	return err
+}
+
+// Succeeded closes the active lifecycle line only after its work succeeds.
+func (r *textProgressReporter) Succeeded(_, _ string) error {
+	r.phaseOpen = false
+	_, err := fmt.Fprint(r.out, messages.InstallPhaseSucceeded)
+	return err
+}
+
+// Failed closes the active lifecycle line without implying phase success.
+func (r *textProgressReporter) Failed(_, _ string) error {
+	r.phaseOpen = false
+	_, err := fmt.Fprint(r.out, messages.InstallPhaseFailed)
 	return err
 }
 
@@ -66,6 +88,12 @@ func (r *textProgressReporter) AlreadyInstalled(name string, recovery bool) erro
 
 // Cancelled writes the concise successful-cancellation message.
 func (r *textProgressReporter) Cancelled() error {
+	if r.phaseOpen {
+		r.phaseOpen = false
+		if _, err := fmt.Fprint(r.out, messages.InstallPhaseCancelled); err != nil {
+			return err
+		}
+	}
 	_, err := fmt.Fprintln(r.out, messages.InstallCancelled)
 	return err
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
 	"github.com/jamesawo/mdev/internal/infrastructure/storage"
+	"github.com/jamesawo/mdev/internal/infrastructure/subprocess"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 )
@@ -182,7 +183,7 @@ func (p *Podman) Verify(env *environment.Environment) error {
 	return p.VerifyContext(context.Background(), env)
 }
 func (*Podman) VerifyContext(ctx context.Context, env *environment.Environment) error {
-	if err := exec.CommandContext(ctx, "podman", "--version").Run(); err != nil {
+	if err := subprocess.Check(ctx, "podman", "--version"); err != nil {
 		return err
 	}
 	home, err := os.UserHomeDir()

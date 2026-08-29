@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/subprocess"
 	"github.com/jamesawo/mdev/internal/readiness"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/confirmation"
@@ -227,11 +228,18 @@ func execute(ctx context.Context, env *environment.Environment, plan []tools.Too
 			if err := reporter.Started(tool.Name(), phase.name); err != nil {
 				return err
 			}
-			if err := phase.run(ctx, tool, env); err != nil {
+			phaseContext := subprocess.WithManagedOutput(ctx)
+			if err := phase.run(phaseContext, tool, env); err != nil {
 				if cancelled(ctx) || errors.Is(err, context.Canceled) {
 					return reporter.Cancelled()
 				}
+				if reportErr := reporter.Failed(tool.Name(), phase.name); reportErr != nil {
+					return errors.Join(fmt.Errorf(messages.InstallPhaseError, phase.action, tool.Name(), err), reportErr)
+				}
 				return fmt.Errorf(messages.InstallPhaseError, phase.action, tool.Name(), err)
+			}
+			if err := reporter.Succeeded(tool.Name(), phase.name); err != nil {
+				return err
 			}
 		}
 		if err := reporter.Completed(tool.Name()); err != nil {

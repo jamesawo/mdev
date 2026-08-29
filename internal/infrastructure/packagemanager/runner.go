@@ -2,8 +2,8 @@ package packagemanager
 
 import (
 	"context"
-	"os"
-	"os/exec"
+
+	"github.com/jamesawo/mdev/internal/infrastructure/subprocess"
 )
 
 // CommandRunner executes package-manager commands with process output streams.
@@ -16,10 +16,5 @@ func (r *CommandRunner) Run(name string, args ...string) error {
 
 // RunContext executes a package-manager command with caller cancellation.
 func (r *CommandRunner) RunContext(ctx context.Context, name string, args ...string) error {
-
-	cmd := exec.CommandContext(ctx, name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return subprocess.Run(ctx, name, args...)
 }

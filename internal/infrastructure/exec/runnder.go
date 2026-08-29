@@ -2,8 +2,8 @@ package exec
 
 import (
 	"context"
-	"os"
-	"os/exec"
+
+	"github.com/jamesawo/mdev/internal/infrastructure/subprocess"
 )
 
 // Runner defines how commands are executed.
@@ -19,14 +19,5 @@ type CommandRunner struct{}
 // brew install go
 // podman machine start
 func (r *CommandRunner) Run(ctx context.Context, name string, args ...string) error {
-
-	// Create command with context (allows future timeout/cancel)
-	cmd := exec.CommandContext(ctx, name, args...)
-
-	// Attach stdout/stderr so user sees output in terminal
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	// Run the command
-	return cmd.Run()
+	return subprocess.Run(ctx, name, args...)
 }
