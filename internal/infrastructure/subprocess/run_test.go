@@ -52,6 +52,17 @@ func TestManagedRunBoundsFailureDiagnostics(t *testing.T) {
 	}
 }
 
+func TestManagedRunTreatsCarriageReturnProgressAsReplaceableLines(t *testing.T) {
+	ctx := WithManagedOutput(context.Background())
+	err := Run(ctx, "sh", "-c", "i=0; while [ $i -lt 20 ]; do printf 'progress %s%%\\r' $i >&2; i=$((i+1)); done; printf 'root cause\\n' >&2; exit 1")
+	if err == nil || !strings.Contains(err.Error(), "root cause") {
+		t.Fatalf("error = %v, want root cause", err)
+	}
+	if strings.Contains(err.Error(), "progress 0%") || strings.Count(err.Error(), "progress") >= maxDiagnosticLines {
+		t.Fatalf("carriage-return progress was not bounded as lines: %v", err)
+	}
+}
+
 func TestCheckSuppressesSuccessAndReportsFailure(t *testing.T) {
 	if err := Check(context.Background(), "sh", "-c", "printf 'version output'"); err != nil {
 		t.Fatal(err)

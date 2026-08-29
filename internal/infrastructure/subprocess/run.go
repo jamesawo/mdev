@@ -95,7 +95,13 @@ func diagnosticOutput(stdout, stderr string) string {
 }
 
 func conciseDiagnostic(output string) string {
-	lines := strings.Split(strings.TrimSpace(output), "\n")
+	rawLines := strings.Split(strings.ReplaceAll(output, "\r", "\n"), "\n")
+	lines := make([]string, 0, len(rawLines))
+	for _, line := range rawLines {
+		if line = strings.TrimSpace(line); line != "" {
+			lines = append(lines, line)
+		}
+	}
 	if len(lines) > maxDiagnosticLines {
 		lines = lines[len(lines)-maxDiagnosticLines:]
 	}
