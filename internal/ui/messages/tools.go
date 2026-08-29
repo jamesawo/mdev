@@ -10,6 +10,8 @@ const (
 	ToolsPodmanDescription             = "Container runtime and managed machine"
 	ToolsPodmanDesktopDescription      = "Optional Podman Desktop application"
 	ToolsPodmanDesktopNotInstalled     = "podman desktop application is not installed"
+	ToolsPodmanComposeDescription      = "Optional Podman Compose provider"
+	ToolsPodmanComposeNotManaged       = "podman compose provider is not installed through Homebrew"
 	ToolsPodmanUnmanagedMachine        = "podman machine %s is incomplete, but its storage ownership cannot be verified; repair or remove it manually"
 	ToolsPodmanInspectOutput           = "inspect podman machine state: %w"
 	ToolsPodmanReadConfig              = "read podman machine configuration: %w"
