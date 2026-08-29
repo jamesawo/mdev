@@ -4,14 +4,13 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 )
 
-func TestInstallProvisionsCLIAndDesktopInOrder(t *testing.T) {
+func TestInstallProvisionsCLIOnly(t *testing.T) {
 	bin := t.TempDir()
 	logPath := filepath.Join(t.TempDir(), "brew.log")
 	brewPath := filepath.Join(bin, "brew")
@@ -29,10 +28,8 @@ func TestInstallProvisionsCLIAndDesktopInOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := strings.FieldsFunc(strings.TrimSpace(string(output)), func(r rune) bool { return r == '\n' })
-	want := []string{"install podman", "install --cask podman-desktop"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("brew calls = %q, want %q", got, want)
+	if got, want := strings.TrimSpace(string(output)), "install podman"; got != want {
+		t.Fatalf("brew call = %q, want %q", got, want)
 	}
 }
 

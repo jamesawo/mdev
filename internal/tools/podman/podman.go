@@ -51,10 +51,7 @@ func (p *Podman) Install(env *environment.Environment) error {
 	return p.InstallContext(context.Background(), env)
 }
 func (*Podman) InstallContext(ctx context.Context, _ *environment.Environment) error {
-	if err := brew.InstallContext(ctx, "podman"); err != nil {
-		return err
-	}
-	return brew.InstallCaskContext(ctx, "podman-desktop")
+	return brew.InstallContext(ctx, "podman")
 }
 func (p *Podman) Configure(env *environment.Environment) error {
 	return p.ConfigureContext(context.Background(), env)
@@ -207,10 +204,7 @@ func (*Podman) VerifyContext(ctx context.Context, env *environment.Environment) 
 	return nil
 }
 func (*Podman) Uninstall(_ *environment.Environment) error {
-	return errors.Join(
-		brew.UninstallCask("podman-desktop"),
-		brew.Uninstall("podman"),
-	)
+	return brew.Uninstall("podman")
 }
 
 func init() { tools.Register(&Podman{}) }

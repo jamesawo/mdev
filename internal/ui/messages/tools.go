@@ -7,7 +7,7 @@ const (
 	ToolsSDKMANDescription             = "Java version manager"
 	ToolsMavenDescription              = "Java build automation tool"
 	ToolsGradleDescription             = "Build automation tool"
-	ToolsPodmanDescription             = "Container runtime with Podman Desktop"
+	ToolsPodmanDescription             = "Container runtime and managed machine"
 	ToolsPodmanUnmanagedMachine        = "podman machine %s is incomplete, but its storage ownership cannot be verified; repair or remove it manually"
 	ToolsPodmanInspectOutput           = "inspect podman machine state: %w"
 	ToolsPodmanReadConfig              = "read podman machine configuration: %w"
