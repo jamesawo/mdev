@@ -14,6 +14,12 @@ type ContextTool interface {
 	VerifyContext(context.Context, *environment.Environment) error
 }
 
+// ContextUninstaller is an optional extension for tools whose removal can be
+// cancelled and whose provider output participates in managed presentation.
+type ContextUninstaller interface {
+	UninstallContext(context.Context, *environment.Environment) error
+}
+
 // InstallContext invokes the context-aware install operation when available.
 func InstallContext(ctx context.Context, tool Tool, env *environment.Environment) error {
 	if contextual, ok := tool.(ContextTool); ok {
@@ -45,4 +51,15 @@ func VerifyContext(ctx context.Context, tool Tool, env *environment.Environment)
 		return err
 	}
 	return tool.Verify(env)
+}
+
+// UninstallContext invokes context-aware removal when available.
+func UninstallContext(ctx context.Context, tool Tool, env *environment.Environment) error {
+	if contextual, ok := tool.(ContextUninstaller); ok {
+		return contextual.UninstallContext(ctx, env)
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	return tool.Uninstall(env)
 }

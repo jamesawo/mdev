@@ -81,11 +81,14 @@ func (p *PodmanDesktop) VerifyContext(ctx context.Context, env *environment.Envi
 
 // Uninstall removes only a cask Homebrew identifies as installed. An existing
 // application outside that ownership boundary is deliberately preserved.
-func (*PodmanDesktop) Uninstall(*environment.Environment) error {
+func (p *PodmanDesktop) Uninstall(env *environment.Environment) error {
+	return p.UninstallContext(context.Background(), env)
+}
+func (*PodmanDesktop) UninstallContext(ctx context.Context, _ *environment.Environment) error {
 	if !brew.IsCaskInstalled(caskName) {
 		return nil
 	}
-	return brew.UninstallCask(caskName)
+	return brew.UninstallCaskContext(ctx, caskName)
 }
 
 func desktopApplicationPaths() []string {

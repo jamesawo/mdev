@@ -3,10 +3,10 @@ package podmancompose
 import (
 	"context"
 	"errors"
-	"os/exec"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	brew "github.com/jamesawo/mdev/internal/infrastructure/packagemanager"
+	"github.com/jamesawo/mdev/internal/infrastructure/subprocess"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/messages"
 )
@@ -61,16 +61,19 @@ func (p *PodmanCompose) VerifyContext(ctx context.Context, env *environment.Envi
 	if !brew.IsInstalled(formulaName) {
 		return errors.New(messages.ToolsPodmanComposeNotManaged)
 	}
-	return exec.CommandContext(ctx, formulaName, "--version").Run()
+	return subprocess.Check(ctx, formulaName, "--version")
 }
 
 // Uninstall removes only the Homebrew formula owned by this tool and leaves
 // the Podman machine and other Compose providers untouched.
-func (*PodmanCompose) Uninstall(*environment.Environment) error {
+func (p *PodmanCompose) Uninstall(env *environment.Environment) error {
+	return p.UninstallContext(context.Background(), env)
+}
+func (*PodmanCompose) UninstallContext(ctx context.Context, _ *environment.Environment) error {
 	if !brew.IsInstalled(formulaName) {
 		return nil
 	}
-	return brew.Uninstall(formulaName)
+	return brew.UninstallContext(ctx, formulaName)
 }
 
 func init() { tools.Register(&PodmanCompose{}) }

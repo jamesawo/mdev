@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/readiness"
@@ -95,7 +96,7 @@ func TestRunPlanContainsOnlyPendingWorkAndSkipsInstalledDependencies(t *testing.
 	if strings.Join(calls, ",") != strings.Join(wantCalls, ",") {
 		t.Fatalf("calls = %v, want %v", calls, wantCalls)
 	}
-	wantOutput := "install plan\n  gradle\ncontinue installation? (y/N): installing gradle...\nconfiguring gradle...\nverifying gradle...\n✓ gradle installed\n"
+	wantOutput := "install plan\n  gradle\ncontinue installation? (y/N): installing gradle... ✓\nconfiguring gradle... ✓\nverifying gradle... ✓\ngradle installed.\n"
 	if output.String() != wantOutput {
 		t.Fatalf("output = %q, want %q", output.String(), wantOutput)
 	}
@@ -107,14 +108,52 @@ func TestRunStopsAfterPhaseFailure(t *testing.T) {
 			var calls []string
 			tool := &fakeTool{name: "example", calls: &calls, fail: phase}
 			deps := testDependencies([]tools.Tool{tool}, []tools.Tool{tool}, map[string]bool{})
-			err := run(context.Background(), Streams{In: strings.NewReader(""), Out: &bytes.Buffer{}}, Options{Tool: tool.name, AssumeYes: true}, deps)
+			var output bytes.Buffer
+			err := run(context.Background(), Streams{In: strings.NewReader(""), Out: &output}, Options{Tool: tool.name, AssumeYes: true}, deps)
 			if err == nil || !strings.Contains(err.Error(), phase) {
 				t.Fatalf("error = %v, want phase context", err)
 			}
 			if calls[len(calls)-1] != phase+":"+tool.name {
 				t.Fatalf("calls = %v", calls)
 			}
+			if !strings.Contains(output.String(), "... ✗\n") {
+				t.Fatalf("failed phase was not closed truthfully: %q", output.String())
+			}
+			if strings.Contains(output.String(), "example installed.") {
+				t.Fatalf("failure produced final success: %q", output.String())
+			}
 		})
+	}
+}
+
+type providerFailureTool struct{ fakeTool }
+
+func (t *providerFailureTool) InstallContext(ctx context.Context, _ *environment.Environment) error {
+	return command.RunContext(ctx, "sh", "-c", "printf 'provider download chatter\\n'; printf 'provider root cause' >&2; exit 9")
+}
+
+func (t *providerFailureTool) ConfigureContext(context.Context, *environment.Environment) error {
+	return nil
+}
+
+func (t *providerFailureTool) VerifyContext(context.Context, *environment.Environment) error {
+	return nil
+}
+
+func TestRunSuppressesProviderChatterAndRetainsFailureDiagnostic(t *testing.T) {
+	var calls []string
+	tool := &providerFailureTool{fakeTool{name: "example", calls: &calls}}
+	deps := testDependencies([]tools.Tool{tool}, []tools.Tool{tool}, map[string]bool{})
+	var output bytes.Buffer
+	err := run(context.Background(), Streams{In: strings.NewReader(""), Out: &output}, Options{Tool: tool.name, AssumeYes: true}, deps)
+	if err == nil || !strings.Contains(err.Error(), "provider root cause") {
+		t.Fatalf("error = %v, want provider diagnostic", err)
+	}
+	if strings.Contains(output.String(), "provider download chatter") || strings.Contains(output.String(), "provider root cause") {
+		t.Fatalf("provider output leaked into normal presentation: %q", output.String())
+	}
+	if !strings.Contains(output.String(), "installing example... ✗") {
+		t.Fatalf("failed lifecycle phase is missing: %q", output.String())
 	}
 }
 
@@ -158,6 +197,36 @@ func TestRunCancellationDoesNotMutate(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "cancelled") {
 		t.Fatalf("output = %q", output.String())
+	}
+}
+
+type cancellingTool struct{ fakeTool }
+
+func (*cancellingTool) InstallContext(context.Context, *environment.Environment) error {
+	return context.Canceled
+}
+
+func (*cancellingTool) ConfigureContext(context.Context, *environment.Environment) error {
+	return nil
+}
+
+func (*cancellingTool) VerifyContext(context.Context, *environment.Environment) error {
+	return nil
+}
+
+func TestRunCancellationDuringPhaseDoesNotRenderFailureOrSuccess(t *testing.T) {
+	var calls []string
+	tool := &cancellingTool{fakeTool{name: "example", calls: &calls}}
+	deps := testDependencies([]tools.Tool{tool}, []tools.Tool{tool}, map[string]bool{})
+	var output bytes.Buffer
+	if err := run(context.Background(), Streams{In: strings.NewReader(""), Out: &output}, Options{Tool: tool.name, AssumeYes: true}, deps); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "installing example... cancelled\ninstallation cancelled.") {
+		t.Fatalf("cancellation presentation = %q", output.String())
+	}
+	if strings.Contains(output.String(), "✗") || strings.Contains(output.String(), "✓") || strings.Contains(output.String(), "installed.") {
+		t.Fatalf("cancellation implies success or failure: %q", output.String())
 	}
 }
 

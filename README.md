@@ -75,7 +75,34 @@ mdev resolves dependencies deterministically, then displays only pending
 lifecycle work and asks for confirmation. Already-complete dependencies remain
 part of validation but are not presented as tools mdev will install. Use the
 global `--yes` flag for unattended installation. Progress is written as plain
-text while each tool is installed, configured, and verified.
+text while each tool is installed, configured, and verified:
+
+```text
+installing podman-compose... ✓
+configuring podman-compose... ✓
+verifying podman-compose... ✓
+podman-compose installed.
+```
+
+mdev captures successful output from underlying installers, so Homebrew,
+SDKMAN, NVM, and other provider details do not overwhelm normal command output.
+If a provider fails, mdev identifies the affected tool and lifecycle phase and
+includes a concise useful diagnostic from the captured output.
+
+Uninstall follows the same managed presentation contract. Provider output is
+captured while mdev reports truthful tool-removal and managed-storage cleanup
+progress, for example:
+
+```text
+uninstalling podman... ✓
+cleaning podman storage... ✓
+podman removed.
+```
+
+System requirements such as Bash, Homebrew, Curl, Git, and Xcode Command Line
+Tools are protected by their shared prerequisite classification. `mdev
+uninstall <system-requirement>` explains that mdev cannot remove it and makes
+no changes.
 
 Re-running install is retry-safe: valid installations and completed
 dependencies are skipped, while partial work resumes through the owning tool's

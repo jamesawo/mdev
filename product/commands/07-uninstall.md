@@ -1,5 +1,55 @@
 # uninstall
 
+## purpose and presentation
+
+`mdev uninstall <tool>` removes a registered tool and any approved installed
+dependants in safe reverse dependency order. Tool implementations own removal
+mechanics. The uninstall workflow owns planning, consent, managed-storage
+cleanup, and the user experience.
+
+Registered system requirements are not uninstallable tools. Before loading
+mdev configuration or evaluating installed tool state, uninstall checks the
+shared prerequisite registry. Any canonical name classified there is rejected
+as a calm successful no-op:
+
+```text
+brew is a system requirement and cannot be uninstalled by mdev.
+```
+
+This rule applies generically to Bash, Homebrew, Curl, Git, Xcode Command Line
+Tools, and every future registered prerequisite. Uninstall must not hardcode
+individual prerequisite names or claim that a ready system requirement is not
+installed merely because it is absent from the tool registry.
+
+Normal output presents mdev lifecycle work rather than provider mechanics:
+
+```text
+uninstalling podman-compose... ✓
+uninstalling podman... ✓
+cleaning podman storage... ✓
+podman-compose removed.
+podman removed.
+```
+
+Successful Homebrew, SDKMAN, NVM, and other subprocess stdout or stderr is
+captured and does not stream into normal output. A failure closes the active
+phase without a success mark and returns a concise error identifying the tool
+and operation with bounded useful provider diagnostics. Successful provider
+chatter before a failure is not dumped merely because the final command fails.
+
+The same context-scoped execution boundary used by install applies to
+uninstall. It preserves cancellation and affects only workflows that opt into
+managed presentation; setup and doctor retain their approved behavior. The
+core `tools.Tool` contract remains compatible, with optional context-aware
+uninstall capability used where a provider subprocess must receive caller
+cancellation.
+
+Dependency warnings, plans, directory previews, prompts, progress, and final
+results use lowercase mdev product language and deterministic ordering.
+Provider-internal dependencies are never presented as mdev tools. A tool is
+reported removed only after its uninstall operation and any owned managed
+storage cleanup succeed.
+
 ## podman ownership
 
 The registered Podman tools have independent uninstall boundaries:

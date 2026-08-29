@@ -1,33 +1,25 @@
 package cmd
 
 import (
-	"github.com/jamesawo/mdev/internal/command/uninstall"
-	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	commanduninstall "github.com/jamesawo/mdev/internal/command/uninstall"
 	"github.com/jamesawo/mdev/internal/ui/messages"
-	"github.com/jamesawo/mdev/internal/ui/printer"
 	"github.com/spf13/cobra"
 )
 
+var defaultRunUninstall = commanduninstall.Run
+var runUninstall = defaultRunUninstall
+
 var uninstallCmd = &cobra.Command{
-	Use:   "uninstall [tool]",
+	Use:   messages.UninstallCommandUse,
 	Args:  cobra.ExactArgs(1),
 	Short: messages.UninstallCmdShortDescription,
 	Long:  messages.UninstallCmdLongDescription,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		name := args[0]
-
-		env, err := environment.FromConfig()
-		if err != nil {
-			printer.Fail(messages.UninstallEnvironmentNotConfigured)
-			printer.Info(messages.CommonRun + " " + messages.SetupCommand)
-			return
-		}
-
-		err = uninstall.Run(env, name)
-		if err != nil {
-			printer.Fail(err.Error())
-		}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runUninstall(cmd.Context(), commanduninstall.Streams{
+			In:  cmd.InOrStdin(),
+			Out: cmd.OutOrStdout(),
+			Err: cmd.ErrOrStderr(),
+		}, commanduninstall.Options{Tool: args[0], AssumeYes: confirmAll})
 	},
 }
 

@@ -86,6 +86,12 @@ func RunSDKMANCandidateContext(ctx context.Context, candidate, executable string
 // UninstallSDKMANCandidate removes only the current candidate version owned by
 // the mdev-managed SDKMAN installation.
 func UninstallSDKMANCandidate(candidate string) error {
+	return UninstallSDKMANCandidateContext(context.Background(), candidate)
+}
+
+// UninstallSDKMANCandidateContext removes only the current managed candidate
+// version with caller cancellation.
+func UninstallSDKMANCandidateContext(ctx context.Context, candidate string) error {
 	path, err := sdkmanCandidateExecutable(candidate, candidate)
 	if err != nil {
 		return err
@@ -118,7 +124,7 @@ func UninstallSDKMANCandidate(candidate string) error {
 	if err := os.Remove(currentLink); err != nil {
 		return err
 	}
-	if err := RunWithSDKMAN("sdk uninstall " + candidate + " " + version); err != nil {
+	if err := RunWithSDKMANContext(ctx, "sdk uninstall "+candidate+" "+version); err != nil {
 		restoreErr := os.Symlink(originalTarget, currentLink)
 		if restoreErr != nil {
 			return errors.Join(err, fmt.Errorf(messages.ToolsSDKMANRestoreCurrent, candidate, restoreErr))
