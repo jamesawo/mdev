@@ -21,9 +21,20 @@ func TestManagedRunRetainsFailureDiagnosticsAndCause(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "useful failure") {
 		t.Fatalf("error = %v, want captured diagnostic", err)
 	}
+	if strings.Contains(err.Error(), "download chatter") {
+		t.Fatalf("error includes successful stdout despite useful stderr: %v", err)
+	}
 	var exitErr *exec.ExitError
 	if !errors.As(err, &exitErr) || exitErr.ExitCode() != 7 {
 		t.Fatalf("error = %v, want preserved exit status 7", err)
+	}
+}
+
+func TestManagedRunUsesStdoutWhenFailureHasNoStderr(t *testing.T) {
+	ctx := WithManagedOutput(context.Background())
+	err := Run(ctx, "sh", "-c", "printf 'stdout-only failure'; exit 1")
+	if err == nil || !strings.Contains(err.Error(), "stdout-only failure") {
+		t.Fatalf("error = %v, want stdout diagnostic", err)
 	}
 }
 

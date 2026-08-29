@@ -14,7 +14,7 @@ import (
 const (
 	maxCapturedBytes   = 64 * 1024
 	maxDiagnosticBytes = 4 * 1024
-	maxDiagnosticLines = 20
+	maxDiagnosticLines = 8
 )
 
 type managedOutputKey struct{}
@@ -37,11 +37,12 @@ func Run(ctx context.Context, name string, args ...string) error {
 		return cmd.Run()
 	}
 
-	output := &tailWriter{limit: maxCapturedBytes}
-	cmd.Stdout = output
-	cmd.Stderr = output
+	stdout := &tailWriter{limit: maxCapturedBytes}
+	stderr := &tailWriter{limit: maxCapturedBytes}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
-		return withDiagnostic(err, output.String())
+		return withDiagnostic(err, diagnosticOutput(stdout.String(), stderr.String()))
 	}
 	return nil
 }
@@ -50,11 +51,12 @@ func Run(ctx context.Context, name string, args ...string) error {
 // and returns bounded output only when the command fails.
 func Check(ctx context.Context, name string, args ...string) error {
 	cmd := exec.CommandContext(ctx, name, args...)
-	output := &tailWriter{limit: maxCapturedBytes}
-	cmd.Stdout = output
-	cmd.Stderr = output
+	stdout := &tailWriter{limit: maxCapturedBytes}
+	stderr := &tailWriter{limit: maxCapturedBytes}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
-		return withDiagnostic(err, output.String())
+		return withDiagnostic(err, diagnosticOutput(stdout.String(), stderr.String()))
 	}
 	return nil
 }
@@ -83,6 +85,13 @@ func withDiagnostic(err error, output string) error {
 		return nil
 	}
 	return &commandError{err: err, diagnostic: conciseDiagnostic(output)}
+}
+
+func diagnosticOutput(stdout, stderr string) string {
+	if strings.TrimSpace(stderr) != "" {
+		return stderr
+	}
+	return stdout
 }
 
 func conciseDiagnostic(output string) string {
