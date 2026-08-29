@@ -19,6 +19,8 @@ import (
 	_ "github.com/jamesawo/mdev/internal/tools/maven"
 	_ "github.com/jamesawo/mdev/internal/tools/nvm"
 	_ "github.com/jamesawo/mdev/internal/tools/podman"
+	_ "github.com/jamesawo/mdev/internal/tools/podmancompose"
+	_ "github.com/jamesawo/mdev/internal/tools/podmandesktop"
 	_ "github.com/jamesawo/mdev/internal/tools/sdkman"
 )
 

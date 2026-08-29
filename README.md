@@ -87,6 +87,23 @@ Java, Gradle, and Maven are installed through mdev's managed SDKMAN
 installation. Existing Homebrew or other unmanaged JVM-tool installations are
 left untouched and do not count as mdev-managed completion.
 
+Podman support is split into three explicit tools:
+
+```text
+podman
+├── podman-desktop
+└── podman-compose
+```
+
+`mdev install podman` installs the CLI and initializes its macOS machine without
+starting it. The machine's large data files remain below the configured mdev
+storage root at `<storage_path>/podman`, reached through Podman's conventional
+home-directory path. Install `podman-desktop` for the optional GUI or
+`podman-compose` for the optional Compose provider; each depends on `podman`.
+The add-ons do not own or duplicate the machine data. `mdev install --all`
+includes all three tools. mdev does not add Docker aliases or modify shell
+configuration.
+
 Install defensively checks only the system prerequisites required by the
 resolved tool plan. If the machine has drifted since setup, it fails before tool
 mutation and recommends setup or doctor for recovery.

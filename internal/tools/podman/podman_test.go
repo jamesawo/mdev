@@ -4,14 +4,13 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
 )
 
-func TestInstallProvisionsCLIAndDesktopInOrder(t *testing.T) {
+func TestInstallProvisionsCLIOnly(t *testing.T) {
 	bin := t.TempDir()
 	logPath := filepath.Join(t.TempDir(), "brew.log")
 	brewPath := filepath.Join(bin, "brew")
@@ -29,10 +28,8 @@ func TestInstallProvisionsCLIAndDesktopInOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := strings.FieldsFunc(strings.TrimSpace(string(output)), func(r rune) bool { return r == '\n' })
-	want := []string{"install podman", "install --cask podman-desktop"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("brew calls = %q, want %q", got, want)
+	if got, want := strings.TrimSpace(string(output)), "install podman"; got != want {
+		t.Fatalf("brew call = %q, want %q", got, want)
 	}
 }
 
@@ -140,5 +137,53 @@ func TestPathWithinRejectsSiblingDirectory(t *testing.T) {
 	}
 	if pathWithin(root, root+"-other/disk.raw") {
 		t.Fatal("sibling artifact path was accepted as managed")
+	}
+}
+
+func TestUninstallRemovesManagedMachineBeforeCLI(t *testing.T) {
+	home := t.TempDir()
+	bin := t.TempDir()
+	logPath := filepath.Join(t.TempDir(), "commands.log")
+	machineState := podmanMachineDir(home)
+	configDir := filepath.Join(home, ".config", "containers", "podman", "machine", "applehv")
+	identity := filepath.Join(machineState, "machine")
+	image := filepath.Join(machineState, "applehv", "podman-machine-default.raw")
+	for _, path := range []string{identity, image} {
+		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("state"), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	config := `{"SSH":{"IdentityPath":"` + identity + `"},"ImagePath":{"Path":"` + image + `"}}`
+	if err := os.WriteFile(filepath.Join(configDir, "podman-machine-default.json"), []byte(config), 0600); err != nil {
+		t.Fatal(err)
+	}
+	podmanScript := "#!/bin/sh\nif [ \"$*\" = \"machine inspect\" ]; then printf '%s' '[{\"Name\":\"podman-machine-default\",\"ConfigDir\":{\"Path\":\"" + configDir + "\"}}]'; exit 0; fi\nprintf 'podman %s\\n' \"$*\" >> \"$MDEV_TEST_COMMAND_LOG\"\n"
+	brewScript := "#!/bin/sh\nprintf 'brew %s\\n' \"$*\" >> \"$MDEV_TEST_COMMAND_LOG\"\n"
+	if err := os.WriteFile(filepath.Join(bin, "podman"), []byte(podmanScript), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bin, "brew"), []byte(brewScript), 0755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HOME", home)
+	t.Setenv("PATH", bin)
+	t.Setenv("MDEV_TEST_COMMAND_LOG", logPath)
+
+	if err := (&Podman{}).Uninstall(environment.New(t.TempDir())); err != nil {
+		t.Fatal(err)
+	}
+	content, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "podman machine rm --force podman-machine-default\nbrew uninstall podman"
+	if got := strings.TrimSpace(string(content)); got != want {
+		t.Fatalf("commands = %q, want %q", got, want)
 	}
 }

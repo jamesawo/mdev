@@ -93,8 +93,27 @@ Uninstall: mdev uninstall <tool>
 ```
 
 Install does not fabricate versions, perform updates, or start normal runtime
-state. Podman provisioning may initialize required machine configuration, but
-install does not start the machine.
+state. The `podman` tool installs the CLI and may initialize required managed
+machine configuration, but install does not start the machine. Podman Desktop
+and the Compose provider are separate tools named `podman-desktop` and
+`podman-compose`; both depend on `podman` and are never installed implicitly by
+`mdev install podman`.
+
+The Podman ownership model is:
+
+```text
+podman
+├── podman-desktop
+└── podman-compose
+```
+
+`podman` exclusively owns the managed Podman machine and its storage.
+`podman-desktop` owns only the Desktop application, and `podman-compose` owns
+only the Compose provider. Existing user-managed installations are detected
+where practical and are never removed merely because mdev discovers them.
+`mdev install --all` retains its literal meaning and includes all three
+registered tools. This work does not add Docker aliases or modify shell
+configuration.
 
 ## progress and output
 
