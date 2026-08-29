@@ -123,12 +123,40 @@ verify, skip, completion, cancellation, and failure boundaries are observable
 through an injected reporter so presentation can evolve independently from
 orchestration.
 
-This iteration uses stable plain text in terminals and redirected/non-interactive
-output. It does not reuse the terminal-only doctor spinner, add a spinner
-dependency, or introduce a broad event/streaming framework.
+Normal human-readable output presents mdev lifecycle work rather than the
+underlying installer's mechanics:
 
-All mdev-owned output uses Cobra's configured streams. Tool-native subprocess
-output may continue to stream through the tool's infrastructure.
+```text
+installing podman-compose... ✓
+configuring podman-compose... ✓
+verifying podman-compose... ✓
+podman-compose installed.
+```
+
+The same presentation applies to every registered tool and every pending mdev
+dependency regardless of whether its implementation uses Homebrew, SDKMAN,
+NVM, a direct download, or another provider. A phase receives a success mark
+only after its lifecycle operation succeeds. The final installed sentence is
+written only after verification succeeds.
+
+Successful raw provider stdout and stderr are captured and do not stream into
+normal output. Package-manager-internal dependencies, download messages,
+extraction details, paths, and other provider chatter are never rendered as
+mdev plan items or lifecycle progress. Captured output is not discarded:
+failures retain a concise, bounded useful diagnostic together with the mdev
+tool and lifecycle phase.
+
+Install uses stable progressive text in terminals and redirected or
+non-interactive output. A phase start is visible while long-running work is in
+progress, without inventing a percentage. Output contains no animation frames
+or terminal control sequences. Install has no machine-readable mode, and this
+presentation must not affect JSON output owned by other commands.
+
+All mdev-owned output uses Cobra's configured streams. The install workflow
+activates managed subprocess capture through a reusable execution boundary;
+concrete tools remain unaware of generic lifecycle rendering. Other commands
+retain their approved subprocess presentation unless they explicitly opt into
+the same managed boundary.
 
 All mdev-owned install copy uses lowercase product language. Native output from
 Homebrew, SDKMAN, macOS, and other external programs is preserved as emitted.
@@ -189,5 +217,5 @@ narrow defensive preflight; it does not depend on doctor command code or
 duplicate prerequisite checks.
 
 Do not add PostgreSQL, `mdev update`, JSON output, service lifecycle behavior,
-tool-name switches, a new spinner dependency, or speculative architectural
-layers as part of this work.
+tool-name switches, a verbose/debug flag, a new spinner dependency, or
+speculative architectural layers as part of this work.
