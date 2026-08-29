@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/tools"
 	"github.com/jamesawo/mdev/internal/ui/confirmation"
 	"github.com/jamesawo/mdev/internal/ui/messages"
@@ -27,14 +28,15 @@ type Streams struct {
 }
 
 type workflowDependencies struct {
-	loadEnvironment func() (*environment.Environment, error)
-	buildPlan       func(string) ([]string, error)
-	status          func(string, *environment.Environment) (bool, error)
-	getTool         func(string) (tools.Tool, bool)
-	stat            func(string) (os.FileInfo, error)
-	removeAll       func(string) error
-	uninstall       func(context.Context, tools.Tool, *environment.Environment) error
-	newReporter     func(io.Writer) progressReporter
+	loadEnvironment     func() (*environment.Environment, error)
+	buildPlan           func(string) ([]string, error)
+	status              func(string, *environment.Environment) (bool, error)
+	getTool             func(string) (tools.Tool, bool)
+	stat                func(string) (os.FileInfo, error)
+	removeAll           func(string) error
+	uninstall           func(context.Context, tools.Tool, *environment.Environment) error
+	newReporter         func(io.Writer) progressReporter
+	isSystemRequirement func(string) bool
 }
 
 // Run resolves, confirms, and executes a managed uninstall request.
@@ -51,6 +53,10 @@ func defaultWorkflowDependencies() workflowDependencies {
 		removeAll:       os.RemoveAll,
 		uninstall:       tools.UninstallContext,
 		newReporter:     func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+		isSystemRequirement: func(name string) bool {
+			_, ok := prerequisites.Get(name)
+			return ok
+		},
 		status: func(name string, env *environment.Environment) (bool, error) {
 			tool, ok := tools.Get(name)
 			if !ok {
@@ -65,6 +71,9 @@ func run(ctx context.Context, streams Streams, options Options, deps workflowDep
 	reporter := deps.newReporter(streams.Out)
 	if ctx.Err() != nil {
 		return reporter.Cancelled()
+	}
+	if deps.isSystemRequirement(options.Tool) {
+		return reporter.SystemRequirement(options.Tool)
 	}
 	env, err := deps.loadEnvironment()
 	if err != nil {

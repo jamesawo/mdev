@@ -25,6 +25,7 @@ provider output is captured while mdev reports truthful lifecycle progress.`
 	UninstallPhaseCancelled           = "cancelled\n"
 	UninstallRemoved                  = "%s removed.\n"
 	UninstallNotInstalled             = "%s is not installed.\n"
+	UninstallSystemRequirement        = "%s is a system requirement and cannot be uninstalled by mdev.\n"
 	UninstallRequiredBy               = "  %s is required by:\n"
 	UninstallPhaseTool                = "uninstall"
 	UninstallPhaseStorage             = "storage"

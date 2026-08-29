@@ -12,6 +12,7 @@ import (
 
 	"github.com/jamesawo/mdev/internal/command"
 	"github.com/jamesawo/mdev/internal/infrastructure/environment"
+	"github.com/jamesawo/mdev/internal/infrastructure/prerequisites"
 	"github.com/jamesawo/mdev/internal/tools"
 )
 
@@ -45,7 +46,38 @@ func testWorkflowDependencies(t *testing.T, plan []string, registered map[string
 			installed[tool.Name()] = false
 			return nil
 		},
-		newReporter: func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+		newReporter:         func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+		isSystemRequirement: func(string) bool { return false },
+	}
+}
+
+func TestRunProtectsEveryRegisteredSystemRequirementBeforeOtherWork(t *testing.T) {
+	for _, prerequisite := range prerequisites.List() {
+		t.Run(prerequisite.Name(), func(t *testing.T) {
+			deps := workflowDependencies{
+				isSystemRequirement: func(name string) bool {
+					_, ok := prerequisites.Get(name)
+					return ok
+				},
+				newReporter: func(out io.Writer) progressReporter { return newTextProgressReporter(out) },
+				loadEnvironment: func() (*environment.Environment, error) {
+					t.Fatal("environment loaded for system requirement")
+					return nil, nil
+				},
+				buildPlan: func(string) ([]string, error) {
+					t.Fatal("plan built for system requirement")
+					return nil, nil
+				},
+			}
+			var output bytes.Buffer
+			if err := run(context.Background(), Streams{Out: &output}, Options{Tool: prerequisite.Name()}, deps); err != nil {
+				t.Fatal(err)
+			}
+			want := prerequisite.Name() + " is a system requirement and cannot be uninstalled by mdev.\n"
+			if output.String() != want {
+				t.Fatalf("output = %q, want %q", output.String(), want)
+			}
+		})
 	}
 }
 

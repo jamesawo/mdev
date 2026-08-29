@@ -16,6 +16,7 @@ type progressReporter interface {
 	Failed(string, string) error
 	Completed([]string) error
 	NotInstalled(string) error
+	SystemRequirement(string) error
 	Cancelled() error
 }
 
@@ -106,6 +107,11 @@ func (r *textProgressReporter) Completed(names []string) error {
 
 func (r *textProgressReporter) NotInstalled(name string) error {
 	_, err := fmt.Fprintf(r.out, messages.UninstallNotInstalled, name)
+	return err
+}
+
+func (r *textProgressReporter) SystemRequirement(name string) error {
+	_, err := fmt.Fprintf(r.out, messages.UninstallSystemRequirement, name)
 	return err
 }
 

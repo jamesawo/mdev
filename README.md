@@ -99,6 +99,11 @@ cleaning podman storage... ✓
 podman removed.
 ```
 
+System requirements such as Bash, Homebrew, Curl, Git, and Xcode Command Line
+Tools are protected by their shared prerequisite classification. `mdev
+uninstall <system-requirement>` explains that mdev cannot remove it and makes
+no changes.
+
 Re-running install is retry-safe: valid installations and completed
 dependencies are skipped, while partial work resumes through the owning tool's
 lifecycle. Install does not update valid tools or start their normal runtime

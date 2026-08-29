@@ -7,6 +7,20 @@ dependants in safe reverse dependency order. Tool implementations own removal
 mechanics. The uninstall workflow owns planning, consent, managed-storage
 cleanup, and the user experience.
 
+Registered system requirements are not uninstallable tools. Before loading
+mdev configuration or evaluating installed tool state, uninstall checks the
+shared prerequisite registry. Any canonical name classified there is rejected
+as a calm successful no-op:
+
+```text
+brew is a system requirement and cannot be uninstalled by mdev.
+```
+
+This rule applies generically to Bash, Homebrew, Curl, Git, Xcode Command Line
+Tools, and every future registered prerequisite. Uninstall must not hardcode
+individual prerequisite names or claim that a ready system requirement is not
+installed merely because it is absent from the tool registry.
+
 Normal output presents mdev lifecycle work rather than provider mechanics:
 
 ```text
