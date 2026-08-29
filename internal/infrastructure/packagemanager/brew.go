@@ -45,6 +45,12 @@ func UninstallCask(pkg string) error {
 	return r.Run("brew", "uninstall", "--cask", pkg)
 }
 
+// IsCaskInstalled reports whether Homebrew owns the named installed cask.
+func IsCaskInstalled(pkg string) bool {
+	cmd := exec.Command("brew", "list", "--cask", pkg)
+	return cmd.Run() == nil
+}
+
 func IsInstalled(pkg string) bool {
 
 	cmd := exec.Command("brew", "list", pkg)
