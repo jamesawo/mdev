@@ -89,6 +89,16 @@ SDKMAN, NVM, and other provider details do not overwhelm normal command output.
 If a provider fails, mdev identifies the affected tool and lifecycle phase and
 includes a concise useful diagnostic from the captured output.
 
+Uninstall follows the same managed presentation contract. Provider output is
+captured while mdev reports truthful tool-removal and managed-storage cleanup
+progress, for example:
+
+```text
+uninstalling podman... ✓
+cleaning podman storage... ✓
+podman removed.
+```
+
 Re-running install is retry-safe: valid installations and completed
 dependencies are skipped, while partial work resumes through the owning tool's
 lifecycle. Install does not update valid tools or start their normal runtime
